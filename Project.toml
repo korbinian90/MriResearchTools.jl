@@ -4,6 +4,7 @@ authors = ["korbi <korbinian90@gmail.com>"]
 version = "0.1.0"
 
 [deps]
+FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
 GZip = "92fee26a-97fe-5a0c-ad85-20a5f3185b63"
 Mmap = "a63ad114-7e13-5084-954f-fe012c677804"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
