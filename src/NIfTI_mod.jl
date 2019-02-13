@@ -8,7 +8,7 @@
 using GZip, Mmap
 
 import Base.getindex, Base.size, Base.ndims, Base.length, Base.write, Base64
-export NIVolume, niread, niwrite, voxel_size, time_step, vox, getaffine, setaffine, write_emptynii, NIfTI1Header
+#export NIVolume, niread, niwrite, voxel_size, time_step, vox, getaffine, setaffine, write_emptynii, NIfTI1Header
 
 function define_packed(ty::DataType)
     packed_offsets = cumsum([sizeof(x) for x in ty.types])
