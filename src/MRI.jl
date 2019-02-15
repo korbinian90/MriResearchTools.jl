@@ -8,7 +8,7 @@ include("hussein3d.jl")
 include("laplacianunwrapping.jl")
 include("intensitycorrection.jl")
 include("SWI.jl")
-include("VSMBasedUnwarping.jl")
+include("VSMbasedunwarping.jl")
 
 export Data,
         readphase,
