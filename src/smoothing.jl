@@ -5,7 +5,7 @@ function gaussiansmooth3d(image, σ; kwargs...)
     gaussiansmooth3d!(Float32.(image), σ; kwargs...)
 end
 
-function gaussiansmooth3d!(image, σ; mask = nothing, nbox = 4, weight = nothing, dims = 1:3)
+function gaussiansmooth3d!(image, σ = [5,5,5]; mask = nothing, nbox = 4, weight = nothing, dims = 1:3, boxsizes = nothing)
 
     if typeof(mask) != Nothing
         nbox = 8
@@ -15,7 +15,7 @@ function gaussiansmooth3d!(image, σ; mask = nothing, nbox = 4, weight = nothing
         image[mask .== 0] .= NaN
     end
 
-    boxsizes = getboxsizes.(σ, nbox)
+    if boxsizes == nothing boxsizes = getboxsizes.(σ, nbox) end
 
     for ibox in 1:nbox, dim in dims
         # TODO parallel?
@@ -79,7 +79,7 @@ function boxfilterline!(line::AbstractVector, boxsize::Int)
     checkboxsize(boxsize)
 
     r = div(boxsize, 2)
-    orig = copy(line)
+    orig = copy(line) #TODO could be with circular queue instead to avoid memory allocation
     lsum::Float64 = sum(orig[1:boxsize])
 
     for i in (r+2):(length(line)-r)
@@ -95,7 +95,7 @@ function boxfilterline!(line::AbstractVector, boxsize::Int, weight::AbstractVect
 
     r = div(boxsize, 2)
 
-    lfast = copy(line)
+    lfast = copy(line) #TODO is it really faster??
     wfast = copy(weight)
 
     wsmooth = wsum = sum = eps() # slightly bigger than 0 to avoid division by 0

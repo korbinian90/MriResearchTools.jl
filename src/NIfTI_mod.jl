@@ -423,22 +423,13 @@ Base.copy(x::NIfTI1Header) = NIfTI1Header([getfield(x, k) for k ∈ fieldnames(N
 
 function write_emptynii(sz::AbstractVector{Int}, path::AbstractString; datatype::DataType = Float64, header::NIfTI1Header = NIVolume(zeros(datatype, 1)).header)
     header = copy(header)
-
-    file = open(path, "w")
-
-    dim = ones(Int16, 8)
-    dim[1] = length(sz)
-    dim[2:dim[1]+1] .= sz
-
-    header.dim = (dim...,)
-
+    header.dim = Int16.((length(sz), sz..., ones(8-1-length(sz))...))
     header.datatype = nidatatype(datatype)
     header.bitpix = nibitpix(datatype)
+
+    if isfile(path) rm(path) end
+    file = open(path, "w")
     write(file, header)
-    #emptyslice = zeros(datatype, sz[1:2])
-    #for i in 1:prod(sz[3:end])
-    #    write(file, emptyslice)
-    #end
     close(file)
 end
 
@@ -568,8 +559,8 @@ function niread(file::AbstractString; mmap::Bool=false, write::Bool=false)
 end
 
 # Allow file to be indexed like an array, but with indices yielding scaled data
-@inline getindex(f::NIVolume{T}, idx::Vararg{Int}) where {T} =
-    getindex(f.raw, idx...,) * f.header.scl_slope + f.header.scl_inter
+@inline getindex(f::NIVolume{T}, idx...) where {T} =
+    getindex(f.raw, idx...) .* f.header.scl_slope .+ f.header.scl_inter
 
 add1(x::Union{AbstractArray{T},T}) where {T<:Integer} = x + 1
 add1(::Colon) = Colon()

@@ -4,6 +4,7 @@ using Statistics
 
 include("NIfTI_mod.jl")
 include("utility.jl")
+include("smoothing.jl")
 include("hussein3d.jl")
 include("laplacianunwrapping.jl")
 include("intensitycorrection.jl")
@@ -11,22 +12,22 @@ include("SWI.jl")
 include("VSMbasedunwarping.jl")
 
 export Data,
-        readphase,
+        readphase, readmag,
         savenii,
         createniiforwriting,
         getrobustmask, robustmask!,
         NIVolume,
-        niread,
-        niwrite,
+        niread, niwrite,
         write_emptynii,
+        getHIP,
         hussein3d, hussein3d!,
         laplacianunwrap, laplacianunwrap!,
         calculateSWI,
         getVSM,
         unwarp,
         thresholdforward,
-        unwarp_mag_phase!,
         gaussiansmooth3d!, gaussiansmooth3d,
-        makehomogeneous!, makehomogeneous
+        makehomogeneous!, makehomogeneous,
+        getscaledimage
 
 end # module
