@@ -1,7 +1,7 @@
 # mask should be 3D
 # image can have any higher dimension
 
-function gaussiansmooth3d(image, σ; kwargs...)
+function gaussiansmooth3d(image, σ = [5,5,5]; kwargs...)
     gaussiansmooth3d!(Float32.(image), σ; kwargs...)
 end
 

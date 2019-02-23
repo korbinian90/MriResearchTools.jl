@@ -19,4 +19,4 @@
     pqterm(sz::NTuple{1}) = (1:sz[1]).^2  # 1D case
     pqterm(sz::NTuple{2}) = [p^2 + q^2 for p in 1:sz[1], q in 1:sz[2]]  # 2D case
     pqterm(sz::NTuple{3}) = [p^2 + q^2 + t^2 for p in 1:sz[1], q in 1:sz[2], t in 1:sz[3]]  # 3D case
-    pqterm(sz::NTuple{4}) = [p^2 + q^2 + t^2 + r^2 for p in 1:sz[1], q in 1:sz[2], t in 1:sz[3], r in 1:sz[4]]  # 4D case TODO does it make sense?
+    pqterm(sz::NTuple{4}) = [p^2 + q^2 + t^2 + r^2 for p in 1:sz[1], q in 1:sz[2], t in 1:sz[3], r in 1:sz[4]]  # 4D case
