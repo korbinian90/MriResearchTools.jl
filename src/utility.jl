@@ -83,7 +83,6 @@ end
 
 function getrobustmask(weight)
     noisemask = weight .<= mean(weight)
-    @show typeof(weight)
     noisemean = mean(weight[noisemask])
 
     signalmean = mean(weight[.!noisemask])
