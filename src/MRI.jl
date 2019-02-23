@@ -1,7 +1,5 @@
 module MRI
 
-using Statistics
-
 include("NIfTI_mod.jl")
 include("utility.jl")
 include("smoothing.jl")
