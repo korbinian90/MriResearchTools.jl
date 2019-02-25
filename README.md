@@ -2,17 +2,19 @@
 
 Reading and writing NIfTI files (adapted from JuliaIO/NIfTI)
 
-magnitude homogeneity correction
+Magnitude homogeneity correction ([example](https://github.com/korbinian90/Magnitude-Intensity-Correction/blob/master/Intensity%20Correction.ipynb))
 
-simple robust masking (threshold)
+Simple robust masking (threshold)
 
-combine multiple echoes
+Combine multiple echoes
 
-laplacian unwrapping
+Laplacian unwrapping
 
-unwarping of B0 dependent shifts
+Unwarping of B0 dependent shifts
 
-fast gaussian smoothing
+Fast gaussian smoothing
 - standard
 - weighted
 - with missing values
+
+TODO: Tests and Examples
