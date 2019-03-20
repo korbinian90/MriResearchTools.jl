@@ -506,6 +506,11 @@ function niread(file::AbstractString; mmap::Bool=false, write::Bool=false)
     dtype = NIfTI_DT_BITSTYPES[header.datatype]
 
     local volume
+
+    if splitext(file)[2] != ".nii"
+        header.magic = NI1_MAGIC
+    end
+
     if header.magic == NP1_MAGIC
         if mmap
             if header_gzipped

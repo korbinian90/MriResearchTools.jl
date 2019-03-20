@@ -26,6 +26,7 @@ function readphase(fn; keyargs...)
         phase.header.scl_slope = 2pi / (maxp - minp + 1)
         phase.header.scl_inter = -pi - minp * phase.header.scl_slope
     end
+    if any(isnan.(phase.raw)) println("WARNING: there are NaNs in the image: $fn") end
     return phase
 end
 
@@ -36,13 +37,14 @@ function readmag(fn; keyargs...)
         mag.header.scl_slope = 1 / maxi
         mag.header.scl_inter = 0
     end
+    if any(isnan.(mag.raw)) println("WARNING: there are NaNs in the image: $fn") end
     return mag
 end
 
 function minmaxmiddleslice(image)
     ones = repeat([1], ndims(image)-3)
     middle = div(size(image, 3), 2)
-    image[:,:,middle,ones...] |> I -> (minimum(I), maximum(I))
+    view(image,:,:,middle,ones...) |> I -> (minimum(I), maximum(I))
 end
 
 savenii(image, name, writedir; kwargs...) = savenii(image, joinpath(writedir, name * ".nii"); kwargs...)
@@ -51,7 +53,10 @@ savenii(image::BitArray, filepath; kwargs...) = niwrite(filepath, NIVolume([k[2]
 #savenii(image, filepath) = niwrite(filepath, NIVolume(image))
 
 function createniiforwriting(im, name::AbstractString, writedir::AbstractString; datatype::DataType = Float64, header = NIVolume(zeros(datatype, 1)).header)
-    filepath = joinpath(writedir, name * ".nii")
+    if !occursin(r"\.nii$", name)
+        name *= ".nii"
+    end
+    filepath = joinpath(writedir, name)
     createniiforwriting(im, filepath; datatype = datatype, header = header)
 end
 
@@ -113,19 +118,6 @@ end
 
 # root sum of squares combination
 RSS(mag; dim = ndims(mag)) = dropdims(.√sum(mag.^Float32(2); dims = dim); dims = dim)
-
-combine_echoes(mag::AbstractArray{T,3}) where T     = copy(mag) # do nothing for 3D array
-combine_echoes(mag::AbstractArray{T,4}) where T     = RSS(mag)
-
-combine_echoes(unwrapped::AbstractArray{T,3}, mag, TEs) where T   = copy(phase)
-function combine_echoes(unwrapped::AbstractArray{T,4}, mag, TEs) where T
-    dim = 4
-    TEs = reshape(TEs, ones(Int, dim-1)..., length(TEs)) # size = (1,1,1,nEco)
-
-    combined = sum(unwrapped .* mag; dims = dim)
-    combined ./= sum(mag .* Float32.(TEs); dims = dim)
-    dropdims(combined; dims = dim)
-end
 
 function getscaledimage(array, div::Number, offset = 0, type::Symbol = :trans)
     array = reshape(array, size(array)[1:2]) # drops singleton dimensions

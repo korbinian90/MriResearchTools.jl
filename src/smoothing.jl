@@ -14,7 +14,7 @@ function gaussiansmooth3d!(image, σ = [5,5,5]; mask = nothing, nbox = 4, weight
         #boxsizes = getboxsizes.(σ, nbox)
         image[mask .== 0] .= NaN
     end
-
+    if typeof(weight) != Nothing  w = Float32.(weight) end
     if boxsizes == nothing boxsizes = getboxsizes.(σ, nbox) end
 
     for ibox in 1:nbox, dim in dims
@@ -27,7 +27,7 @@ function gaussiansmooth3d!(image, σ = [5,5,5]; mask = nothing, nbox = 4, weight
                     im = view(image, I, ifelse(isodd(ibox), :, size(image, dim):-1:1), J)
                     nanboxfilterline!(im, boxsizes[dim][ibox])
                 elseif typeof(weight) != Nothing
-                    boxfilterline!(view(image,I,:,J), boxsizes[dim][ibox], view(weight,I,:,J))
+                    boxfilterline!(view(image,I,:,J), boxsizes[dim][ibox], view(w,I,:,J))
                 else
                     boxfilterline!(view(image,I,:,J), boxsizes[dim][ibox])
                 end
@@ -82,7 +82,7 @@ function boxfilterline!(line::AbstractVector, boxsize::Int)
     orig = copy(line) #TODO could be with circular queue instead to avoid memory allocation
     lsum::Float64 = sum(orig[1:boxsize])
 
-    for i in (r+2):(length(line)-r)
+    @inbounds for i in (r+2):(length(line)-r)
         lsum += orig[i+r] - orig[i-r-1]
         line[i] = lsum / boxsize
     end
@@ -99,13 +99,13 @@ function boxfilterline!(line::AbstractVector, boxsize::Int, weight::AbstractVect
     wfast = copy(weight)
 
     wsmooth = wsum = sum = eps() # slightly bigger than 0 to avoid division by 0
-    for i in 1:boxsize
+    @inbounds for i in 1:boxsize
         sum += lfast[i] * wfast[i]
         wsum += wfast[i]
         wsmooth += wfast[i]^2
     end
 
-    for i in (r+2):(length(line)-r)
+    @inbounds for i in (r+2):(length(line)-r)
         w = wfast[i+r]
         l = lfast[i+r]
         wold = wfast[i-r-1]
@@ -138,7 +138,7 @@ function nanboxfilterline!(line::AbstractVector, boxsize::Int)
 
     mode = :nan
 
-    for i in 1:length(line)
+    @inbounds for i in 1:length(line)
         # TODO remove isnan check if it runs stable
         if isnan(lsum) @warn "lsum nan"; break end
 

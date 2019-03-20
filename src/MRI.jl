@@ -8,7 +8,7 @@ include("intensitycorrection.jl")
 include("VSMbasedunwarping.jl")
 
 export Data,
-        readphase, readmag,
+        readphase, readmag, niread,
         savenii,
         createniiforwriting,
         getrobustmask, robustmask!,

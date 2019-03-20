@@ -16,7 +16,7 @@ function getsigma(pixdim)
     return σ1, σ2
 end
 
-function makehomogeneous!(mag; pixdim = ones(ndims(mag)), maxiteration = 10)
+function makehomogeneous!(mag; pixdim, maxiteration = 10)
     σ1, σ2 = getsigma(pixdim)
     firstecho = view(mag,:,:,:,1)
 
