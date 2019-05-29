@@ -25,29 +25,35 @@ function unwarp!(unwarped, VSM, distorted)
     xi = 1:size(distorted, 1)
     for J in CartesianIndices(size(distorted)[4:end])
         for I in CartesianIndices(size(distorted)[2:3])
-            xnew = xi .+ VSM[:,I]
-            xregrid = (xnew[1] .<= xi .<= xnew[end]) # only use x values inside (no extrapolation)
+            xtrue = xi .+ VSM[:,I]
+            xregrid = (xtrue[1] .<= xi .<= xtrue[end]) # only use x values inside (no extrapolation)
             unwarped[.!xregrid,I,J] .= 0
-            unwarped[xregrid,I,J] .= interpolate((xnew,), distorted[:,I,J], Gridded(Linear()))(xi[xregrid]) #TODO try better interpolation than linear
+            unwarped[xregrid,I,J] .= unwarpline(xtrue, distorted[:,I,J], xi[xregrid])
         end
     end
     unwarped
 end
 
-
-function getVSM(B0, rbw, threshold = 5.0)
-    VSM = B0 ./ (2 * pi * rbw)
-    VSM .= thresholdforward(VSM, -0.9, threshold)
+function unwarpline(xtrue, distorted, xnew)
+    #TODO try better interpolation than linear
+    interpolate((xtrue,), distorted, Gridded(Linear()))(xnew)
 end
 
-threshold(VSM, tmin, tmax) = (thresholdforward(VSM, tmin, tmax) .+ thresholdforward(VSM[end:-1:1,:,:], -tmax, -tmin))[end:-1:1,:,:] ./ 2.0
+function getVSM(B0, rbw, dim, threshold = 5.0)
+    VSM = B0 ./ (2π * rbw)
+    thresholdforward(VSM, -0.9, threshold, dim)
+end
 
-function thresholdforward(VSM, tmin, tmax)
+function thresholdforward(VSM, tmin, tmax, dim)
+    if dim == 2
+        VSM = switchdim(VSM)
+    end
+
     deltaVSM = VSM[2:end,:,:] .- VSM[1:(end-1),:,:]
     VSMret = copy(VSM)
     nx = size(VSM, 1)
     for I in CartesianIndices(size(VSM)[2:3])
-        for x in 1:(nx - 1)
+        for x in 1:(nx-1)
             if deltaVSM[x,I] < tmin || deltaVSM[x,I] > tmax
                 if deltaVSM[x,I] < tmin
                     diff = tmin - deltaVSM[x,I]
@@ -61,5 +67,12 @@ function thresholdforward(VSM, tmin, tmax)
             end
         end
     end
+
+    if dim == 2
+        VSMret = switchdim(VSMret)
+    end
     VSMret
 end
+
+# TODO not properly working
+threshold(VSM, tmin, tmax, dim) = (thresholdforward(VSM, tmin, tmax, dim) .+ thresholdforward(VSM[end:-1:1,:,:], -tmax, -tmin, dim))[end:-1:1,:,:] ./ 2.0

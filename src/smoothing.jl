@@ -2,7 +2,7 @@
 # image can have any higher dimension
 
 function gaussiansmooth3d(image, σ = [5,5,5]; kwargs...)
-    gaussiansmooth3d!(Float32.(image), σ; kwargs...)
+    gaussiansmooth3d!(copy(image), σ; kwargs...)
 end
 
 function gaussiansmooth3d!(image, σ = [5,5,5]; mask = nothing, nbox = 4, weight = nothing, dims = 1:3, boxsizes = nothing)
@@ -18,7 +18,7 @@ function gaussiansmooth3d!(image, σ = [5,5,5]; mask = nothing, nbox = 4, weight
     if boxsizes == nothing boxsizes = getboxsizes.(σ, nbox) end
 
     for ibox in 1:nbox, dim in dims
-        # TODO parallel?
+        # TODO parallel? -> Distributed arrays?
         #loop = Iterators.product((size(image) |> sz -> (sz[1:(dim-1)], sz[(dim+1):end]) .|> CartesianIndices)...)
         #Threads.@threads for (I, J) in collect(loop)
         for I in CartesianIndices(size(image)[1:(dim-1)])

@@ -1,23 +1,5 @@
 using Statistics, Images
 
-struct Data
-    path
-    dirphase
-    fnphase
-    dirmag
-    fnmag
-    name
-    TEs
-    rbw
-    readoutdim
-end
-
-function Data(;path = "", dirphase = "", fnphase = "", dirmag = "", fnmag = "", name, TEs = [], rbw = 0, readoutdim = 0)
-    if isempty(fnmag) fnmag = joinpath(path, dirmag, "Image.nii") end
-    if isempty(fnphase) fnphase = joinpath(path, dirphase, "Image.nii") end
-    Data(path, dirphase, fnphase, dirmag, fnmag, name, TEs, rbw, readoutdim)
-end
-
 #TODO open not writable as standard
 function readphase(fn; keyargs...)
     phase = niread(fn; keyargs...)
@@ -42,12 +24,16 @@ function readmag(fn; keyargs...)
 end
 
 function minmaxmiddleslice(image)
-    ones = repeat([1], ndims(image)-3)
-    middle = div(size(image, 3), 2)
-    view(image,:,:,middle,ones...) |> I -> (minimum(I), maximum(I))
+    slice = if ndims(image) ≥ 3 (
+            ones = repeat([1], ndims(image)-3);
+            middle = div(size(image, 3), 2);
+            view(image,:,:,middle,ones...))
+        else image
+        end
+     minimum(slice), maximum(slice)
 end
 
-savenii(image, name, writedir; kwargs...) = savenii(image, joinpath(writedir, name * ".nii"); kwargs...)
+savenii(image, name, writedir; kwargs...) = savenii(image, @show joinpath(writedir, name * ".nii"); kwargs...)
 savenii(image, filepath; kwargs...) = niwrite(filepath, NIVolume([k[2] for k in kwargs]..., image))
 savenii(image::BitArray, filepath; kwargs...) = niwrite(filepath, NIVolume([k[2] for k in kwargs]..., UInt8.(image)))
 #savenii(image, filepath) = niwrite(filepath, NIVolume(image))

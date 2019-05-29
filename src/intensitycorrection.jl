@@ -1,11 +1,12 @@
 using Statistics
 
 const SIGMA_IN_MM = 7
+const DEBUG = false
 
 # make other input types possible
 makehomogeneous(mag::NIVolume, datatype = eltype(mag); keyargs...) = makehomogeneous!(datatype.(mag); pixdim = mag.header.pixdim[2:(1+ndims(mag))], keyargs...)
 makehomogeneous(mag, datatype = eltype(mag); keyargs...) = makehomogeneous!(datatype.(mag); keyargs...)
-makehomogeneous!(mag::NIVolume) = makehomogeneous!(mag; pixdim = mag.header.pixdim[2:(1+ndims(mag))], keyargs...)
+
 
 # split sigma in two parts
 function getsigma(pixdim)
@@ -16,16 +17,26 @@ function getsigma(pixdim)
     return σ1, σ2
 end
 
-function makehomogeneous!(mag; pixdim, maxiteration = 10)
+getsensitivity(mag::NIVolume; keyargs...) = getsensitivity(mag; pixdim = mag.header.pixdim[2:(1+ndims(mag))], keyargs...)
+function getsensitivity(mag; pixdim, maxiteration = 10)
     σ1, σ2 = getsigma(pixdim)
     firstecho = view(mag,:,:,:,1)
 
     mask = getrobustmask(firstecho)
-    lowpass = gaussiansmooth3d(firstecho, σ1)
+    lowpass = gaussiansmooth3d(firstecho, σ1 .+ σ2; mask = mask)
+    DEBUG && savenii(lowpass, "lowpass", save_path)
     segmentation = boxsegment(firstecho ./ lowpass, mask)
+    DEBUG && savenii(segmentation, "segmentation", save_path)
     lowpass = iterative(firstecho, mask, segmentation, σ1, maxiteration)
+    DEBUG && savenii(lowpass, "lowpass_after_it", save_path)
     fillandsmooth!(lowpass, mean(firstecho[mask]), σ2)
+    DEBUG && savenii(lowpass, "lowpass_after_fillsmooth", save_path)
 
+    return lowpass
+end
+
+function makehomogeneous!(mag; keyargs...)
+    lowpass = getsensitivity(mag; keyargs...)
     if eltype(mag) <: AbstractFloat
         mag ./= lowpass
     else # Integer
@@ -44,6 +55,7 @@ function fillandsmooth!(lowpass, stablemean, σ2)
 end
 
 function threshold(image, mask; lowthresh = 0.95)
+    # TODO masked = image[mask .& .!(insan.(masked))]
     masked = image[mask]
     masked[isnan.(masked)] .= 0
 
@@ -54,7 +66,7 @@ function threshold(image, mask; lowthresh = 0.95)
         m = 0
     end
 
-    (lowthresh*m .< image .< 1.5m) .& mask
+    (lowthresh*m .< image .< 1.1m) .& mask
 end
 
 threshold(image) = threshold(image, getrobustmask(image))
@@ -64,10 +76,13 @@ function iterative(firstecho, mask, segmentation, sigma, maxiteration)
     local wm_mask = segmentation
     for i in 1:maxiteration
         lowpass = gaussiansmooth3d(firstecho, sigma; mask = wm_mask, nbox = 8)
+        DEBUG && savenii(lowpass, "lowpass_$i", save_path)
         highpass = firstecho ./ lowpass
         highpass[.!isfinite.(highpass)] .= 0
+        DEBUG && savenii(highpass, "highpass_$i", save_path)
 
         new_mask = threshold(highpass, mask; lowthresh = 0.99)
+        DEBUG && savenii(new_mask, "new_mask_$i", save_path)
 
         if i > 1
             change = sum(new_mask .!= wm_mask) / length(wm_mask)

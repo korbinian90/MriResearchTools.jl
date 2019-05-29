@@ -7,13 +7,13 @@
     end
 
     # Schofield and Zhu 2003, https://doi.org/10.1364/OL.28.001194
-    k(ϕw) = 1 / 2π .* ∇⁻²(∇²(ϕw, :notwrapped) - ∇²(ϕw))  # (1)
+    k(ϕw) = 1 / 2π .* ∇⁻²(∇²_nw(ϕw) - ∇²(ϕw))  # (1)
 
     ∇²(x) = -(2π)^ndims(x) / length(x) .* idct(pqterm(size(x)) .* dct(x))  # (2)
 
     ∇⁻²(x) = -length(x) / (2π)^ndims(x) .* idct(dct(x) ./ pqterm(size(x)))  # (3)
 
-    ∇²(ϕw, notwrapped) = cos.(ϕw) .* ∇²(sin.(ϕw)) .- sin.(ϕw) .* ∇²(cos.(ϕw))  # (in text)
+    ∇²_nw(ϕw) = cos.(ϕw) .* ∇²(sin.(ϕw)) .- sin.(ϕw) .* ∇²(cos.(ϕw))  # (in text)
 
 
     pqterm(sz::NTuple{1}) = (1:sz[1]).^2  # 1D case

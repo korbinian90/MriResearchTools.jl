@@ -21,7 +21,10 @@ export Data,
         thresholdforward,
         gaussiansmooth3d!, gaussiansmooth3d,
         makehomogeneous!, makehomogeneous,
-        getscaledimage
+        getsensitivity,
+        getscaledimage,
+        estimatequantile,
+        RSS
 
 end # module
 
