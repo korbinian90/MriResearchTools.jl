@@ -2,6 +2,7 @@ using Statistics
 
 const SIGMA_IN_MM = 7
 const DEBUG = false
+const SAVE_PATH = "F:/MRI/Analysis/debug_hom"
 
 # make other input types possible
 makehomogeneous(mag::NIVolume, datatype = eltype(mag); keyargs...) = makehomogeneous!(datatype.(mag); pixdim = mag.header.pixdim[2:(1+ndims(mag))], keyargs...)
@@ -18,19 +19,21 @@ function getsigma(pixdim)
 end
 
 getsensitivity(mag::NIVolume; keyargs...) = getsensitivity(mag; pixdim = mag.header.pixdim[2:(1+ndims(mag))], keyargs...)
-function getsensitivity(mag; pixdim, maxiteration = 10)
+function getsensitivity(mag; pixdim, maxiteration = 1)
     σ1, σ2 = getsigma(pixdim)
     firstecho = view(mag,:,:,:,1)
 
+    DEBUG && savenii(mag, "mag", SAVE_PATH)
     mask = getrobustmask(firstecho)
+    DEBUG && savenii(mask, "mask", SAVE_PATH)
     lowpass = gaussiansmooth3d(firstecho, σ1 .+ σ2; mask = mask)
-    DEBUG && savenii(lowpass, "lowpass", save_path)
+    DEBUG && savenii(lowpass, "lowpass", SAVE_PATH)
     segmentation = boxsegment(firstecho ./ lowpass, mask)
-    DEBUG && savenii(segmentation, "segmentation", save_path)
+    DEBUG && savenii(segmentation, "segmentation", SAVE_PATH)
     lowpass = iterative(firstecho, mask, segmentation, σ1, maxiteration)
-    DEBUG && savenii(lowpass, "lowpass_after_it", save_path)
+    DEBUG && savenii(lowpass, "lowpass_after_it", SAVE_PATH)
     fillandsmooth!(lowpass, mean(firstecho[mask]), σ2)
-    DEBUG && savenii(lowpass, "lowpass_after_fillsmooth", save_path)
+    DEBUG && savenii(lowpass, "lowpass_after_fillsmooth", SAVE_PATH)
 
     return lowpass
 end
@@ -76,37 +79,39 @@ function iterative(firstecho, mask, segmentation, sigma, maxiteration)
     local wm_mask = segmentation
     for i in 1:maxiteration
         lowpass = gaussiansmooth3d(firstecho, sigma; mask = wm_mask, nbox = 8)
-        DEBUG && savenii(lowpass, "lowpass_$i", save_path)
+        DEBUG && savenii(lowpass, "lowpass_$i", SAVE_PATH)
         highpass = firstecho ./ lowpass
         highpass[.!isfinite.(highpass)] .= 0
-        DEBUG && savenii(highpass, "highpass_$i", save_path)
+        DEBUG && savenii(highpass, "highpass_$i", SAVE_PATH)
 
         new_mask = threshold(highpass, mask; lowthresh = 0.99)
-        DEBUG && savenii(new_mask, "new_mask_$i", save_path)
+        DEBUG && savenii(new_mask, "new_mask_$i", SAVE_PATH)
 
         if i > 1
-            change = sum(new_mask .!= wm_mask) / length(wm_mask)
-            if change < 0.01 break end
+            change = sum(new_mask .!= wm_mask) / sum(new_mask)
+            if change < 0.02 break end
+            if change > 1 break end
         end
         wm_mask = new_mask
     end
     lowpass
 end
 
-function boxsegment!(image::AbstractArray{T,3}, mask; nboxes = 15) where T <: AbstractFloat
+function boxsegment!(image::AbstractArray{T}, mask; nboxes = 15) where T <: AbstractFloat
     image[boxsegment(image, mask; nboxes = nboxes)] .= NaN
     image
 end
 
 # TODO check if inside box is only noise -> no pre mask required (std < 2 * mean ?)
-function boxsegment(image, mask; nboxes = 20)
+function boxsegment(image, mask; nboxes = 15)
     N = size(image)
-    boxsize = round.(Int, N ./ nboxes)
+    dim = ndims(image)
+    boxsize = max.(20, round.(Int, N ./ nboxes))
     boxshift = ceil.(Int, boxsize ./ 2)
 
     segmented = copy(mask) #TODO: sure this is a good initialization value?
-    for t in Iterators.product([1:boxshift[i]:N[i] for i in 1:3]...)
-        I = CartesianIndices( ntuple(d -> t[d]:min(t[d] + boxsize[d] - 1, N[d]), 3) )
+    for t in Iterators.product([1:boxshift[i]:N[i] for i in 1:dim]...)
+        I = CartesianIndices( ntuple(d -> t[d]:min(t[d] + boxsize[d] - 1, N[d]), dim) )
         # I is a box
         segmented[I] = segmented[I] .& threshold(image[I], mask[I])
     end

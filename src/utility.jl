@@ -1,13 +1,11 @@
-using Statistics, Images
+using Statistics#, Images
 
 #TODO open not writable as standard
 function readphase(fn; keyargs...)
     phase = niread(fn; keyargs...)
-    if eltype(phase.raw) <: Integer
-        minp, maxp = minmaxmiddleslice(phase.raw)
-        phase.header.scl_slope = 2pi / (maxp - minp + 1)
-        phase.header.scl_inter = -pi - minp * phase.header.scl_slope
-    end
+    minp, maxp = minmaxmiddleslice(phase.raw)
+    phase.header.scl_slope = 2pi / (maxp - minp)
+    phase.header.scl_inter = -pi - minp * phase.header.scl_slope
     if any(isnan.(phase.raw)) println("WARNING: there are NaNs in the image: $fn") end
     return phase
 end
@@ -33,10 +31,15 @@ function minmaxmiddleslice(image)
      minimum(slice), maximum(slice)
 end
 
-savenii(image, name, writedir; kwargs...) = savenii(image, @show joinpath(writedir, name * ".nii"); kwargs...)
-savenii(image, filepath; kwargs...) = niwrite(filepath, NIVolume([k[2] for k in kwargs]..., image))
-savenii(image::BitArray, filepath; kwargs...) = niwrite(filepath, NIVolume([k[2] for k in kwargs]..., UInt8.(image)))
-#savenii(image, filepath) = niwrite(filepath, NIVolume(image))
+savenii(image, name, writedir::Nothing, header = nothing) = nothing
+savenii(image, name, writedir::String, header = nothing) = savenii(image, @show joinpath(writedir, name * ".nii"); header = header)
+function savenii(image, filepath; header = nothing)
+    if typeof(image) <: BitArray
+        image = UInt8.(image)
+    end
+    vol = NIVolume([h for h in [header] if h != nothing]..., image)
+    niwrite(filepath, vol)
+end
 
 function createniiforwriting(im, name::AbstractString, writedir::AbstractString; datatype::DataType = Float64, header = NIVolume(zeros(datatype, 1)).header)
     if !occursin(r"\.nii$", name)
@@ -73,13 +76,17 @@ function robustmask!(image; maskedvalue = if eltype(image) <: AbstractFloat NaN 
 end
 
 function getrobustmask(weight)
-    noisemask = weight .<= mean(weight)
+    notnan = isfinite.(weight)
+    mean1 = mean(weight[notnan])
+    noisemask = weight .< mean1
     noisemean = mean(weight[noisemask])
+    if !isfinite(noisemean) return ones(size(weight)) end
 
-    signalmean = mean(weight[.!noisemask])
+    signalmean = mean(weight[.!noisemask .& notnan])
     noise_σ = std(weight[noisemask])
 
-    weight .> noisemean + noise_σ
+    mask = weight .> noisemean + noise_σ
+    #closing(mask) .& notnan
 end
 
 getcomplex(mag::NIVolume, phase::NIVolume) = getcomplex(mag.raw, phase.raw)

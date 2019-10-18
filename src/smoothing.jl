@@ -8,13 +8,16 @@ end
 function gaussiansmooth3d!(image, σ = [5,5,5]; mask = nothing, nbox = 4, weight = nothing, dims = 1:3, boxsizes = nothing)
 
     if typeof(mask) != Nothing
-        nbox = 8
+        nbox *= 2
         # TODO do we need small boxsize?
         #@show boxsizes = getboxsizes_small.(σ, nbox, 5)
         #boxsizes = getboxsizes.(σ, nbox)
         image[mask .== 0] .= NaN
     end
-    if typeof(weight) != Nothing  w = Float32.(weight) end
+    if typeof(weight) != Nothing
+          w = Float32.(weight)
+          w[w .== 0] .= minimum(w[w .!= 0])
+      end
     if boxsizes == nothing boxsizes = getboxsizes.(σ, nbox) end
 
     for ibox in 1:nbox, dim in dims
@@ -131,7 +134,7 @@ function nanboxfilterline!(line::AbstractVector, boxsize::Int)
     orig = [repeat([NaN], r); line; repeat([NaN], r)]
 
 
-    lsum = sum(orig[r:2r])
+    lsum = sum(orig[r+1:2r])
     if isnan(lsum) lsum = 0. end
     nfills = 0
     nvalids = 0
