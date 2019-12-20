@@ -1,8 +1,6 @@
 # VSMBasedUnwarping.jl
 # Methods for unwarping geometric distortions in MRI images
 
-using Interpolations
-
 function unwarp(VSM, distorted, dim)
     if dim == 2
         distorted = switchdim(distorted)

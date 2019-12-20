@@ -1,5 +1,3 @@
-using Statistics
-
 const SIGMA_IN_MM = 7
 const DEBUG = false
 const SAVE_PATH = "F:/MRI/Analysis/debug_hom"

@@ -1,5 +1,3 @@
-using Statistics, Images
-
 #TODO open not writable as standard
 function readphase(fn; keyargs...)
     phase = niread(fn; keyargs...)

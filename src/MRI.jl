@@ -1,5 +1,7 @@
 module MRI
 
+using Statistics, Interpolations, FFTW, Images
+
 include("NIfTI_mod.jl")
 include("utility.jl")
 include("smoothing.jl")
