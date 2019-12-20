@@ -1,4 +1,4 @@
-using Statistics#, Images
+using Statistics, Images
 
 #TODO open not writable as standard
 function readphase(fn; keyargs...)

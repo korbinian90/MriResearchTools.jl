@@ -41,14 +41,18 @@ function gaussiansmooth3d!(image, σ = [5,5,5]; mask = nothing, nbox = 4, weight
 end
 
 function getboxsizes(σ, n)
-    wideal = √( (12σ^2 / n) + 1 )
-    wl::Int = round(wideal - (wideal + 1) % 2) # next lower odd integer
-    wu::Int = wl + 2
+    try
+        wideal = √( (12σ^2 / n) + 1 )
+        wl::Int = round(wideal - (wideal + 1) % 2) # next lower odd integer
+        wu::Int = wl + 2
 
-    mideal = (12σ^2 - n*wl.^2 - 4n*wl - 3n) / (-4wl - 4)
-    m = round(mideal)
+        mideal = (12σ^2 - n*wl.^2 - 4n*wl - 3n) / (-4wl - 4)
+        m = round(mideal)
 
-    [if i <= m wl else wu end for i in 1:n]
+        [if i <= m wl else wu end for i in 1:n]
+    catch
+        zeros(n)
+    end
 end
 
 # TODO compare with MATLAB
