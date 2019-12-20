@@ -2,5 +2,5 @@ using MRI
 using Test
 
 @testset "MRI.jl" begin
-    # Write your own tests here.
+    include("utility_test.jl")
 end

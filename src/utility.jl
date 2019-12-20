@@ -1,17 +1,17 @@
 #TODO open not writable as standard
 function readphase(fn; keyargs...)
     phase = niread(fn; keyargs...)
-    minp, maxp = minmaxmiddleslice(phase.raw)
+    minp, maxp = getextrema(phase)
     phase.header.scl_slope = 2pi / (maxp - minp)
     phase.header.scl_inter = -pi - minp * phase.header.scl_slope
     if any(isnan.(phase.raw)) println("WARNING: there are NaNs in the image: $fn") end
     return phase
 end
 
-function readmag(fn; keyargs...)
+function readmag(fn; normalize=false, keyargs...)
     mag = niread(fn; keyargs...)
-    if mag.header.scl_slope == 0
-        _, maxi = minmaxmiddleslice(mag.raw)
+    if mag.header.scl_slope == 0 || normalize
+        _, maxi = getextrema(mag)
         mag.header.scl_slope = 1 / maxi
         mag.header.scl_inter = 0
     end
@@ -19,15 +19,7 @@ function readmag(fn; keyargs...)
     return mag
 end
 
-function minmaxmiddleslice(image)
-    slice = if ndims(image) ≥ 3 (
-            ones = repeat([1], ndims(image)-3);
-            middle = div(size(image, 3), 2);
-            view(image,:,:,middle,ones...))
-        else image
-        end
-     minimum(slice), maximum(slice)
-end
+getextrema(image::NIVolume) = image.raw[1:10:end] |> I -> (minimum(I), maximum(I)) # sample every tenth value
 
 savenii(image, name, writedir::Nothing, header = nothing) = nothing
 savenii(image, name, writedir::String, header = nothing) = savenii(image, @show joinpath(writedir, name * ".nii"); header = header)
@@ -58,7 +50,11 @@ function createniiforwriting(sz::AbstractVector{Int}, filepath::AbstractString; 
     niread(filepath, mmap = true, write = true).raw
 end
 
-function getHIP(mag, phase; echoes = [1,3])
+"""
+    getHIP(mag, phase; echoes=[1,2])
+return the hermitian inner product between the specified echoes.
+"""
+function getHIP(mag, phase; echoes=[1,2])
     e1, e2 = echoes
     compl = zeros(ComplexF64, size(mag)[1:3])
     for iCha in 1:size(mag, 5)
@@ -152,10 +148,9 @@ function robustrescale!(array, newmin, newmax; threshold = false, mask = trues(s
 end
 
 function estimatequantile(array, p)
-    # only use 5 samples of each higher dimension
-    # TODO take 100 x 16 consecutive with linear indexing (bound checking!)
-    inds = [unique(round.(Int, LinRange(1, sz, 5))) for sz in size(array)[2:end]]
-    quantile(array[:, inds...][:], p)
+    samples = 1e5
+    step = ceil(Int, length(array) / samples)
+    quantile(array[1:step:end], p)
 end
 
 function rescale(array, newmin, newmax; datatype = eltype(array))
@@ -163,8 +158,7 @@ function rescale(array, newmin, newmax; datatype = eltype(array))
 end
 
 function rescale!(array, newmin, newmax)
-    # TODO sample function to take only every.. elem block (faster)
-    oldmin, oldmax = extrema(array)
+    oldmin, oldmax = getextrema(array)
     factor = (newmax - newmin) / (oldmax - oldmin)
     array .= (array .- oldmin) .* factor .+ newmin
 end
