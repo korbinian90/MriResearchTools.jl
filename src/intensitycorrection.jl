@@ -1,5 +1,4 @@
 const SIGMA_IN_MM = 7
-const DEBUG = false
 const SAVE_PATH = "F:/MRI/Analysis/debug_hom"
 
 # make other input types possible
@@ -21,17 +20,17 @@ function getsensitivity(mag; pixdim, maxiteration = 1)
     σ1, σ2 = getsigma(pixdim)
     firstecho = view(mag,:,:,:,1)
 
-    DEBUG && savenii(mag, "mag", SAVE_PATH)
+    @debug savenii(mag, "mag", SAVE_PATH)
     mask = getrobustmask(firstecho)
-    DEBUG && savenii(mask, "mask", SAVE_PATH)
+    @debug savenii(mask, "mask", SAVE_PATH)
     lowpass = gaussiansmooth3d(firstecho, σ1 .+ σ2; mask = mask)
-    DEBUG && savenii(lowpass, "lowpass", SAVE_PATH)
+    @debug savenii(lowpass, "lowpass", SAVE_PATH)
     segmentation = boxsegment(firstecho ./ lowpass, mask)
-    DEBUG && savenii(segmentation, "segmentation", SAVE_PATH)
+    @debug savenii(segmentation, "segmentation", SAVE_PATH)
     lowpass = iterative(firstecho, mask, segmentation, σ1, maxiteration)
-    DEBUG && savenii(lowpass, "lowpass_after_it", SAVE_PATH)
+    @debug savenii(lowpass, "lowpass_after_it", SAVE_PATH)
     fillandsmooth!(lowpass, mean(firstecho[mask]), σ2)
-    DEBUG && savenii(lowpass, "lowpass_after_fillsmooth", SAVE_PATH)
+    @debug savenii(lowpass, "lowpass_after_fillsmooth", SAVE_PATH)
 
     return lowpass
 end
@@ -77,13 +76,13 @@ function iterative(firstecho, mask, segmentation, sigma, maxiteration)
     local wm_mask = segmentation
     for i in 1:maxiteration
         lowpass = gaussiansmooth3d(firstecho, sigma; mask = wm_mask, nbox = 8)
-        DEBUG && savenii(lowpass, "lowpass_$i", SAVE_PATH)
+        @debug savenii(lowpass, "lowpass_$i", SAVE_PATH)
         highpass = firstecho ./ lowpass
         highpass[.!isfinite.(highpass)] .= 0
-        DEBUG && savenii(highpass, "highpass_$i", SAVE_PATH)
+        @debug savenii(highpass, "highpass_$i", SAVE_PATH)
 
         new_mask = threshold(highpass, mask; lowthresh = 0.99)
-        DEBUG && savenii(new_mask, "new_mask_$i", SAVE_PATH)
+        @debug savenii(new_mask, "new_mask_$i", SAVE_PATH)
 
         if i > 1
             change = sum(new_mask .!= wm_mask) / sum(new_mask)
