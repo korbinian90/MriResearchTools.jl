@@ -164,5 +164,5 @@ function rescale!(array, newmin, newmax)
 end
 
 mmtovoxel(sizemm, nii::NIVolume) = mmtovoxel(sizemm, nii.header)
-mmtovoxel(sizemm, header::NIfTI1Header) = mmtovoxel(sizemm, header.pixdim)
+mmtovoxel(sizemm, header::NIfTI.NIfTI1Header) = mmtovoxel(sizemm, header.pixdim)
 mmtovoxel(sizemm, pixdim) = sizemm ./ pixdim
