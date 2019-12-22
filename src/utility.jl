@@ -1,7 +1,7 @@
 #TODO open not writable as standard
 function readphase(fn; keyargs...)
     phase = niread(fn; keyargs...)
-    minp, maxp = getextrema(phase)
+    minp, maxp = approxextrema(phase)
     phase.header.scl_slope = 2pi / (maxp - minp)
     phase.header.scl_inter = -pi - minp * phase.header.scl_slope
     if any(isnan.(phase.raw)) println("WARNING: there are NaNs in the image: $fn") end
@@ -11,7 +11,7 @@ end
 function readmag(fn; normalize=false, keyargs...)
     mag = niread(fn; keyargs...)
     if mag.header.scl_slope == 0 || normalize
-        _, maxi = getextrema(mag)
+        _, maxi = approxextrema(mag)
         mag.header.scl_slope = 1 / maxi
         mag.header.scl_inter = 0
     end
@@ -19,7 +19,7 @@ function readmag(fn; normalize=false, keyargs...)
     return mag
 end
 
-getextrema(image::NIVolume) = image.raw[1:10:end] |> I -> (minimum(I), maximum(I)) # sample every tenth value
+approxextrema(image::NIVolume) = image.raw[1:10:end] |> I -> (minimum(I), maximum(I)) # sample every tenth value
 
 savenii(image, name, writedir::Nothing, header = nothing) = nothing
 savenii(image, name, writedir::String, header = nothing) = savenii(image, @show joinpath(writedir, name * ".nii"); header = header)
@@ -158,7 +158,7 @@ function rescale(array, newmin, newmax; datatype = eltype(array))
 end
 
 function rescale!(array, newmin, newmax)
-    oldmin, oldmax = getextrema(array)
+    oldmin, oldmax = approxextrema(array)
     factor = (newmax - newmin) / (oldmax - oldmin)
     array .= (array .- oldmin) .* factor .+ newmin
 end
