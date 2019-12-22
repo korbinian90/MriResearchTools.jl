@@ -274,6 +274,14 @@ version = "0.4.3"
 [[Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
+[[NIfTI]]
+deps = ["Base64", "GZip", "MappedArrays", "Mmap", "Test"]
+git-tree-sha1 = "2e70f7d17d16d0feff1f983f2784eb6f041cb974"
+repo-rev = "master"
+repo-url = "https://github.com/korbinian90/NIfTI.jl"
+uuid = "f897abbf-c5d9-45cb-bf89-9f7f579a29ec"
+version = "0.1.0"
+
 [[NaNMath]]
 git-tree-sha1 = "928b8ca9b2791081dc71a51c55347c27c618760f"
 uuid = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
