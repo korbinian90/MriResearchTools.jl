@@ -28,5 +28,3 @@ export Data,
         RSS
 
 end # module
-
-# TODO create tests
