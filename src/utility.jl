@@ -119,7 +119,7 @@ function getscaledimage(array, div::Number, offset = 0, type::Symbol = :trans)
         scaled = reverse(permutedims(scaled, [2 1]); dims = 1)
     else
     end
-    Gray.(scaled)
+    scaled
 end
 
 function getscaledimage(array, type::Symbol = :trans)
