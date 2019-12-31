@@ -19,6 +19,27 @@ function readmag(fn; normalize=false, keyargs...)
     return mag
 end
 
+Base.copy(x::NIfTI.NIfTI1Header) = NIfTI.NIfTI1Header([getfield(x, k) for k ∈ fieldnames(NIfTI.NIfTI1Header)]...)
+
+function write_emptynii(sz::AbstractVector{Int}, path::AbstractString; datatype::DataType = Float64, header::NIfTI.NIfTI1Header = NIVolume(zeros(datatype, 1)).header)
+    header = copy(header)
+    header.dim = Int16.((length(sz), sz..., ones(8-1-length(sz))...))
+    header.datatype = nidatatype(datatype)
+    header.bitpix = nibitpix(datatype)
+
+    if isfile(path) rm(path) end
+    file = open(path, "w")
+    write(file, header)
+    close(file)
+end
+
+function Base.similar(header::NIfTI.NIfTI1Header)
+    hdr = NIfTI.copy(header)
+    hdr.scl_inter = 0
+    hdr.scl_slope = 1
+    hdr
+end
+
 approxextrema(image::NIVolume) = image.raw[1:10:end] |> I -> (minimum(I), maximum(I)) # sample every tenth value
 
 savenii(image, name, writedir::Nothing, header = nothing) = nothing
