@@ -21,18 +21,6 @@ end
 
 Base.copy(x::NIfTI.NIfTI1Header) = NIfTI.NIfTI1Header([getfield(x, k) for k ∈ fieldnames(NIfTI.NIfTI1Header)]...)
 
-function write_emptynii(sz::AbstractVector{Int}, path::AbstractString; datatype::DataType = Float64, header::NIfTI.NIfTI1Header = NIVolume(zeros(datatype, 1)).header)
-    header = copy(header)
-    header.dim = Int16.((length(sz), sz..., ones(8-1-length(sz))...))
-    header.datatype = nidatatype(datatype)
-    header.bitpix = nibitpix(datatype)
-
-    if isfile(path) rm(path) end
-    file = open(path, "w")
-    write(file, header)
-    close(file)
-end
-
 function Base.similar(header::NIfTI.NIfTI1Header)
     hdr = NIfTI.copy(header)
     hdr.scl_inter = 0
@@ -52,23 +40,33 @@ function savenii(image, filepath; header = nothing)
     niwrite(filepath, vol)
 end
 
-function createniiforwriting(im, name::AbstractString, writedir::AbstractString; datatype::DataType = Float64, header = NIVolume(zeros(datatype, 1)).header)
+function createniiforwriting(im::AbstractArray, name, writedir; kwargs...)
     if !occursin(r"\.nii$", name)
         name *= ".nii"
     end
     filepath = joinpath(writedir, name)
-    createniiforwriting(im, filepath; datatype = datatype, header = header)
+    createniiforwriting(im, filepath; kwargs...)
 end
-
-function createniiforwriting(im::AbstractArray, filepath::AbstractString; datatype::DataType = eltype(im), header = NIVolume(zeros(datatype, 1)).header)
-    nii = createniiforwriting(size(im), filepath; datatype = datatype, header = header)
+function createniiforwriting(im::AbstractArray, filepath; datatype=eltype(im), kwargs...)
+    nii = createniiforwriting(size(im), filepath; datatype=datatype, kwargs...)
     nii .= im
+    return nii
+end
+function createniiforwriting(sz, filepath; kwargs...)
+    write_emptynii(sz, filepath; kwargs...)
+    return niread(filepath, mmap=true, mode="r+").raw
 end
 
-createniiforwriting(sz::Tuple, filepath::AbstractString; datatype::DataType = Float64, header = NIVolume(zeros(datatype, 1)).header) = createniiforwriting([sz...], filepath; datatype = datatype, header = header)
-function createniiforwriting(sz::AbstractVector{Int}, filepath::AbstractString; datatype::DataType = Float64, header = NIVolume(zeros(datatype, 1)).header)
-    write_emptynii(sz, filepath, datatype = datatype, header = header)
-    niread(filepath, mmap = true, write = true).raw
+function write_emptynii(sz, path; datatype=Float64, header=NIVolume(zeros(datatype, 1)).header)
+    header = copy(header)
+    header.dim = Int16.((length(sz), sz..., ones(8-1-length(sz))...))
+    header.datatype = NIfTI.nidatatype(datatype)
+    header.bitpix = NIfTI.nibitpix(datatype)
+
+    if isfile(path) rm(path) end
+    file = open(path, "w")
+    write(file, header)
+    close(file)
 end
 
 """

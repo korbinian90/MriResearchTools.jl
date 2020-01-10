@@ -84,6 +84,11 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 
+[[MappedArrays]]
+git-tree-sha1 = "e2a02fe7ee86a10c707ff1756ab1650b40b140bb"
+uuid = "dbb5928d-eab1-5f90-85c2-b9b0edb7c900"
+version = "0.2.2"
+
 [[Markdown]]
 deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
@@ -92,10 +97,12 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[NIfTI]]
-deps = ["Base64", "GZip", "Mmap", "Test"]
-git-tree-sha1 = "2151282446bb161941bff1b330a3212fb132e6b1"
-uuid = "a3a9e032-41b5-5fc4-967a-a6b7a19844d3"
-version = "0.4.0"
+deps = ["Base64", "GZip", "MappedArrays", "Mmap", "Test"]
+git-tree-sha1 = "684010367a5e729d78a5f5a515bf8f15f86e4494"
+repo-rev = "master"
+repo-url = "https://github.com/JuliaIO/NIfTI.jl.git"
+uuid = "f897abbf-c5d9-45cb-bf89-9f7f579a29ec"
+version = "0.1.0"
 
 [[OffsetArrays]]
 git-tree-sha1 = "87d0a91efe29352d5caaa271ae3927083c096e33"
