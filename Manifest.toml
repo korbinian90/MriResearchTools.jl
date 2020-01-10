@@ -121,7 +121,7 @@ deps = ["InteractiveUtils", "Markdown", "Sockets"]
 uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 
 [[ROMEO]]
-git-tree-sha1 = "380eabb3636a55c50ba3b56f0f90aa0606daa082"
+git-tree-sha1 = "0fadac70e8cb20ba7b2a59cff00fb730007f1534"
 repo-rev = "development"
 repo-url = "https://bitbucket.org/keckstein/romeo.jl"
 uuid = "1ea8258b-a15d-4adb-ad20-01632f467a84"
