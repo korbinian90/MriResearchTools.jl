@@ -1,6 +1,6 @@
 module MRI
 
-using Statistics, Interpolations, FFTW, NIfTI
+using Statistics, Interpolations, FFTW, NIfTI, ROMEO
 
 include("utility.jl")
 include("smoothing.jl")
@@ -25,6 +25,7 @@ export Data,
         getsensitivity,
         getscaledimage,
         estimatequantile,
-        RSS
+        RSS,
+        unwrap, unwrap!
 
 end # module
