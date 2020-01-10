@@ -1,12 +1,17 @@
 module MRI
 
-using Statistics, Interpolations, FFTW, NIfTI, ROMEO
+using FFTW
+using Interpolations
+using NIfTI
+using ROMEO
+using Statistics
 
 include("utility.jl")
 include("smoothing.jl")
 include("laplacianunwrapping.jl")
 include("intensitycorrection.jl")
 include("VSMbasedunwarping.jl")
+include("romeo.jl")
 
 export Data,
         readphase, readmag, niread,
@@ -26,6 +31,7 @@ export Data,
         getscaledimage,
         estimatequantile,
         RSS,
-        unwrap, unwrap!
+        unwrap, unwrap!,
+        unwrap_individual, unwrap_individual!
 
 end # module

@@ -3,4 +3,5 @@ magfile = joinpath("data", "small", "Mag.nii")
 phase = Float32.(readphase(phasefile))
 magni = readmag(magfile)
 
-t1 = unwrap(phase; mag=magni)
+@test sizeof(unwrap(phase; mag=magni)) == sizeof(phase)
+@test sizeof(unwrap_individual(phase; mag=magni)) == sizeof(phase)
