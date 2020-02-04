@@ -25,7 +25,10 @@ function Base.similar(header::NIfTI.NIfTI1Header)
     hdr
 end
 
-approxextrema(image::NIVolume) = image.raw[1:30:end] |> I -> (NaNMath.minimum(I), NaNMath.maximum(I)) # sample every 30th value
+Base.minimum(I::Array{AbstractFloat}) = NaNMath.minimum(I)
+Base.maximum(I::Array{AbstractFloat}) = NaNMath.maximum(I)
+
+approxextrema(image::NIVolume) = image.raw[1:30:end] |> I -> (minimum(I), maximum(I)) # sample every 30th value
 
 savenii(image, name, writedir::Nothing, header = nothing) = nothing
 savenii(image, name, writedir::String, header = nothing) = savenii(image, @show joinpath(writedir, name * ".nii"); header = header)
