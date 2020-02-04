@@ -8,7 +8,7 @@ function ROMEO.unwrap!(
     if haskey(args, :mag)
         args[:mag] = args[:mag][:,:,:,template]
     end
-    unwrap!(wrapped[:,:,:,template]; args...)
+    unwrap!(view(wrapped,:,:,:,template); args...)
     for iEco in [(template-1):-1:1; (template+1):length(TEs)]
         iRef = if (iEco < template) iEco + 1 else iEco - 1 end
         wrapped[:,:,:,iEco] .= ROMEO.unwrapvoxel.(wrapped[:,:,:,iEco], wrapped[:,:,:,iRef] .* (TEs[iEco] / TEs[iRef]))
