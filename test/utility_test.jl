@@ -1,14 +1,20 @@
 # Read and properly scale phase
 fn_phase = "data/small/Phase.nii"
 phase_nii = readphase(fn_phase)
-@test maximum(phase_nii) ≈ π
-@test minimum(phase_nii) ≈ -π
+@test maximum(phase_nii) ≈ π atol=2e-3
+@test minimum(phase_nii) ≈ -π atol=2e-3
 
 # Read and normalize mag
 fn_mag = "data/small/Mag.nii"
 mag_nii = readmag(fn_mag; normalize=true)
 @test 1 ≤ maximum(mag_nii) ≤ 2
 @test 0 ≤ minimum(mag_nii) ≤ 1
+
+# robust mask
+mag = Float32.(readmag(fn_mag; normalize=true))
+mag[(end÷2):end,:,:,:] .= 0.5rand.()
+m = getrobustmask(mag)
+@test 1.1 < count(.!m) / count(m) < 1.2
 
 #TODO savenii
 #TODO createniiforwriting

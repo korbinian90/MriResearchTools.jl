@@ -1,10 +1,9 @@
-#TODO open not writable as standard
 function readphase(fn; keyargs...)
     phase = niread(fn; keyargs...)
     minp, maxp = approxextrema(phase)
     phase.header.scl_slope = 2pi / (maxp - minp)
     phase.header.scl_inter = -pi - minp * phase.header.scl_slope
-    if any(isnan.(phase.raw)) println("WARNING: there are NaNs in the image: $fn") end
+    #if any(isnan.(phase.raw)) println("WARNING: there are NaNs in the image: $fn") end
     return phase
 end
 
@@ -15,7 +14,7 @@ function readmag(fn; normalize=false, keyargs...)
         mag.header.scl_slope = 1 / maxi
         mag.header.scl_inter = 0
     end
-    if any(isnan.(mag.raw)) println("WARNING: there are NaNs in the image: $fn") end
+    #if any(isnan.(mag.raw)) println("WARNING: there are NaNs in the image: $fn") end
     return mag
 end
 
@@ -28,13 +27,14 @@ function Base.similar(header::NIfTI.NIfTI1Header)
     hdr
 end
 
-approxextrema(image::NIVolume) = image.raw[1:10:end] |> I -> (minimum(I), maximum(I)) # sample every tenth value
+approxextrema(image::NIVolume) = image.raw[1:30:end] |> I -> (minimum(I), maximum(I)) # sample every tenth value
 
 savenii(image, name, writedir::Nothing, header = nothing) = nothing
 savenii(image, name, writedir::String, header = nothing) = savenii(image, @show joinpath(writedir, name * ".nii"); header = header)
 function savenii(image, filepath; header = nothing)
     if typeof(image) <: BitArray
-        image = UInt8.(image)
+        image = image .* 1.0
+        #TODO improve storage efficiency (weight for NIfTI package)
     end
     vol = NIVolume([h for h in [header] if h != nothing]..., image)
     niwrite(filepath, vol)
@@ -83,24 +83,33 @@ function getHIP(mag, phase; echoes=[1,2])
 end
 
 
+function estimatenoise(weight)
+    # find corner with lowest intensity
+    d = size(weight)
+    n = min.(10, d .÷ 3) # take 10 voxel but maximum a third
+    getrange(num, len) = [1:len, (len-num+1):len] # first and last voxels
+    corners = Iterators.product(getrange.(n, d)...)
+    lowestmean = Inf
+    sigma = 0
+    for I in corners
+        m = mean(weight[I...])
+        if m < lowestmean
+            lowestmean = m
+            sigma = std(weight[I...])
+        end
+    end
+    return lowestmean, sigma
+end
+
 function robustmask!(image; maskedvalue = if eltype(image) <: AbstractFloat NaN else 0 end)
     image[.!getrobustmask(image)] .= maskedvalue
     image
 end
-
 function getrobustmask(weight)
-    notnan = isfinite.(weight)
-    mean1 = mean(weight[notnan])
-    noisemask = weight .< mean1
-    noisemean = mean(weight[noisemask])
-    if !isfinite(noisemean) return ones(size(weight)) end
-
-    signalmean = mean(weight[.!noisemask .& notnan])
-    noise_σ = std(weight[noisemask])
-
-    mask = weight .> noisemean + noise_σ
-    #closing(mask) .& notnan
+    μ, σ = estimatenoise(weight)
+    return weight .> μ + 3σ
 end
+
 
 getcomplex(mag::NIVolume, phase::NIVolume) = getcomplex(mag.raw, phase.raw)
 getcomplex(fnmag::AbstractString, fnphase::AbstractString) = getcomplex(niread(fnmag), niread(fnphase))
