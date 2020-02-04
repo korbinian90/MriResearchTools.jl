@@ -3,7 +3,6 @@ function readphase(fn; keyargs...)
     minp, maxp = approxextrema(phase)
     phase.header.scl_slope = 2pi / (maxp - minp)
     phase.header.scl_inter = -pi - minp * phase.header.scl_slope
-    #if any(isnan.(phase.raw)) println("WARNING: there are NaNs in the image: $fn") end
     return phase
 end
 
@@ -14,7 +13,6 @@ function readmag(fn; normalize=false, keyargs...)
         mag.header.scl_slope = 1 / maxi
         mag.header.scl_inter = 0
     end
-    #if any(isnan.(mag.raw)) println("WARNING: there are NaNs in the image: $fn") end
     return mag
 end
 
@@ -27,7 +25,7 @@ function Base.similar(header::NIfTI.NIfTI1Header)
     hdr
 end
 
-approxextrema(image::NIVolume) = image.raw[1:30:end] |> I -> (minimum(I), maximum(I)) # sample every tenth value
+approxextrema(image::NIVolume) = image.raw[1:30:end] |> I -> (NaNMath.minimum(I), NaNMath.maximum(I)) # sample every 30th value
 
 savenii(image, name, writedir::Nothing, header = nothing) = nothing
 savenii(image, name, writedir::String, header = nothing) = savenii(image, @show joinpath(writedir, name * ".nii"); header = header)
