@@ -1,10 +1,8 @@
-#TODO open not writable as standard
 function readphase(fn; keyargs...)
     phase = niread(fn; keyargs...)
     minp, maxp = approxextrema(phase)
     phase.header.scl_slope = 2pi / (maxp - minp)
     phase.header.scl_inter = -pi - minp * phase.header.scl_slope
-    if any(isnan.(phase.raw)) println("WARNING: there are NaNs in the image: $fn") end
     return phase
 end
 
@@ -15,39 +13,61 @@ function readmag(fn; normalize=false, keyargs...)
         mag.header.scl_slope = 1 / maxi
         mag.header.scl_inter = 0
     end
-    if any(isnan.(mag.raw)) println("WARNING: there are NaNs in the image: $fn") end
     return mag
 end
 
-approxextrema(image::NIVolume) = image.raw[1:10:end] |> I -> (minimum(I), maximum(I)) # sample every tenth value
+Base.copy(x::NIfTI.NIfTI1Header) = NIfTI.NIfTI1Header([getfield(x, k) for k ∈ fieldnames(NIfTI.NIfTI1Header)]...)
+
+function Base.similar(header::NIfTI.NIfTI1Header)
+    hdr = NIfTI.copy(header)
+    hdr.scl_inter = 0
+    hdr.scl_slope = 1
+    hdr
+end
+
+Base.minimum(I::Array{AbstractFloat}) = NaNMath.minimum(I)
+Base.maximum(I::Array{AbstractFloat}) = NaNMath.maximum(I)
+
+approxextrema(image::NIVolume) = image.raw[1:30:end] |> I -> (minimum(I), maximum(I)) # sample every 30th value
 
 savenii(image, name, writedir::Nothing, header = nothing) = nothing
 savenii(image, name, writedir::String, header = nothing) = savenii(image, @show joinpath(writedir, name * ".nii"); header = header)
 function savenii(image, filepath; header = nothing)
     if typeof(image) <: BitArray
-        image = UInt8.(image)
+        image = image .* 1.0
+        #TODO improve storage efficiency (weight for NIfTI package)
     end
     vol = NIVolume([h for h in [header] if h != nothing]..., image)
     niwrite(filepath, vol)
 end
 
-function createniiforwriting(im, name::AbstractString, writedir::AbstractString; datatype::DataType = Float64, header = NIVolume(zeros(datatype, 1)).header)
+function createniiforwriting(im::AbstractArray, name, writedir; kwargs...)
     if !occursin(r"\.nii$", name)
         name *= ".nii"
     end
     filepath = joinpath(writedir, name)
-    createniiforwriting(im, filepath; datatype = datatype, header = header)
+    createniiforwriting(im, filepath; kwargs...)
 end
-
-function createniiforwriting(im::AbstractArray, filepath::AbstractString; datatype::DataType = eltype(im), header = NIVolume(zeros(datatype, 1)).header)
-    nii = createniiforwriting(size(im), filepath; datatype = datatype, header = header)
+function createniiforwriting(im::AbstractArray, filepath; datatype=eltype(im), kwargs...)
+    nii = createniiforwriting(size(im), filepath; datatype=datatype, kwargs...)
     nii .= im
+    return nii
+end
+function createniiforwriting(sz, filepath; kwargs...)
+    write_emptynii(sz, filepath; kwargs...)
+    return niread(filepath, mmap=true, mode="r+").raw
 end
 
-createniiforwriting(sz::Tuple, filepath::AbstractString; datatype::DataType = Float64, header = NIVolume(zeros(datatype, 1)).header) = createniiforwriting([sz...], filepath; datatype = datatype, header = header)
-function createniiforwriting(sz::AbstractVector{Int}, filepath::AbstractString; datatype::DataType = Float64, header = NIVolume(zeros(datatype, 1)).header)
-    write_emptynii(sz, filepath, datatype = datatype, header = header)
-    niread(filepath, mmap = true, write = true).raw
+function write_emptynii(sz, path; datatype=Float64, header=NIVolume(zeros(datatype, 1)).header)
+    header = copy(header)
+    header.dim = Int16.((length(sz), sz..., ones(8-1-length(sz))...))
+    header.datatype = NIfTI.nidatatype(datatype)
+    header.bitpix = NIfTI.nibitpix(datatype)
+
+    if isfile(path) rm(path) end
+    file = open(path, "w")
+    write(file, header)
+    close(file)
 end
 
 """
@@ -64,24 +84,33 @@ function getHIP(mag, phase; echoes=[1,2])
 end
 
 
+function estimatenoise(weight)
+    # find corner with lowest intensity
+    d = size(weight)
+    n = min.(10, d .÷ 3) # take 10 voxel but maximum a third
+    getrange(num, len) = [1:len, (len-num+1):len] # first and last voxels
+    corners = Iterators.product(getrange.(n, d)...)
+    lowestmean = Inf
+    sigma = 0
+    for I in corners
+        m = mean(weight[I...])
+        if m < lowestmean
+            lowestmean = m
+            sigma = std(weight[I...])
+        end
+    end
+    return lowestmean, sigma
+end
+
 function robustmask!(image; maskedvalue = if eltype(image) <: AbstractFloat NaN else 0 end)
     image[.!getrobustmask(image)] .= maskedvalue
     image
 end
-
 function getrobustmask(weight)
-    notnan = isfinite.(weight)
-    mean1 = mean(weight[notnan])
-    noisemask = weight .< mean1
-    noisemean = mean(weight[noisemask])
-    if !isfinite(noisemean) return ones(size(weight)) end
-
-    signalmean = mean(weight[.!noisemask .& notnan])
-    noise_σ = std(weight[noisemask])
-
-    mask = weight .> noisemean + noise_σ
-    #closing(mask) .& notnan
+    μ, σ = estimatenoise(weight)
+    return weight .> μ + 3σ
 end
+
 
 getcomplex(mag::NIVolume, phase::NIVolume) = getcomplex(mag.raw, phase.raw)
 getcomplex(fnmag::AbstractString, fnphase::AbstractString) = getcomplex(niread(fnmag), niread(fnphase))
