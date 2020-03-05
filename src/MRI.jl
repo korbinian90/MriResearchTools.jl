@@ -1,4 +1,4 @@
-module MRI
+module MriResearchTools
 
 using FFTW
 using Interpolations
