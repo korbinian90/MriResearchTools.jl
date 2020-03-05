@@ -1,7 +1,7 @@
-using MRI
+using MriResearchTools
 using Test
 
-@testset "MRI.jl" begin
+@testset "MriResearchTools.jl" begin
     #include("unwrapping_test.jl")
     include("utility_test.jl")
     include("intensitycorrection_test.jl")
