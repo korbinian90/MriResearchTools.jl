@@ -12,23 +12,13 @@ mag_nii = readmag(fn_mag; normalize=true)
 
 # robust mask
 mag = Float32.(readmag(fn_mag; normalize=true))
-mag[(end÷2):end,:,:,:] .= 0.5rand.()
+mag[(end÷2):end,:,:,:] .= 0.3rand.()
 m = getrobustmask(mag)
 @test 1.1 < count(.!m) / count(m) < 1.2
 
 #TODO savenii
-#TODO createniiforwriting
-p = Float64.(phase_nii)
-path = tempdir()
-filepath = joinpath(path, "phase.nii")
-nii = createniiforwriting(p, "phase", path)
-@test isfile(filepath)
-nii[55] = 9
-ni2 = niread(filepath)
-@test ni2[55] == 9
 
 # close mmapped files
-nii = nothing
 GC.gc()
 
 @test estimatequantile(1:1000, 0.8) ≈ 800 atol=1

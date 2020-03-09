@@ -41,23 +41,6 @@ function savenii(image, filepath; header = nothing)
     niwrite(filepath, vol)
 end
 
-function createniiforwriting(im::AbstractArray, name, writedir; kwargs...)
-    if !occursin(r"\.nii$", name)
-        name *= ".nii"
-    end
-    filepath = joinpath(writedir, name)
-    createniiforwriting(im, filepath; kwargs...)
-end
-function createniiforwriting(im::AbstractArray, filepath; datatype=eltype(im), kwargs...)
-    nii = createniiforwriting(size(im), filepath; datatype=datatype, kwargs...)
-    nii .= im
-    return nii
-end
-function createniiforwriting(sz, filepath; kwargs...)
-    write_emptynii(sz, filepath; kwargs...)
-    return niread(filepath, mmap=true, mode="r+").raw
-end
-
 function write_emptynii(sz, path; datatype=Float64, header=NIVolume(zeros(datatype, 1)).header)
     header = copy(header)
     header.dim = Int16.((length(sz), sz..., ones(8-1-length(sz))...))
