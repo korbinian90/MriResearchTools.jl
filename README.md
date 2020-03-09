@@ -6,22 +6,21 @@
 [![Coveralls](https://coveralls.io/repos/github/korbinian90/MriResearchTools.jl/badge.svg?branch=master)](https://coveralls.io/github/korbinian90/MriResearchTools.jl?branch=master)
 
 ### Prerequisites
-A Julia installation v1.1 or higher
+A Julia installation v1 or higher
 
 Magnitude and Phase images in NIfTI fileformat (4D images with echoes in the 4th dimension)
 
 ### Installing
-Currently, MRI depends on a not yet registered version of NIfTI.jl
-
 Open the REPL in Julia and type
 
 ```julia
 import Pkg;
-Pkg.add(PackageSpec(name="NIfTI", rev="master"))
 Pkg.add(PackageSpec(url="https://github.com/korbinian90/MriResearchTools.jl"))
 ```
 
 ### Included Functionality
+
+ROMEO 3D/4D Phase Unwrapping
 
 Reading and writing NIfTI files (adapted from JuliaIO/NIfTI)
 
