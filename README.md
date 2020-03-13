@@ -6,16 +6,18 @@
 [![Coveralls](https://coveralls.io/repos/github/korbinian90/MriResearchTools.jl/badge.svg?branch=master)](https://coveralls.io/github/korbinian90/MriResearchTools.jl?branch=master)
 
 ### Prerequisites
-A Julia installation v1 or higher
+A Julia installation v1.x is required.
 
 Magnitude and Phase images in NIfTI fileformat (4D images with echoes in the 4th dimension)
 
 ### Installing
-Open the REPL in Julia and type
+Open the Julia REPL and type
 
 ```julia
-import Pkg;
-Pkg.add(PackageSpec(url="https://github.com/korbinian90/MriResearchTools.jl"))
+julia> ] # enter julia package manager
+(v1.3) pkg> add MriResearchTools
+(v1.3) pkg> # type backspace to get back to the julia REPL
+julia>
 ```
 
 ### Included Functionality
