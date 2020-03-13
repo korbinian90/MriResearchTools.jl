@@ -1,5 +1,5 @@
     laplacianunwrap(ϕ) = laplacianunwrap!(copy(ϕ))
-    function laplacianunwrap!(ϕ)
+    function laplacianunwrap!(ϕ::AbstractArray)
         FFTW.set_num_threads(Threads.nthreads())
         ϕ .+= 2π .* k(ϕ)
     end

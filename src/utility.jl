@@ -119,7 +119,7 @@ end
 RSS(mag; dim = ndims(mag)) = dropdims(.√sum(mag.^Float32(2); dims = dim); dims = dim)
 
 function getscaledimage(array, div::Number, offset = 0, type::Symbol = :trans)
-    array = reshape(array, size(array)[1:2]) # drops singleton dimensions
+    array = reshape(array, size(array)[1:2]) # drops trailing singleton dimensions
     scaled = if offset != 0
         (array .- offset) .* (1 / div) .+ 0.5
     else
