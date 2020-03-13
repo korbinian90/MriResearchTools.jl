@@ -17,7 +17,6 @@ include("romeo.jl")
 export Data,
         readphase, readmag, niread,
         savenii,
-        write_emptynii,
         robustmask, robustmask!,
         robustrescale,
         combine_echoes,
