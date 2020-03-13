@@ -30,13 +30,14 @@ Base.maximum(I::Array{AbstractFloat}) = NaNMath.maximum(I)
 
 approxextrema(image::NIVolume) = image.raw[1:30:end] |> I -> (minimum(I), maximum(I)) # sample every 30th value
 
-savenii(image, name, writedir::Nothing, header = nothing) = nothing
-savenii(image, name, writedir::String, header = nothing) = savenii(image, @show joinpath(writedir, name * ".nii"); header = header)
-function savenii(image, filepath; header = nothing)
-    if typeof(image) <: BitArray
-        image = image .* 1.0
-        #TODO improve storage efficiency (weight for NIfTI package)
-    end
+savenii(image, name, writedir::Nothing, header=nothing) = nothing
+savenii(image, name, writedir::String, header=nothing) = savenii(image, @show joinpath(writedir, name * ".nii"); header=header)
+"""
+    savenii(image, filepath; header=nothing)
+save the image at the path
+Warning: MRIcro can only open images with types Int32, Int64, Float32, Float64
+"""
+function savenii(image::AbstractArray, filepath::AbstractString; header=nothing)
     vol = NIVolume([h for h in [header] if h != nothing]..., image)
     niwrite(filepath, vol)
 end

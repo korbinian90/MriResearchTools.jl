@@ -16,7 +16,11 @@ mag[(end÷2):end,:,:,:] .= 0.3rand.()
 m = robustmask(mag)
 @test 1.1 < count(.!m) / count(m) < 1.2
 
-#TODO savenii
+# savenii
+fn_temp = tempname()
+savenii(mag, fn_temp)
+mag2 = niread(fn_temp)
+@test mag == mag2
 
 # close mmapped files
 GC.gc()
