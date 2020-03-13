@@ -13,7 +13,7 @@ mag_nii = readmag(fn_mag; normalize=true)
 # robust mask
 mag = Float32.(readmag(fn_mag; normalize=true))
 mag[(end÷2):end,:,:,:] .= 0.3rand.()
-m = getrobustmask(mag)
+m = robustmask(mag)
 @test 1.1 < count(.!m) / count(m) < 1.2
 
 #TODO savenii

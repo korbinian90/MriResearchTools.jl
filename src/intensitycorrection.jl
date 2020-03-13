@@ -21,7 +21,7 @@ function getsensitivity(mag; pixdim, maxiteration = 1)
     firstecho = view(mag,:,:,:,1)
 
     @debug savenii(mag, "mag", SAVE_PATH)
-    mask = getrobustmask(firstecho)
+    mask = robustmask(firstecho)
     @debug savenii(mask, "mask", SAVE_PATH)
     lowpass = gaussiansmooth3d(firstecho, σ1 .+ σ2; mask = mask)
     @debug savenii(lowpass, "lowpass", SAVE_PATH)
@@ -69,7 +69,7 @@ function threshold(image, mask; lowthresh = 0.95)
     (lowthresh*m .< image .< 1.1m) .& mask
 end
 
-threshold(image) = threshold(image, getrobustmask(image))
+threshold(image) = threshold(image, robustmask(image))
 
 function iterative(firstecho, mask, segmentation, sigma, maxiteration)
     local lowpass

@@ -85,11 +85,11 @@ function estimatenoise(weight)
     return lowestmean, sigma
 end
 
-function robustmask!(image; maskedvalue = if eltype(image) <: AbstractFloat NaN else 0 end)
-    image[.!getrobustmask(image)] .= maskedvalue
+function robustmask!(image; maskedvalue=if eltype(image) <: AbstractFloat NaN else 0 end)
+    image[.!robustmask(image)] .= maskedvalue
     image
 end
-function getrobustmask(weight)
+function robustmask(weight)
     μ, σ = estimatenoise(weight)
     return weight .> μ + 3σ
 end
