@@ -16,10 +16,11 @@ include("romeo.jl")
 
 export Data,
         readphase, readmag, niread,
+        header,
         savenii,
         robustmask, robustmask!,
         robustrescale,
-        combine_echoes,
+        #combine_echoes,
         getHIP,
         laplacianunwrap, laplacianunwrap!,
         getVSM,
@@ -31,7 +32,7 @@ export Data,
         getscaledimage,
         estimatequantile,
         RSS,
-        unwrap, unwrap!,
+        unwrap, unwrap!, romeo,
         unwrap_individual, unwrap_individual!
 
 end # module
