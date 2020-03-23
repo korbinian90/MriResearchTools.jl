@@ -27,7 +27,13 @@ GC.gc()
 
 @test estimatequantile(1:1000, 0.8) ≈ 800 atol=1
 
-hdr = similar(mag_nii.header)
-@test hdr.scl_inter == 0
-@test hdr.scl_slope == 1
-@test hdr.dim == mag_nii.header.dim
+function header_test(hdr, hdr2)
+    @test hdr.scl_inter == 0
+    @test hdr.scl_slope == 1
+    @test hdr.dim == hdr2.dim
+end
+# similar
+header_test(similar(mag_nii.header), mag_nii.header)
+# header
+header_test(header(mag_nii), mag_nii.header)
+header_test(header(phase_nii), phase_nii.header)
