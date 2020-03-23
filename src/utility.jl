@@ -19,11 +19,13 @@ end
 Base.copy(x::NIfTI.NIfTI1Header) = NIfTI.NIfTI1Header([getfield(x, k) for k ∈ fieldnames(NIfTI.NIfTI1Header)]...)
 
 function Base.similar(header::NIfTI.NIfTI1Header)
-    hdr = NIfTI.copy(header)
+    hdr = copy(header)
     hdr.scl_inter = 0
     hdr.scl_slope = 1
-    hdr
+    return hdr
 end
+
+header(v::NIfTI.NIVolume) = similar(v.header)
 
 Base.minimum(I::Array{AbstractFloat}) = NaNMath.minimum(I)
 Base.maximum(I::Array{AbstractFloat}) = NaNMath.maximum(I)

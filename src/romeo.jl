@@ -1,3 +1,4 @@
+romeo = unwrap # access unwrap function via alias romeo
 # multi echo unwrapping
 function ROMEO.unwrap!(
     wrapped::AbstractArray{T, 4}; TEs=1:size(wrapped, 4), template=2, p2ref=1, keyargs...
