@@ -33,7 +33,7 @@ Base.maximum(I::Array{AbstractFloat}) = NaNMath.maximum(I)
 approxextrema(image::NIVolume) = image.raw[1:30:end] |> I -> (minimum(I), maximum(I)) # sample every 30th value
 
 savenii(image, name, writedir::Nothing, header=nothing) = nothing
-savenii(image, name, writedir::String, header=nothing) = savenii(image, @show joinpath(writedir, name * ".nii"); header=header)
+savenii(image, name, writedir::String, header=nothing) = savenii(image, joinpath(writedir, name * ".nii"); header=header)
 """
     savenii(image, filepath; header=nothing)
 save the image at the path
