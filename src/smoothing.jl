@@ -6,7 +6,9 @@ function gaussiansmooth3d(image, σ = [5,5,5]; kwargs...)
 end
 
 function gaussiansmooth3d!(image, σ = [5,5,5]; mask = nothing, nbox = 4, weight = nothing, dims = 1:3, boxsizes = nothing)
-
+    if σ isa Number
+        σ = [σ,σ,σ]
+    end
     if typeof(mask) != Nothing
         nbox *= 2
         # TODO do we need small boxsize?
