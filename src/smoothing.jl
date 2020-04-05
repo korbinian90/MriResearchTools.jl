@@ -89,7 +89,7 @@ function boxfilterline!(line::AbstractVector, boxsize::Int)
 
     r = div(boxsize, 2)
     orig = copy(line) #TODO could be with circular queue instead to avoid memory allocation
-    lsum::Float64 = sum(orig[1:boxsize])
+    lsum = sum(orig[1:boxsize])
 
     @inbounds for i in (r+2):(length(line)-r)
         lsum += orig[i+r] - orig[i-r-1]
