@@ -13,6 +13,7 @@ include("laplacianunwrapping.jl")
 include("intensitycorrection.jl")
 include("VSMbasedunwarping.jl")
 include("romeo.jl")
+include("methods.jl")
 
 export Data,
         readphase, readmag, niread,
@@ -33,6 +34,7 @@ export Data,
         estimatequantile,
         RSS,
         unwrap, unwrap!, romeo,
-        unwrap_individual, unwrap_individual!
+        unwrap_individual, unwrap_individual!,
+        homodyne, homodyne!
 
 end # module

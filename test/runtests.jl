@@ -5,4 +5,5 @@ using Test
     include("unwrapping.jl")
     include("utility.jl")
     include("intensitycorrection.jl")
+    include("methods.jl")
 end
