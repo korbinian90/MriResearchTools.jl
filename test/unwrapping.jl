@@ -12,6 +12,7 @@ function test(f)
     return unwrapped
 end
 
+test(romeo)
 test(unwrap)
 test(unwrap_individual)
 @test !all(laplacianunwrap(phase) .== phase)
