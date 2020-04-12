@@ -6,7 +6,9 @@ function gaussiansmooth3d(image, σ = [5,5,5]; kwargs...)
 end
 
 function gaussiansmooth3d!(image, σ = [5,5,5]; mask = nothing, nbox = 4, weight = nothing, dims = 1:3, boxsizes = nothing)
-
+    if σ isa Number
+        σ = [σ,σ,σ]
+    end
     if typeof(mask) != Nothing
         nbox *= 2
         # TODO do we need small boxsize?
@@ -87,7 +89,7 @@ function boxfilterline!(line::AbstractVector, boxsize::Int)
 
     r = div(boxsize, 2)
     orig = copy(line) #TODO could be with circular queue instead to avoid memory allocation
-    lsum::Float64 = sum(orig[1:boxsize])
+    lsum = sum(orig[1:boxsize])
 
     @inbounds for i in (r+2):(length(line)-r)
         lsum += orig[i+r] - orig[i-r-1]
