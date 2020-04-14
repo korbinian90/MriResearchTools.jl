@@ -36,6 +36,7 @@ export Data,
         RSS,
         unwrap, unwrap!, romeo,
         unwrap_individual, unwrap_individual!,
-        homodyne, homodyne!
+        homodyne, homodyne!,
+        to_dim
 
 end # module

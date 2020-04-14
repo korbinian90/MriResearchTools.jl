@@ -37,3 +37,8 @@ header_test(similar(mag_nii.header), mag_nii.header)
 # header
 header_test(header(mag_nii), mag_nii.header)
 header_test(header(phase_nii), phase_nii.header)
+
+# to_dim
+@test [1 2] == to_dim([1, 2], 2)
+a = 50:75
+@test reshape(a, 1, 1, 1, :) == to_dim(a, 4)

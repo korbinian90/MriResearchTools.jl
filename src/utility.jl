@@ -186,3 +186,5 @@ end
 mmtovoxel(sizemm, nii::NIVolume) = mmtovoxel(sizemm, nii.header)
 mmtovoxel(sizemm, header::NIfTI.NIfTI1Header) = mmtovoxel(sizemm, header.pixdim)
 mmtovoxel(sizemm, pixdim) = sizemm ./ pixdim
+
+to_dim(V::AbstractVector, dim::Int) = reshape(V, ones(Int, dim-1)..., :)
