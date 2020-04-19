@@ -30,7 +30,13 @@ header(v::NIfTI.NIVolume) = similar(v.header)
 Base.minimum(I::Array{AbstractFloat}) = NaNMath.minimum(I)
 Base.maximum(I::Array{AbstractFloat}) = NaNMath.maximum(I)
 
-approxextrema(image::NIVolume) = image.raw[1:30:end] |> I -> (minimum(I), maximum(I)) # sample every 30th value
+function approxextrema(I::NIVolume)
+    startindices = round.(Int, range(firstindex(I), lastindex(I); length=100))
+    indices = vcat((i .+ 1:100 for i in startindices)...)
+    #indices = round.(Int, indices)
+    arr = I.raw[indices]
+    return (minimum(arr), maximum(arr))
+end
 
 savenii(image, name, writedir::Nothing, header=nothing) = nothing
 function savenii(image, name, writedir::String, header=nothing)
