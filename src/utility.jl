@@ -32,8 +32,8 @@ Base.maximum(I::Array{AbstractFloat}) = NaNMath.maximum(I)
 
 function approxextrema(I::NIVolume)
     startindices = round.(Int, range(firstindex(I), lastindex(I); length=100))
-    indices = vcat((i .+ 1:100 for i in startindices)...)
-    #indices = round.(Int, indices)
+    indices = vcat((i .+ (1:100) for i in startindices)...)
+    indices = filter(ind -> checkbounds(Bool, I, ind), indices)
     arr = I.raw[indices]
     return (minimum(arr), maximum(arr))
 end
