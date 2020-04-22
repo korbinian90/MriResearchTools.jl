@@ -90,20 +90,28 @@ function getHIP(compl; echoes=[1,2])
     return c
 end
 
-function estimatenoise(weight)
-    # find corner with lowest intensity
-    d = size(weight)
-    n = min.(10, d .÷ 3) # take 10 voxel but maximum a third
+function get_corner_indices(I, max_length=10)
+    d = size(I)
+    n = min.(max_length, ceil.(Int, d ./ 3)) # n voxels for each dim
     getrange(num, len) = [1:len, (len-num+1):len] # first and last voxels
-    corners = Iterators.product(getrange.(n, d)...)
-    lowestmean = Inf
-    sigma = 0
-    for I in corners
-        m = mean(weight[I...])
-        if m < lowestmean
-            lowestmean = m
-            sigma = std(weight[I...])
-        end
+    return Iterators.product(getrange.(n, d)...)
+end
+
+function get_middle_indices(I, max_length=10)
+    d = size(I)
+    n = min.(max_length, ceil.(Int, d ./ 3)) # n voxels for each dim
+    middle = ceil.(Int, d ./ 2)
+    return broadcast((m, r) -> m .+ r, [(-i÷2:i÷2) for i in n], middle)
+end
+
+# estimate noise parameters from corner without signal
+function estimatenoise(image)
+    corners = get_corner_indices(image)
+    lowestmean = minimum(mean.(image[I...] for I in corners))
+    sigma = minimum(std.(image[I...] for I in corners))
+    if isnan(sigma) # outside of image filled with NaNs -> use middle for sigma estimation
+        lowestmean = 0
+        sigma = std(image[get_middle_indices(image)...])
     end
     return lowestmean, sigma
 end
