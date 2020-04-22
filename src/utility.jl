@@ -25,16 +25,17 @@ function Base.similar(header::NIfTI.NIfTI1Header)
     return hdr
 end
 
-header(v::NIfTI.NIVolume) = similar(v.header)
+header(v::NIVolume) = similar(v.header)
 
-Base.minimum(I::Array{AbstractFloat}) = NaNMath.minimum(I)
-Base.maximum(I::Array{AbstractFloat}) = NaNMath.maximum(I)
+Base.minimum(I::AbstractArray{<:AbstractFloat}) = NaNMath.minimum(I)
+Base.maximum(I::AbstractArray{<:AbstractFloat}) = NaNMath.maximum(I)
 
-function approxextrema(I::NIVolume)
+approxextrema(I::NIVolume) = approxextrema(I.raw)
+function approxextrema(I)
     startindices = round.(Int, range(firstindex(I), lastindex(I); length=100))
     indices = vcat((i .+ (1:100) for i in startindices)...)
     indices = filter(ind -> checkbounds(Bool, I, ind), indices)
-    arr = I.raw[indices]
+    arr = I[indices]
     return (minimum(arr), maximum(arr))
 end
 
