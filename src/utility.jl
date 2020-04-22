@@ -81,6 +81,14 @@ function getHIP(mag, phase; echoes=[1,2])
     compl
 end
 
+function getHIP(compl; echoes=[1,2])
+    e1, e2 = echoes
+    c = zeros(eltype(compl), size(compl)[1:3])
+    for iCha in 1:size(compl, 5)
+        c .+=  compl[:,:,:,e2,iCha] .* conj.(compl[:,:,:,e1,iCha])
+    end
+    return c
+end
 
 function estimatenoise(weight)
     # find corner with lowest intensity
