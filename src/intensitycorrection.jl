@@ -1,8 +1,38 @@
 const DEBUG_PATH = "F:/MRI/Analysis/debug_hom"
 
+"""
+    makehomogeneous(mag::NIVolume; σ_mm=7, nbox=15)
+
+Homogeneity correction for NIVolume from NIfTI files.
+
+###  Keyword arguments:
+
+- `σ_mm`: σ size for smoothing to obtain bias field. Takes NIfTI voxel size into account
+- `nbox`: Number of boxes in each dimension for the box-segmentation step.
+
+"""
 function makehomogeneous(mag::NIVolume, datatype=eltype(mag); σ_mm=7, kw...)
     return makehomogeneous!(datatype.(mag); σ=mm_to_vox(σ_mm, mag), kw...)
 end
+
+"""
+    makehomogeneous(mag; σ, kw...)
+
+Homogeneity correction of 3D arrays. 4D volumes are corrected using the first 3D volume to
+obtain the bias field.
+
+###  Keyword arguments:
+
+- `σ`: σ size in voxel for smoothing to obtain bias field. (mandatory)
+- `nbox`: Number of boxes in each dimension for the box-segmentation step.
+
+Larger σ-values make the bias field smoother, but might not be able to catch the
+inhomogeneity. Smaller values can catch fast varying inhomogeneities but new inhomogeneities
+might be created. The stronger the bias field, the more boxes are required for segmentation.
+With too many boxes, it can happen that big darker structures are captured and appear
+overbrightened.
+
+"""
 function makehomogeneous(mag, datatype=eltype(mag); σ, kw...)
     return makehomogeneous!(datatype.(mag); σ=σ, kw...)
 end
