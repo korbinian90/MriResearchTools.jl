@@ -40,7 +40,7 @@ function approxextrema(I)
 end
 
 savenii(image, name, writedir::Nothing, header=nothing) = nothing
-function savenii(image, name, writedir::String, header=nothing)
+function savenii(image, name, writedir, header=nothing)
     if splitext(name)[2] != ".nii"
         name = name * ".nii"
     end
@@ -55,6 +55,8 @@ function savenii(image::AbstractArray, filepath::AbstractString; header=nothing)
     vol = NIVolume([h for h in [header] if h != nothing]..., image)
     niwrite(filepath, vol)
 end
+ConvertTypes = Union{BitArray, AbstractArray{UInt8}} #TODO debug NIfTI
+MriResearchTools.savenii(image::ConvertTypes, args...;kwargs...) = savenii(Float32.(image), args...;kwargs...)
 
 function write_emptynii(sz, path; datatype=Float64, header=NIVolume(zeros(datatype, 1)).header)
     header = copy(header)
