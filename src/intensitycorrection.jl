@@ -1,14 +1,16 @@
 const DEBUG_PATH = "F:/MRI/Analysis/debug_hom"
 
-function makehomogeneous(mag::NIVolume, datatype=eltype(mag); σ_mm=7)
-    return makehomogeneous!(datatype.(mag); σ=mm_to_vox(σ_mm, mag))
+function makehomogeneous(mag::NIVolume, datatype=eltype(mag); σ_mm=7, kw...)
+    return makehomogeneous!(datatype.(mag); σ=mm_to_vox(σ_mm, mag), kw...)
 end
-makehomogeneous(mag, datatype=eltype(mag); σ) = makehomogeneous!(datatype.(mag); σ=σ)
-function makehomogeneous!(mag; σ)
+function makehomogeneous(mag, datatype=eltype(mag); σ, kw...)
+    return makehomogeneous!(datatype.(mag); σ=σ, kw...)
+end
+function makehomogeneous!(mag; σ, nbox=15)
     lowpass = getsensitivity(mag; σ=σ)
     if eltype(mag) <: AbstractFloat
         mag ./= lowpass
-    else # Integer
+    else # Integer doesn't support NaN
         lowpass[isnan.(lowpass) .| (lowpass .<= 0)] .= typemax(eltype(lowpass))
         mag .= div.(mag, lowpass ./ 2048) .|> x -> min(x, typemax(eltype(mag)))
     end
@@ -24,17 +26,17 @@ function mm_to_vox(mm, nii::NIVolume)
 end
 mm_to_vox(mm, pixdim) = mm ./ pixdim
 
-function getsensitivity(mag::NIVolume, datatype=eltype(mag); σ_mm=7)
-    return getsensitivity(datatype.(mag); σ=mm_to_vox(σ_mm, mag))
+function getsensitivity(mag::NIVolume, datatype=eltype(mag); σ_mm=7, kw...)
+    return getsensitivity(datatype.(mag); σ=mm_to_vox(σ_mm, mag), kw...)
 end
-function getsensitivity(mag; σ)
+function getsensitivity(mag; σ, kw...)
     σ1, σ2 = getsigma(σ)
     firstecho = view(mag,:,:,:,1)
     @debug savenii(firstecho, "mag", DEBUG_PATH)
 
     mask = robustmask(firstecho)
     @debug savenii(mask, "mask", DEBUG_PATH)
-    segmentation = boxsegment(firstecho, mask)
+    segmentation = boxsegment(firstecho, mask; kw...)
     @debug savenii(segmentation, "segmentation", DEBUG_PATH)
     lowpass = gaussiansmooth3d(firstecho, σ1; mask=segmentation, nbox=8)
     @debug savenii(lowpass, "lowpass_after_it", DEBUG_PATH)
@@ -62,40 +64,13 @@ end
 
 threshold(image) = threshold(image, robustmask(image))
 function threshold(image, mask; width=0.1)
-    m = try
-        quantile(skipmissing(image[mask]), 0.9)
-    catch
-        0
-    end
+    m = try quantile(skipmissing(image[mask]), 0.9) catch; 0 end
     return ((1 - width) * m .< image .< (1 + width) * m) .& mask
 end
 
-function iterative(firstecho, mask, segmentation, sigma, maxiteration)
-    local lowpass
-    local wm_mask = segmentation
-    for i in 1:maxiteration
-        lowpass = gaussiansmooth3d(firstecho, sigma; mask = wm_mask, nbox = 8)
-        @debug savenii(lowpass, "lowpass_$i", DEBUG_PATH)
-        highpass = firstecho ./ lowpass
-        highpass[.!isfinite.(highpass)] .= 0
-        @debug savenii(highpass, "highpass_$i", DEBUG_PATH)
-
-        new_mask = threshold(highpass, mask; lowthresh = 0.99)
-        @debug savenii(new_mask, "new_mask_$i", DEBUG_PATH)
-
-        if i > 1
-            change = sum(new_mask .!= wm_mask) / sum(new_mask)
-            if change < 0.02 break end
-            if change > 1 break end
-        end
-        wm_mask = new_mask
-    end
-    lowpass
-end
-
-function boxsegment!(image::AbstractArray{T}, mask; nboxes = 15) where T <: AbstractFloat
-    image[boxsegment(image, mask; nboxes = nboxes)] .= NaN
-    image
+function boxsegment!(image::AbstractArray{<:AbstractFloat}, mask; kw...)
+    image[boxsegment(image, mask; kw...)] .= NaN
+    return image
 end
 
 function boxsegment(image, mask; nboxes=15)
