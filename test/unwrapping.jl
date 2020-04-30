@@ -6,7 +6,7 @@ magni = readmag(magfile)
 iswrap(x, y) = abs(rem2pi(x - y, RoundNearest)) < 1e-6
 
 function test(f)
-    unwrapped = f(phase; mag=magni)
+    unwrapped = f(phase; mag=magni, TEs=[4,8,12])
     @test !all(unwrapped .== phase)
     @test all(iswrap.(unwrapped, phase))
     return unwrapped
