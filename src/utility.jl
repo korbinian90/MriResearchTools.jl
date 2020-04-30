@@ -124,7 +124,8 @@ function robustmask!(image; maskedvalue=if eltype(image) <: AbstractFloat NaN el
 end
 function robustmask(weight)
     μ, σ = estimatenoise(weight)
-    return weight .> μ + 3σ
+    m = mean(weight[weight .> μ + 4σ])
+    return weight .> maximum((μ + 3σ, m/5))
 end
 
 
