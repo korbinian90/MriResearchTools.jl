@@ -11,12 +11,12 @@ Homogeneity correction for NIVolume from NIfTI files.
 - `nbox`: Number of boxes in each dimension for the box-segmentation step.
 
 """
-function makehomogeneous(mag::NIVolume, datatype=eltype(mag); σ_mm=7, kw...)
-    return makehomogeneous!(datatype.(mag); σ=mm_to_vox(σ_mm, mag), kw...)
+function makehomogeneous(mag::NIVolume, datatype=eltype(mag); σ_mm=7, nbox=15)
+    return makehomogeneous!(datatype.(mag); σ=mm_to_vox(σ_mm, mag), nbox=nbox)
 end
 
 """
-    makehomogeneous(mag; σ, kw...)
+    makehomogeneous(mag; σ, nbox=15)
 
 Homogeneity correction of 3D arrays. 4D volumes are corrected using the first 3D volume to
 obtain the bias field.
@@ -33,11 +33,11 @@ With too many boxes, it can happen that big darker structures are captured and a
 overbrightened.
 
 """
-function makehomogeneous(mag, datatype=eltype(mag); σ, kw...)
-    return makehomogeneous!(datatype.(mag); σ=σ, kw...)
+function makehomogeneous(mag, datatype=eltype(mag); σ, nbox=15)
+    return makehomogeneous!(datatype.(mag); σ=σ, nbox=nbox)
 end
 function makehomogeneous!(mag; σ, nbox=15)
-    lowpass = getsensitivity(mag; σ=σ)
+    lowpass = getsensitivity(mag; σ=σ, nbox=nbox)
     if eltype(mag) <: AbstractFloat
         mag ./= lowpass
     else # Integer doesn't support NaN
@@ -56,17 +56,17 @@ function mm_to_vox(mm, nii::NIVolume)
 end
 mm_to_vox(mm, pixdim) = mm ./ pixdim
 
-function getsensitivity(mag::NIVolume, datatype=eltype(mag); σ_mm=7, kw...)
-    return getsensitivity(datatype.(mag); σ=mm_to_vox(σ_mm, mag), kw...)
+function getsensitivity(mag::NIVolume, datatype=eltype(mag); σ_mm=7, nbox=15)
+    return getsensitivity(datatype.(mag); σ=mm_to_vox(σ_mm, mag), nbox=nbox)
 end
-function getsensitivity(mag; σ, kw...)
+function getsensitivity(mag; σ, nbox=15)
     σ1, σ2 = getsigma(σ)
     firstecho = view(mag,:,:,:,1)
     @debug savenii(firstecho, "mag", DEBUG_PATH)
 
     mask = robustmask(firstecho)
     @debug savenii(mask, "mask", DEBUG_PATH)
-    segmentation = boxsegment(firstecho, mask; kw...)
+    segmentation = boxsegment(firstecho, mask, nbox)
     @debug savenii(segmentation, "segmentation", DEBUG_PATH)
     lowpass = gaussiansmooth3d(firstecho, σ1; mask=segmentation, nbox=8)
     @debug savenii(lowpass, "lowpass_after_it", DEBUG_PATH)
@@ -98,15 +98,15 @@ function threshold(image, mask; width=0.1)
     return ((1 - width) * m .< image .< (1 + width) * m) .& mask
 end
 
-function boxsegment!(image::AbstractArray{<:AbstractFloat}, mask; kw...)
-    image[boxsegment(image, mask; kw...)] .= NaN
+function boxsegment!(image::AbstractArray{<:AbstractFloat}, mask, nbox)
+    image[boxsegment(image, mask, nbox)] .= NaN
     return image
 end
 
-function boxsegment(image, mask; nboxes=15)
+function boxsegment(image, mask, nbox)
     N = size(image)
     dim = ndims(image)
-    boxshift = ceil.(Int, N ./ nboxes)
+    boxshift = ceil.(Int, N ./ nbox)
 
     segmented = zeros(UInt8, size(mask))
     for center in Iterators.product([1:boxshift[i]:N[i] for i in 1:dim]...)
