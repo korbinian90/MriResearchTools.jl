@@ -109,8 +109,8 @@ end
 # estimate noise parameters from corner without signal
 function estimatenoise(image)
     corners = get_corner_indices(image)
-    lowestmean = minimum(mean.(image[I...] for I in corners))
-    sigma = minimum(std.(image[I...] for I in corners))
+    lowestmean = minimum(mean.(filter(isfinite, image[I...]) for I in corners))
+    sigma = minimum(std.(filter(isfinite, image[I...]) for I in corners))
     if isnan(sigma) # outside of image filled with NaNs -> use middle for sigma estimation
         lowestmean = 0
         sigma = std(image[get_middle_indices(image)...])
@@ -124,7 +124,7 @@ function robustmask!(image; maskedvalue=if eltype(image) <: AbstractFloat NaN el
 end
 function robustmask(weight)
     μ, σ = estimatenoise(weight)
-    m = mean(weight[weight .> μ + 4σ])
+    m = mean(filter(isfinite, weight[weight .> μ + 4σ]))
     return weight .> maximum((μ + 3σ, m/5))
 end
 
