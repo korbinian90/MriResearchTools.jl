@@ -2,7 +2,7 @@
 # image can have any higher dimension
 
 function gaussiansmooth3d(image, σ=[5,5,5]; kwargs...)
-    gaussiansmooth3d!(copy(image), σ; kwargs...)
+    gaussiansmooth3d!(0f0 .+ copy(image), σ; kwargs...)
 end
 
 function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothing, dims=1:ndims(image), boxsizes=nothing)
