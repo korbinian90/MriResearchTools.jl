@@ -20,6 +20,7 @@ export Data,
         readphase, readmag, niread,
         header,
         savenii,
+        estimatenoise,
         robustmask, robustmask!,
         robustrescale,
         #combine_echoes,
@@ -36,6 +37,7 @@ export Data,
         RSS,
         unwrap, unwrap!, romeo,
         unwrap_individual, unwrap_individual!,
-        homodyne, homodyne!
+        homodyne, homodyne!,
+        to_dim
 
 end # module

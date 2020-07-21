@@ -1,11 +1,11 @@
 # mask should be 3D
 # image can have any higher dimension
 
-function gaussiansmooth3d(image, σ = [5,5,5]; kwargs...)
-    gaussiansmooth3d!(copy(image), σ; kwargs...)
+function gaussiansmooth3d(image, σ=[5,5,5]; kwargs...)
+    gaussiansmooth3d!(0f0 .+ copy(image), σ; kwargs...)
 end
 
-function gaussiansmooth3d!(image, σ = [5,5,5]; mask = nothing, nbox = 4, weight = nothing, dims = 1:3, boxsizes = nothing)
+function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothing, dims=1:ndims(image), boxsizes=nothing)
     if σ isa Number
         σ = [σ,σ,σ]
     end
@@ -23,13 +23,17 @@ function gaussiansmooth3d!(image, σ = [5,5,5]; mask = nothing, nbox = 4, weight
     if boxsizes == nothing boxsizes = getboxsizes.(σ, nbox) end
 
     for ibox in 1:nbox, dim in dims
+        if size(image, dim) == 1
+            continue
+        end
+        K = ifelse(isodd(ibox), :, size(image, dim):-1:1)
         # TODO parallel? -> Distributed arrays?
         #loop = Iterators.product((size(image) |> sz -> (sz[1:(dim-1)], sz[(dim+1):end]) .|> CartesianIndices)...)
         #Threads.@threads for (I, J) in collect(loop)
         for I in CartesianIndices(size(image)[1:(dim-1)])
             for J in CartesianIndices(size(image)[(dim+1):end])
                 if typeof(mask) != Nothing
-                    im = view(image, I, ifelse(isodd(ibox), :, size(image, dim):-1:1), J)
+                    im = view(image, I, K, J)
                     nanboxfilterline!(im, boxsizes[dim][ibox])
                 elseif typeof(weight) != Nothing
                     boxfilterline!(view(image,I,:,J), boxsizes[dim][ibox], view(w,I,:,J))

@@ -25,15 +25,22 @@ function Base.similar(header::NIfTI.NIfTI1Header)
     return hdr
 end
 
-header(v::NIfTI.NIVolume) = similar(v.header)
+header(v::NIVolume) = similar(v.header)
 
-Base.minimum(I::Array{AbstractFloat}) = NaNMath.minimum(I)
-Base.maximum(I::Array{AbstractFloat}) = NaNMath.maximum(I)
+Base.minimum(I::AbstractArray{<:AbstractFloat}) = NaNMath.minimum(I)
+Base.maximum(I::AbstractArray{<:AbstractFloat}) = NaNMath.maximum(I)
 
-approxextrema(image::NIVolume) = image.raw[1:30:end] |> I -> (minimum(I), maximum(I)) # sample every 30th value
+approxextrema(I::NIVolume) = approxextrema(I.raw)
+function approxextrema(I)
+    startindices = round.(Int, range(firstindex(I), lastindex(I); length=100))
+    indices = vcat((i .+ (1:100) for i in startindices)...)
+    indices = filter(ind -> checkbounds(Bool, I, ind), indices)
+    arr = I[indices]
+    return (minimum(arr), maximum(arr))
+end
 
 savenii(image, name, writedir::Nothing, header=nothing) = nothing
-function savenii(image, name, writedir::String, header=nothing)
+function savenii(image, name, writedir, header=nothing)
     if splitext(name)[2] != ".nii"
         name = name * ".nii"
     end
@@ -44,10 +51,12 @@ end
 save the image at the path
 Warning: MRIcro can only open images with types Int32, Int64, Float32, Float64
 """
-function savenii(image::AbstractArray, filepath::AbstractString; header=nothing)
+function savenii(image::AbstractArray, filepath; header=nothing)
     vol = NIVolume([h for h in [header] if h != nothing]..., image)
     niwrite(filepath, vol)
 end
+ConvertTypes = Union{BitArray, AbstractArray{UInt8}} #TODO debug NIfTI
+MriResearchTools.savenii(image::ConvertTypes, args...;kwargs...) = savenii(Float32.(image), args...;kwargs...)
 
 function write_emptynii(sz, path; datatype=Float64, header=NIVolume(zeros(datatype, 1)).header)
     header = copy(header)
@@ -74,21 +83,37 @@ function getHIP(mag, phase; echoes=[1,2])
     compl
 end
 
+function getHIP(compl; echoes=[1,2])
+    e1, e2 = echoes
+    c = zeros(eltype(compl), size(compl)[1:3])
+    for iCha in 1:size(compl, 5)
+        c .+=  compl[:,:,:,e2,iCha] .* conj.(compl[:,:,:,e1,iCha])
+    end
+    return c
+end
 
-function estimatenoise(weight)
-    # find corner with lowest intensity
-    d = size(weight)
-    n = min.(10, d .÷ 3) # take 10 voxel but maximum a third
+function get_corner_indices(I, max_length=10)
+    d = size(I)
+    n = min.(max_length, ceil.(Int, d ./ 3)) # n voxels for each dim
     getrange(num, len) = [1:len, (len-num+1):len] # first and last voxels
-    corners = Iterators.product(getrange.(n, d)...)
-    lowestmean = Inf
-    sigma = 0
-    for I in corners
-        m = mean(weight[I...])
-        if m < lowestmean
-            lowestmean = m
-            sigma = std(weight[I...])
-        end
+    return Iterators.product(getrange.(n, d)...)
+end
+
+function get_middle_indices(I, max_length=10)
+    d = size(I)
+    n = min.(max_length, ceil.(Int, d ./ 3)) # n voxels for each dim
+    middle = ceil.(Int, d ./ 2)
+    return broadcast((m, r) -> m .+ r, [(-i÷2:i÷2) for i in n], middle)
+end
+
+# estimate noise parameters from corner without signal
+function estimatenoise(image)
+    corners = get_corner_indices(image)
+    lowestmean = minimum(mean.(filter(isfinite, image[I...]) for I in corners))
+    sigma = minimum(std.(filter(isfinite, image[I...]) for I in corners))
+    if isnan(sigma) # outside of image filled with NaNs -> use middle for sigma estimation
+        lowestmean = 0
+        sigma = std(image[get_middle_indices(image)...])
     end
     return lowestmean, sigma
 end
@@ -99,7 +124,8 @@ function robustmask!(image; maskedvalue=if eltype(image) <: AbstractFloat NaN el
 end
 function robustmask(weight)
     μ, σ = estimatenoise(weight)
-    return weight .> μ + 3σ
+    m = mean(filter(isfinite, weight[weight .> μ + 4σ]))
+    return weight .> maximum((μ + 3σ, m/5))
 end
 
 
@@ -186,3 +212,5 @@ end
 mmtovoxel(sizemm, nii::NIVolume) = mmtovoxel(sizemm, nii.header)
 mmtovoxel(sizemm, header::NIfTI.NIfTI1Header) = mmtovoxel(sizemm, header.pixdim)
 mmtovoxel(sizemm, pixdim) = sizemm ./ pixdim
+
+to_dim(V::AbstractVector, dim::Int) = reshape(V, ones(Int, dim-1)..., :)

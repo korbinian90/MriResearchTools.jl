@@ -71,7 +71,7 @@ Fast gaussian smoothing\
   - with missing values
 
 Other functions
-`robustrescale` `getHIP` `getsensitivity` `getscaledimage` `estimatequantile`
+`robustrescale` `getHIP` `getsensitivity` `getscaledimage` `estimatequantile` `estimatenoise`
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/korbinian90/MriResearchTools.jl/blob/master/LICENSE) for details
