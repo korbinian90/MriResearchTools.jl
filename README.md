@@ -43,7 +43,7 @@ savenii(unwrapped, "unwrapped", outputfolder, header(phase))
 
 ## Included Functionality
 
-ROMEO 3D/4D Phase Unwrapping\
+[ROMEO](https://github.com/korbinian90/ROMEO.jl) 3D/4D Phase Unwrapping\
 `romeo` `unwrap` `unwrap_individual`
 
 Reading, writing and other functions for NIfTI files (adapted from JuliaIO/NIfTI)\
@@ -78,4 +78,4 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 
 
 ## TODO
-Tests, Examples and Documentation
+more Tests, Examples and Documentation
