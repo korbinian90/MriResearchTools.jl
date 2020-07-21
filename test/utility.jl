@@ -14,12 +14,12 @@ mag_nii = readmag(fn_mag; normalize=true)
 @test 0.02 < estimatenoise(mag_nii)[2] < 0.03
 R = rand(200, 200, 200)
 μ, σ = estimatenoise(R)
-@test μ ≈ 0.5 atol=1e-2
+@test μ ≈ 0.5 atol=1e-1
 @test σ ≈ sqrt(1/12) atol=1e-2
 R[1:10,:,:] .= NaN; R[:,1:10,:] .= NaN; R[:,:,1:10] .= NaN;
 R[end-9:end,:,:] .= NaN; R[:,end-9:end,:] .= NaN; R[:,:,end-9:end] .= NaN
 μ, σ = estimatenoise(R)
-@test μ == 0
+@test μ ≈ 0.5 atol=1e-1
 @test σ ≈ sqrt(1/12) atol=1e-2
 
 # robust mask
