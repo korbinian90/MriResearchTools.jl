@@ -47,17 +47,23 @@ function makehomogeneous!(mag; σ, nbox=15)
     mag
 end
 
-function mm_to_vox(mm, nii::NIVolume)
+function getpixdim(nii::NIVolume)
     pixdim = nii.header.pixdim[2:(1+ndims(nii))]
     if all(pixdim .== 1)
         println("Warning! All voxel dimensions are 1 in NIfTI header, maybe they are wrong.")
     end
-    return mm_to_vox(mm, pixdim)
+    return pixdim
 end
+
+mm_to_vox(mm, nii::NIVolume) = mm_to_vox(mm, getpixdim(nii))
 mm_to_vox(mm, pixdim) = mm ./ pixdim
 
-function getsensitivity(mag::NIVolume, datatype=eltype(mag); σ_mm=7, nbox=15)
-    return getsensitivity(datatype.(mag); σ=mm_to_vox(σ_mm, mag), nbox=nbox)
+
+function getsensitivity(mag::NIVolume, datatype=eltype(mag); kw...)
+    return getsensitivity(datatype.(mag), getpixdim(mag); kw...)
+end
+function getsensitivity(mag, pixdim; σ_mm=7, nbox=15)
+    return getsensitivity(mag; σ=mm_to_vox(σ_mm, pixdim), nbox=nbox)
 end
 function getsensitivity(mag; σ, nbox=15)
     σ1, σ2 = getsigma(σ)
