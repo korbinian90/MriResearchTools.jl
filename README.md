@@ -64,7 +64,7 @@ Laplacian unwrapping\
 Unwarping of B0 dependent shifts\
 `getVSM` `thresholdforward` `unwarp`
 
-Fast gaussian smoothing\
+Fast gaussian smoothing for real and complex data\
 `gaussiansmooth3d`
   - standard
   - weighted
