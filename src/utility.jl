@@ -1,6 +1,6 @@
 function readphase(fn; keyargs...)
     phase = niread(fn; keyargs...)
-    minp, maxp = approxextrema(phase)
+    minp, maxp = Float32.(approxextrema(phase))
     phase.header.scl_slope = 2pi / (maxp - minp)
     phase.header.scl_inter = -pi - minp * phase.header.scl_slope
     return phase
@@ -9,9 +9,9 @@ end
 function readmag(fn; normalize=false, keyargs...)
     mag = niread(fn; keyargs...)
     if mag.header.scl_slope == 0 || normalize
-        _, maxi = approxextrema(mag)
-        mag.header.scl_slope = 1 / maxi
-        mag.header.scl_inter = 0
+        mini, maxi = Float32.(approxextrema(mag))
+        mag.header.scl_slope = 1 / (maxi - mini)
+        mag.header.scl_inter = - mini * mag.header.scl_slope
     end
     return mag
 end
