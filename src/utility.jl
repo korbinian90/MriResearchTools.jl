@@ -27,15 +27,12 @@ end
 
 header(v::NIVolume) = similar(v.header)
 
-Base.minimum(I::AbstractArray{<:AbstractFloat}) = NaNMath.minimum(I)
-Base.maximum(I::AbstractArray{<:AbstractFloat}) = NaNMath.maximum(I)
-
 approxextrema(I::NIVolume) = approxextrema(I.raw)
 function approxextrema(I)
     startindices = round.(Int, range(firstindex(I), lastindex(I); length=100))
     indices = vcat((i .+ (1:100) for i in startindices)...)
     indices = filter(ind -> checkbounds(Bool, I, ind), indices)
-    arr = I[indices]
+    arr = filter(isfinite, I[indices])
     return (minimum(arr), maximum(arr))
 end
 
@@ -52,7 +49,7 @@ save the image at the path
 Warning: MRIcro can only open images with types Int32, Int64, Float32, Float64
 """
 function savenii(image::AbstractArray, filepath; header=nothing)
-    vol = NIVolume([h for h in [header] if h != nothing]..., image)
+    vol = NIVolume([h for h in [header] if h !== nothing]..., image)
     niwrite(filepath, vol)
 end
 ConvertTypes = Union{BitArray, AbstractArray{UInt8}} #TODO debug NIfTI
@@ -133,10 +130,7 @@ getcomplex(mag::NIVolume, phase::NIVolume) = getcomplex(mag.raw, phase.raw)
 getcomplex(fnmag::AbstractString, fnphase::AbstractString) = getcomplex(niread(fnmag), niread(fnphase))
 
 function getcomplex(mag, phase)
-    higherdims = ones(Int, length(size(phase)) - 2)
-    minp = minimum(phase[:,:,higherdims...])
-    maxp = maximum(phase[:,:,higherdims...])
-
+    minp, maxp = approxextrema(phase)
     mag .* exp.((2im * pi / (maxp - minp)) .* phase)
 end
 
@@ -177,7 +171,7 @@ robustrescale(array, newmin, newmax; threshold = false, mask = trues(size(array)
     robustrescale!(datatype.(array), newmin, newmax; threshold = threshold, mask = mask)
 
 function robustrescale!(array, newmin, newmax; threshold = false, mask = trues(size(array)))
-    array[isnan.(array)] .= minimum(array[.!isnan.(array)])
+    array[isnan.(array)] .= minimum(filter(isfinite, array))
     q = [0.01, 0.99] # quantiles
     oldq = estimatequantile(array[mask], q)
     oldrange = (oldq[2] - oldq[1]) / (q[2] - q[1])

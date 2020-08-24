@@ -20,7 +20,7 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothi
           w = Float32.(weight)
           w[w .== 0] .= minimum(w[w .!= 0])
       end
-    if boxsizes == nothing boxsizes = getboxsizes.(σ, nbox) end
+    if boxsizes === nothing boxsizes = getboxsizes.(σ, nbox) end
 
     for ibox in 1:nbox, dim in dims
         if size(image, dim) == 1

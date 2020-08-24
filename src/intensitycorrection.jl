@@ -98,7 +98,7 @@ function fillandsmooth!(lowpass, stablemean, σ2)
     gaussiansmooth3d!(lowpass, σ2; weight = lowpassweight)
 end
 
-threshold(image) = threshold(image, robustmask(image))
+#threshold(image) = threshold(image, robustmask(image))
 function threshold(image, mask; width=0.1)
     m = try quantile(skipmissing(image[mask]), 0.9) catch; 0 end
     return ((1 - width) * m .< image .< (1 + width) * m) .& mask
