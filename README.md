@@ -79,3 +79,5 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 
 ## TODO
 more Tests, Examples and Documentation
+add ASPIRE
+create compiled package
