@@ -6,6 +6,7 @@ using NIfTI
 using ROMEO
 using Statistics
 using NaNMath
+using Plots
 
 include("utility.jl")
 include("smoothing.jl")
@@ -13,6 +14,10 @@ include("laplacianunwrapping.jl")
 include("intensitycorrection.jl")
 include("VSMbasedunwarping.jl")
 include("methods.jl")
+include("snr.jl")
+include("tissue.jl")
+include("scanner.jl")
+include("snr_plots.jl")
 
 romeo = unwrap # access unwrap function via alias romeo
 
@@ -38,6 +43,8 @@ export Data,
         unwrap, unwrap!, romeo,
         unwrap_individual, unwrap_individual!,
         homodyne, homodyne!,
-        to_dim
+        to_dim,
+        snr_graph,
+        dutycycle_table
 
 end # module

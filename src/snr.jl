@@ -1,6 +1,3 @@
-include("tissue.jl")
-include("scanner.jl")
-
 struct Times
     Tacq
     TE

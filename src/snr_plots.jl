@@ -1,7 +1,4 @@
 ## INIT
-using Plots
-include("snr.jl")
-
 YNORM = 1
 plot_type(args...; keyargs...) = plot_type!(plot(), args...; keyargs...)
 function plot_type!(h, TRs, Nx, FOV, snr_type; field=:B7T, equidistant=0, ME=:bipolar, NE=(3:2:16)', label=["$ME: $i echoes" for i in NE], kw...)
@@ -27,37 +24,40 @@ function plot_type!(h, t, snr_type; field=:B7T, y_norm=:off, kw...)
     plot!(h, getfield.(t, :TR), y; kw...) # Ref() to avoid broadcasting
 end
 
-## Graph Plot
-
-f = :B7T
-NE = [3 5 7 9]
-Nx = 800
-FOV = 210
-TR = 0:0.1:70
-snrtype = :SNR => :wm
-config = (TR, Nx, FOV, snrtype)
-config_me = (equidistant=NE, y_norm=:on, field=f, NE=NE, linecolor=(2:5)')
-h = plot_type(config...;y_norm=:calculate, field=f, NE=1, label="single-echo", xaxis="TR", yaxis="nSNR", legend=:bottomright)
-h = plot_type!(h, config...; config_me..., ME=:monopolar, linestyle=:dash, label=nothing)
-h = plot_type!(h, config...; config_me..., ME=:bipolar, label=["$i echoes" for i in NE])
-#=
-figpath = raw"F:\MRI\paperfigures\simulation"
-mkpath(figpath)
-for type in ["png", "pdf", "svg"]
-    savefig(h, joinpath(figpath, "snr_equidistant.$type"))
+## SNR Graph Plot
+function snr_graph()
+    f = :B7T
+    NE = [3 5 7 9]
+    Nx = 800
+    FOV = 210
+    TR = 0:0.1:70
+    snrtype = :SNR => :wm
+    config = (TR, Nx, FOV, snrtype)
+    config_me = (equidistant=NE, y_norm=:on, field=f, NE=NE, linecolor=(2:5)')
+    h = plot_type(config...;y_norm=:calculate, field=f, NE=1, label="single-echo", xaxis="TR", yaxis="nSNR", legend=:bottomright)
+    h = plot_type!(h, config...; config_me..., ME=:monopolar, linestyle=:dash, label=nothing)
+    h = plot_type!(h, config...; config_me..., ME=:bipolar, label=["$i echoes" for i in NE])
+    #=
+    figpath = raw"F:\MRI\paperfigures\simulation"
+    mkpath(figpath)
+    for type in ["png", "pdf", "svg"]
+        savefig(h, joinpath(figpath, "snr_equidistant.$type"))
+    end
+    =#
+    return h
 end
-=#
 
-## Table
+## Dutycycle Table
+function dutycycle_table()
+    FOV = 210 # in [m]
+    Nx = [64 128 256 512 768 960]
+    ME = [:monopolar, :bipolar]
+    NE = 8
+    ΔTE = 4
 
-FOV = 210 # in [m]
-Nx = [64 128 256 512 768 960]
-ME = [:monopolar, :bipolar]
-NE = 8
-ΔTE = 4
-
-times = findtimesforΔTE.(Nx, NE, ME, FOV, ΔTE)
-@show dutycycle = getdutycycle.(times)
+    times = findtimesforΔTE.(Nx, NE, ME, FOV, ΔTE)
+    return getdutycycle.(times)
+end
 
 #=
 ## TABLE SNR (abstract)
