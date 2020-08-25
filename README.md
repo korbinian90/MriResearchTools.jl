@@ -16,11 +16,11 @@ julia> dutycycle_table()
 The first line downloads and installs the package (with dependencies). To leave the julia package manager (shell prompt `(v1.3) pkg>`) press `backspace`.
 
 ### Files
-`scanner.jl` and `tissue.jl` contain constants
+[`scanner.jl`](https://github.com/korbinian90/MriResearchTools.jl/blob/clearswi_publication/src/scanner.jl) and [`tissue.jl`](https://github.com/korbinian90/MriResearchTools.jl/blob/clearswi_publication/src/tissue.jl) contain constants
 
-`snr.jl` contains the SNR theory and simulation
+[`snr.jl`](https://github.com/korbinian90/MriResearchTools.jl/blob/clearswi_publication/src/snr.jl) contains the SNR theory and simulation
 
-`snr_plots.jl` contains the settings and functions to create the graph and table
+[`snr_plots.jl`](https://github.com/korbinian90/MriResearchTools.jl/blob/clearswi_publication/src/snr_plots.jl) contains the settings and functions to create the graph and table
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/korbinian90/MriResearchTools.jl/blob/master/LICENSE) for details
