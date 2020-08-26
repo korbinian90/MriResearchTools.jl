@@ -10,9 +10,19 @@ mag_nii = readmag(fn_mag; normalize=true)
 @test 1 ≤ maximum(mag_nii) ≤ 2
 @test 0 ≤ minimum(mag_nii) ≤ 1
 
+# sample
+sample = MriResearchTools.sample
+@test length(sample(1:10)) >= 10
+@test 10 >= length(sample(1:10; n=3)) >= 3
+@test isempty(sample([NaN]))
+@test all(isfinite.(sample([1:10..., NaN])))
+@test length(sample([1])) == 1
+@test isempty(sample([]))
+
 # estimatenoise
-@test 0.02 < estimatenoise(mag_nii)[2] < 0.03
-R = rand(200, 200, 200)
+@test estimatenoise(mag_nii)[2] ≈ 0.03 atol=1e-2
+R = rand(500, 500, 500)
+R[:, 251:500, :] .= 10
 μ, σ = estimatenoise(R)
 @test μ ≈ 0.5 atol=1e-1
 @test σ ≈ sqrt(1/12) atol=1e-2

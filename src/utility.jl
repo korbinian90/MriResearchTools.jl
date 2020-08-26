@@ -29,11 +29,18 @@ header(v::NIVolume) = similar(v.header)
 
 approxextrema(I::NIVolume) = approxextrema(I.raw)
 function approxextrema(I)
-    startindices = round.(Int, range(firstindex(I), lastindex(I); length=100))
-    indices = vcat((i .+ (1:100) for i in startindices)...)
-    indices = filter(ind -> checkbounds(Bool, I, ind), indices)
-    arr = filter(isfinite, I[indices])
+    arr = sample(I)
     return (minimum(arr), maximum(arr))
+end
+
+estimatequantile(array, p) = quantile(sample(array; n=1e5), p)
+
+function sample(I; n=10000)
+    n = min(n, length(I))
+    len = ceil(Int, √n) # take len blocks of len elements
+    startindices = round.(Int, range(firstindex(I) - 1, lastindex(I) - len; length=len))
+    indices = vcat((i .+ (1:len) for i in startindices)...)
+    return filter(isfinite, I[indices])
 end
 
 savenii(image, name, writedir::Nothing, header=nothing) = nothing
@@ -92,8 +99,8 @@ end
 function get_corner_indices(I, max_length=10)
     d = size(I)
     n = min.(max_length, ceil.(Int, d ./ 3)) # n voxels for each dim
-    getrange(num, len) = [1:len, (len-num+1):len] # first and last voxels
-    return Iterators.product(getrange.(n, d)...)
+    getrange(num, len) = [1:num, (len-num+1):len] # first and last voxels
+    return collect(Iterators.product(getrange.(n, d)...))
 end
 
 function get_middle_indices(I, max_length=10)
@@ -106,13 +113,21 @@ end
 # estimate noise parameters from corner without signal
 function estimatenoise(image)
     corners = get_corner_indices(image)
-    lowestmean = minimum(mean.(filter(isfinite, image[I...]) for I in corners))
-    sigma = minimum(std.(filter(isfinite, image[I...]) for I in corners))
-    if isnan(sigma) # outside of image filled with NaNs -> use middle for sigma estimation
-        lowestmean = 0
-        sigma = std(image[get_middle_indices(image)...])
+    (lowestmean, ind) = findmin(mean.(filter(isfinite, image[I...]) for I in corners))
+    sigma = std(filter(isfinite, image[corners[ind]...]))
+    if isnan(sigma) # no corner available
+        # estimation that is only true if have the image is signal and half noise
+        sigma = 2estimatesigma_from_quantile(image, 1/4)
+        lowestmean = sigma / 2
     end
     return lowestmean, sigma
+end
+
+# sigma is only calculated for quantile (biased)
+function estimatesigma_from_quantile(image, quantile)
+    q = estimatequantile(image, quantile)
+    samples = filter(x -> x < q, sample(image))
+    return std(samples)
 end
 
 function robustmask!(image; maskedvalue=if eltype(image) <: AbstractFloat NaN else 0 end)
@@ -187,11 +202,6 @@ function robustrescale!(array, newmin, newmax; threshold = false, mask = trues(s
     array
 end
 
-function estimatequantile(array, p)
-    samples = 1e5
-    step = ceil(Int, length(array) / samples)
-    quantile(array[1:step:end], p)
-end
 
 function rescale(array, newmin, newmax; datatype = eltype(array))
     rescale!(datatype.(array), newmin, newmax)
