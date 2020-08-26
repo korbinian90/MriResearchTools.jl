@@ -46,6 +46,9 @@ savenii(unwrapped, "unwrapped", outputfolder, header(phase))
 [ROMEO](https://github.com/korbinian90/ROMEO.jl) 3D/4D Phase Unwrapping\
 `romeo` `unwrap` `unwrap_individual`
 
+Laplacian unwrapping\
+`laplacianunwrap`
+
 Reading, writing and other functions for NIfTI files (adapted from JuliaIO/NIfTI)\
 `readphase` `readmag` `niread` `savenii` `header`
 
@@ -57,9 +60,6 @@ Simple robust masking (threshold)\
 
 Combine multiple echoes\
 `RSS`
-
-Laplacian unwrapping\
-`laplacianunwrap`
 
 Unwarping of B0 dependent shifts\
 `getVSM` `thresholdforward` `unwarp`
