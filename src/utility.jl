@@ -96,18 +96,11 @@ function getHIP(compl; echoes=[1,2])
     return c
 end
 
-function get_corner_indices(I, max_length=10)
+function get_corner_indices(I; max_length=10)
     d = size(I)
     n = min.(max_length, ceil.(Int, d ./ 3)) # n voxels for each dim
     getrange(num, len) = [1:num, (len-num+1):len] # first and last voxels
     return collect(Iterators.product(getrange.(n, d)...))
-end
-
-function get_middle_indices(I, max_length=10)
-    d = size(I)
-    n = min.(max_length, ceil.(Int, d ./ 3)) # n voxels for each dim
-    middle = ceil.(Int, d ./ 2)
-    return broadcast((m, r) -> m .+ r, [(-i÷2:i÷2) for i in n], middle)
 end
 
 # estimate noise parameters from corner without signal
