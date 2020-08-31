@@ -19,13 +19,16 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothi
     if typeof(weight) != Nothing
           w = Float32.(weight)
           w[w .== 0] .= minimum(w[w .!= 0])
-      end
+    end
     if boxsizes === nothing boxsizes = getboxsizes.(σ, nbox) end
+    checkboxsizes!(boxsizes)
 
     for ibox in 1:nbox, dim in dims
-        if size(image, dim) == 1
+        bsize = boxsizes[dim][ibox]
+        if size(image, dim) == 1 || bsize < 3
             continue
         end
+
         K = ifelse(isodd(ibox), :, size(image, dim):-1:1)
         # TODO parallel? -> Distributed arrays?
         #loop = Iterators.product((size(image) |> sz -> (sz[1:(dim-1)], sz[(dim+1):end]) .|> CartesianIndices)...)
@@ -83,14 +86,16 @@ function getboxsizes_small(σ, n::Int, smallsize::Int)
     boxsizes
 end
 
-function checkboxsize(boxsize)
-    if iseven(boxsize) @warn "boxsize is even! It was changed to next smaller odd integer" end
+function checkboxsizes!(boxsizes)
+    for bs in boxsizes, i in eachindex(bs)
+        if iseven(bs[i])
+            @warn "boxsize $i is even: $(bs[i]); it was changed to next bigger odd integer!"
+            bs[i] += 1
+        end
+    end
 end
 
 function boxfilterline!(line::AbstractVector, boxsize::Int)
-    if boxsize < 3 return line end
-    checkboxsize(boxsize)
-
     r = div(boxsize, 2)
     orig = copy(line) #TODO could be with circular queue instead to avoid memory allocation
     lsum = sum(orig[1:boxsize])
@@ -99,13 +104,9 @@ function boxfilterline!(line::AbstractVector, boxsize::Int)
         lsum += orig[i+r] - orig[i-r-1]
         line[i] = lsum / boxsize
     end
-    line
 end
 
 function boxfilterline!(line::AbstractVector, boxsize::Int, weight::AbstractVector)
-    if boxsize < 3 return line end
-    checkboxsize(boxsize)
-
     r = div(boxsize, 2)
 
     lfast = copy(line) #TODO is it really faster??
@@ -130,13 +131,9 @@ function boxfilterline!(line::AbstractVector, boxsize::Int, weight::AbstractVect
         wsmooth += w^2 - wold^2
         weight[i] = wsmooth / wsum
     end
-    line
 end
 
 function nanboxfilterline!(line::AbstractVector, boxsize::Int)
-    if boxsize < 3 return line end
-    checkboxsize(boxsize)
-
     n = length(line)
     r = div(boxsize, 2)
     maxfills = r
@@ -203,5 +200,4 @@ function nanboxfilterline!(line::AbstractVector, boxsize::Int)
         end
 
     end
-    line
 end
