@@ -25,7 +25,7 @@ R = rand(500, 500, 500)
 R[:, 251:500, :] .= 10
 μ, σ = estimatenoise(R)
 @test μ ≈ 0.5 atol=1e-1
-@test σ ≈ sqrt(1/12) atol=1e-2
+@test σ ≈ sqrt(1/12) atol=2e-2
 R[1:10,:,:] .= NaN; R[:,1:10,:] .= NaN; R[:,:,1:10] .= NaN;
 R[end-9:end,:,:] .= NaN; R[:,end-9:end,:] .= NaN; R[:,:,end-9:end] .= NaN
 μ, σ = estimatenoise(R)
