@@ -7,7 +7,7 @@ end
 
 function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothing, dims=1:ndims(image), boxsizes=nothing)
     if σ isa Number
-        σ = [σ,σ,σ]
+        σ = σ * ones(ndims(image))
     end
     if typeof(mask) != Nothing
         nbox *= 2
@@ -21,14 +21,15 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothi
           w[w .== 0] .= minimum(w[w .!= 0])
     end
     if boxsizes === nothing boxsizes = getboxsizes.(σ, nbox) end
-    checkboxsizes!(boxsizes)
+    checkboxsizes!(boxsizes, size(image), dims)
 
     for ibox in 1:nbox, dim in dims
         bsize = boxsizes[dim][ibox]
         if size(image, dim) == 1 || bsize < 3
             continue
         end
-
+        q = CircularBuffer{eltype(image)}(bsize)
+        q2 = CircularBuffer{eltype(image)}(bsize)
         K = ifelse(isodd(ibox), :, size(image, dim):-1:1)
         # TODO parallel? -> Distributed arrays?
         #loop = Iterators.product((size(image) |> sz -> (sz[1:(dim-1)], sz[(dim+1):end]) .|> CartesianIndices)...)
@@ -41,7 +42,7 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothi
                 elseif typeof(weight) != Nothing
                     boxfilterline!(view(image,I,:,J), boxsizes[dim][ibox], view(w,I,:,J))
                 else
-                    boxfilterline!(view(image,I,:,J), boxsizes[dim][ibox])
+                    boxfilterline!(view(image,I,:,J), boxsizes[dim][ibox], q)
                 end
             end
         end
@@ -86,44 +87,54 @@ function getboxsizes_small(σ, n::Int, smallsize::Int)
     boxsizes
 end
 
-function checkboxsizes!(boxsizes)
-    for bs in boxsizes, i in eachindex(bs)
+function checkboxsizes!(boxsizes, sz, dims)
+    for dim in dims
+        bs = boxsizes[dim]
+        for i in eachindex(bs)
         if iseven(bs[i])
             @warn "boxsize $i is even: $(bs[i]); it was changed to next bigger odd integer!"
             bs[i] += 1
         end
+            if bs[i] > sz[dim] / 2
+                @warn "boxsize $i is limited to half the image; it was changed from $(bs[i]) to $(sz[dim]÷2)!"
+                bs[i] = sz[dim] ÷ 2
+    end
+end
     end
 end
 
-function boxfilterline!(line::AbstractVector, boxsize::Int)
+function boxfilterline!(line::AbstractVector, boxsize::Int, q::CircularBuffer)
     r = div(boxsize, 2)
-    orig = copy(line) #TODO could be with circular queue instead to avoid memory allocation
-    lsum = sum(orig[1:boxsize])
+    initvals = view(line, 1:boxsize)
+    lsum = sum(initvals)
+    append!(q, initvals)
 
     @inbounds for i in (r+2):(length(line)-r)
-        lsum += orig[i+r] - orig[i-r-1]
+        lsum += line[i+r] - popfirst!(q)
+        push!(q, line[i+r])
         line[i] = lsum / boxsize
     end
 end
 
-function boxfilterline!(line::AbstractVector, boxsize::Int, weight::AbstractVector)
+function boxfilterline!(line::AbstractVector, boxsize::Int, weight::AbstractVector, lq::CircularBuffer, wq::CircularBuffer)
     r = div(boxsize, 2)
-
-    lfast = copy(line) #TODO is it really faster??
-    wfast = copy(weight)
 
     wsmooth = wsum = sum = eps() # slightly bigger than 0 to avoid division by 0
     @inbounds for i in 1:boxsize
-        sum += lfast[i] * wfast[i]
-        wsum += wfast[i]
-        wsmooth += wfast[i]^2
+        sum += line[i] * weight[i]
+        wsum += weight[i]
+        wsmooth += weight[i]^2
+        push!(lq, line[i])
+        push!(wq, weight[i])
     end
 
     @inbounds for i in (r+2):(length(line)-r)
-        w = wfast[i+r]
-        l = lfast[i+r]
-        wold = wfast[i-r-1]
-        lold = lfast[i-r-1]
+        w = weight[i+r]
+        l = line[i+r]
+        wold = popfirst!(wq)
+        lold = popfirst!(lq)
+        push!(wq, w)
+        push!(lq, l)
 
         sum += l * w - lold * wold
         wsum += w - wold
