@@ -5,7 +5,7 @@ function gaussiansmooth3d(image, σ=[5,5,5]; kwargs...)
     gaussiansmooth3d!(0f0 .+ copy(image), σ; kwargs...)
 end
 
-function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothing, dims=1:ndims(image), boxsizes=nothing)
+function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothing, dims=1:max(ndims(image),3), boxsizes=nothing)
     if σ isa Number
         σ = σ * ones(ndims(image))
     end
@@ -28,26 +28,21 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothi
         if size(image, dim) == 1 || bsize < 3
             continue
         end
-        q = CircularBuffer{eltype(image)}(bsize)
-        q2 = CircularBuffer{eltype(image)}(bsize)
-        K = ifelse(isodd(ibox), :, size(image, dim):-1:1)
-        # TODO parallel? -> Distributed arrays?
+        
+        linefilter = getfilter(image, weight, mask, bsize)
+        K = ifelse(mask isa Nothing || isodd(ibox), :, size(image, dim):-1:1)
+
+        # TODO parallel? -> Distributed arrays? -> use slices
         #loop = Iterators.product((size(image) |> sz -> (sz[1:(dim-1)], sz[(dim+1):end]) .|> CartesianIndices)...)
         #Threads.@threads for (I, J) in collect(loop)
         for I in CartesianIndices(size(image)[1:(dim-1)])
             for J in CartesianIndices(size(image)[(dim+1):end])
-                if typeof(mask) != Nothing
-                    im = view(image, I, K, J)
-                    nanboxfilterline!(im, boxsizes[dim][ibox])
-                elseif typeof(weight) != Nothing
-                    boxfilterline!(view(image,I,:,J), boxsizes[dim][ibox], view(w,I,:,J))
-                else
-                    boxfilterline!(view(image,I,:,J), boxsizes[dim][ibox], q)
-                end
+                w = if weight isa Nothing nothing else view(weight,I,:,J) end
+                linefilter(view(image,I,K,J), w)
             end
         end
     end
-    image
+    return image
 end
 
 function getboxsizes(σ, n)
@@ -101,6 +96,16 @@ function checkboxsizes!(boxsizes, sz, dims)
     end
 end
     end
+end
+
+function getfilter(image, weight::Nothing, mask::Nothing, bsize)
+    return (im, _) -> boxfilterline!(im, bsize, CircularBuffer{eltype(image)}(bsize))
+end
+function getfilter(image, weight, mask::Nothing, bsize)
+    return (im, w) -> boxfilterline!(im, bsize, w, CircularBuffer{eltype(image)}(bsize), CircularBuffer{eltype(weight)}(bsize))
+end
+function getfilter(image, weight, mask, bsize)
+    return (im, _) -> nanboxfilterline!(im, bsize)
 end
 
 function boxfilterline!(line::AbstractVector, boxsize::Int, q::CircularBuffer)
