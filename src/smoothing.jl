@@ -17,8 +17,8 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothi
         image[mask .== 0] .= NaN
     end
     if typeof(weight) != Nothing
-          w = Float32.(weight)
-          w[w .== 0] .= minimum(w[w .!= 0])
+        weight = Float32.(weight)
+        weight[weight .== 0] .= minimum(weight[weight .!= 0])
     end
     if boxsizes === nothing boxsizes = getboxsizes.(σ, nbox) end
     checkboxsizes!(boxsizes, size(image), dims)
@@ -34,8 +34,9 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothi
         # TODO parallel? -> Distributed arrays? -> use slices
         #loop = Iterators.product((size(image) |> sz -> (sz[1:(dim-1)], sz[(dim+1):end]) .|> CartesianIndices)...)
         #Threads.@threads for (I, J) in collect(loop)
-        for I in CartesianIndices(size(image)[1:(dim-1)])
+            
             for J in CartesianIndices(size(image)[(dim+1):end])
+            for I in CartesianIndices(size(image)[1:(dim-1)])
                 w = if weight isa Nothing nothing else view(weight,I,:,J) end
                 linefilter(view(image,I,K,J), w)
             end
