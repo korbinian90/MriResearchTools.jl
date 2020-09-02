@@ -160,7 +160,7 @@ function nanboxfilterline!(line::AbstractVector, boxsize::Int, orig::AbstractVec
     orig[r+1:r+n] .= line
     orig[r+n+1:end] .= NaN
 
-    lsum = sum(orig[r+1:2r])
+    lsum = sum(view(orig,r+1:2r))
     if isnan(lsum) lsum = 0. end
     nfills = 0
     nvalids = 0
@@ -185,7 +185,7 @@ function nanboxfilterline!(line::AbstractVector, boxsize::Int, orig::AbstractVec
             end
             if nvalids == boxsize
                 mode = :normal
-                lsum = sum(orig[i:(i+2r)])
+                lsum = sum(view(orig,i:(i+2r)))
                 line[i] = lsum / boxsize
                 continue
             end
