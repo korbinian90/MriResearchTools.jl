@@ -28,8 +28,7 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothi
         if size(image, dim) == 1 || bsize < 3
             continue
         end
-        
-        linefilter = getfilter(image, weight, mask, bsize)
+        linefilter = getfilter(image, weight, mask, bsize, size(image, dim))
         K = ifelse(mask isa Nothing || isodd(ibox), :, size(image, dim):-1:1)
 
         # TODO parallel? -> Distributed arrays? -> use slices
@@ -86,26 +85,30 @@ function checkboxsizes!(boxsizes, sz, dims)
     for dim in dims
         bs = boxsizes[dim]
         for i in eachindex(bs)
-        if iseven(bs[i])
-            @warn "boxsize $i is even: $(bs[i]); it was changed to next bigger odd integer!"
-            bs[i] += 1
-        end
+            if iseven(bs[i])
+                @warn "boxsize $i is even: $(bs[i]); it was changed to next bigger odd integer!"
+                bs[i] += 1
+            end
             if bs[i] > sz[dim] / 2
                 @warn "boxsize $i is limited to half the image; it was changed from $(bs[i]) to $(sz[dim]÷2)!"
                 bs[i] = sz[dim] ÷ 2
-    end
-end
+            end
+        end
     end
 end
 
-function getfilter(image, weight::Nothing, mask::Nothing, bsize)
-    return (im, _) -> boxfilterline!(im, bsize, CircularBuffer{eltype(image)}(bsize))
+function getfilter(image, weight::Nothing, mask::Nothing, bsize, len)
+    q = CircularBuffer{eltype(image)}(bsize)
+    return (im, _) -> boxfilterline!(im, bsize, q)
 end
-function getfilter(image, weight, mask::Nothing, bsize)
-    return (im, w) -> boxfilterline!(im, bsize, w, CircularBuffer{eltype(image)}(bsize), CircularBuffer{eltype(weight)}(bsize))
+function getfilter(image, weight, mask::Nothing, bsize, len)
+    q = CircularBuffer{eltype(image)}(bsize)
+    qw = CircularBuffer{eltype(weight)}(bsize)
+    return (im, w) -> boxfilterline!(im, bsize, w, q, qw)
 end
-function getfilter(image, weight, mask, bsize)
-    return (im, _) -> nanboxfilterline!(im, bsize)
+function getfilter(image, weight, mask, bsize, len)
+    buffer = ones(eltype(image), len + bsize - 1) * NaN16
+    return (im, _) -> nanboxfilterline!(im, bsize, buffer)
 end
 
 function boxfilterline!(line::AbstractVector, boxsize::Int, q::CircularBuffer)
@@ -149,13 +152,13 @@ function boxfilterline!(line::AbstractVector, boxsize::Int, weight::AbstractVect
     end
 end
 
-function nanboxfilterline!(line::AbstractVector, boxsize::Int)
+function nanboxfilterline!(line::AbstractVector, boxsize::Int, orig::AbstractVector)
     n = length(line)
     r = div(boxsize, 2)
     maxfills = r
 
-    orig = [repeat([NaN], r); line; repeat([NaN], r)]
-
+    orig[r+1:r+n] .= line
+    orig[r+n+1:end] .= NaN
 
     lsum = sum(orig[r+1:2r])
     if isnan(lsum) lsum = 0. end
