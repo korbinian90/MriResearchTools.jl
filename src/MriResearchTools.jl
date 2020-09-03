@@ -7,6 +7,7 @@ using ROMEO
 using Statistics
 using NaNMath
 using DataStructures
+using SharedArrays
 
 include("utility.jl")
 include("smoothing.jl")

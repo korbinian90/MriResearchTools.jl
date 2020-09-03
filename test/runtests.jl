@@ -6,4 +6,5 @@ using Test
     include("utility.jl")
     include("intensitycorrection.jl")
     include("methods.jl")
+    include("runtime.jl")
 end

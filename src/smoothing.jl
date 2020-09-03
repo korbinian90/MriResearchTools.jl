@@ -35,7 +35,7 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothi
         #loop = Iterators.product((size(image) |> sz -> (sz[1:(dim-1)], sz[(dim+1):end]) .|> CartesianIndices)...)
         #Threads.@threads for (I, J) in collect(loop)
             
-            for J in CartesianIndices(size(image)[(dim+1):end])
+        for J in CartesianIndices(size(image)[(dim+1):end])
             for I in CartesianIndices(size(image)[1:(dim-1)])
                 w = if weight isa Nothing nothing else view(weight,I,:,J) end
                 linefilter(view(image,I,K,J), w)
@@ -43,6 +43,87 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothi
         end
     end
     return image
+end
+
+function gaussiansmooth3dpar!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothing, dims=1:max(ndims(image),3), boxsizes=nothing)
+    if σ isa Number
+        σ = σ * ones(ndims(image))
+    end
+    if typeof(mask) != Nothing
+        nbox *= 2
+        # TODO do we need small boxsize?
+        #@show boxsizes = getboxsizes_small.(σ, nbox, 5)
+        #boxsizes = getboxsizes.(σ, nbox)
+        image[mask .== 0] .= NaN
+    end
+    if typeof(weight) != Nothing
+          weight = Float32.(weight)
+          weight[weight .== 0] .= minimum(weight[weight .!= 0])
+    end
+    if boxsizes === nothing boxsizes = getboxsizes.(σ, nbox) end
+    checkboxsizes!(boxsizes, size(image), dims)
+    
+    for J in CartesianIndices(size(image)[4:end])
+        sharedimage = SharedArray(view(image,:,:,:,J))
+        for ibox in 1:nbox, dim in 1:3 # TODO boxsize double count slice
+            bsize = boxsizes[dim][ibox]
+            if size(image, dim) == 1 || bsize < 3
+                continue
+            end
+            # TODO parallel? -> Distributed arrays? -> use slices
+            #loop = Iterators.product((size(image) |> sz -> (sz[1:(dim-1)], sz[(dim+1):end]) .|> CartesianIndices)...)
+            #Threads.@threads for (I, J) in collect(loop)
+            for slice in 1:size(image, dim)
+                slicefilter(image, weight, mask, dim, slice, bsize, J, ibox)
+            end
+        end
+
+    end
+    return image
+end
+
+function slicefilter(image, weight, mask, dim, slice, bsize, J, ibox)
+    inds = Any[:,:,:]
+    inds[dim] = slice
+    
+    linedim = dim % 3 + 1
+    iterdim = (dim + 1) % 3 + 1
+    # for extrapolation (mask) line is reversed for every second box
+    inds[linedim] = ifelse(mask isa Nothing || isodd(ibox), (:), size(image, linedim):-1:1)
+    linefilter = getfilter(image, weight, mask, bsize, size(image, linedim))
+    for i in 1:size(image, iterdim)
+        inds[iterdim] = i    
+        w = if weight isa Nothing nothing else view(weight,inds...,J) end
+        linefilter(view(image,inds...,J), w)
+    end
+end
+
+
+function slicefilter2(image, weight, mask, dim, slice, boxsizes, J)
+    inds = Any[:,:,:]
+    dim1 = dim % 3 + 1
+    dim2 = (dim + 1) % 3 + 1
+    inds[dim] = slice
+    # first and second application (smoothing in dim2 and dim1)
+    # for extrapolation K is reverse smoothing for second dim
+    application = [
+        (linedim=dim2, iterdim=dim1, K=(:)),
+        (linedim=dim1, iterdim=dim2, K=ifelse(mask isa Nothing, (:), size(image, dim1):-1:1))
+    ]
+    
+    for (linedim, iterdim, K) in application
+        inds[linedim] = K
+        bsize = boxsizes[linedim]
+        if size(image, linedim) == 1 || bsize < 3
+            continue
+        end
+        linefilter = getfilter(image, weight, mask, bsize, size(image, linedim))
+        for i in 1:size(image, iterdim)
+            inds[iterdim] = i    
+            w = if weight isa Nothing nothing else view(weight,inds...,J) end
+            linefilter(view(image,inds...,J), w)
+        end
+    end
 end
 
 function getboxsizes(σ, n)
