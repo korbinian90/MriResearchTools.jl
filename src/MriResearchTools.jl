@@ -5,7 +5,6 @@ using Interpolations
 using NIfTI
 using ROMEO
 using Statistics
-using NaNMath
 using DataStructures
 
 include("utility.jl")
