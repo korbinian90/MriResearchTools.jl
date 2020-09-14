@@ -33,14 +33,25 @@ function approxextrema(I)
     return (minimum(arr), maximum(arr))
 end
 
-estimatequantile(array, p) = quantile(sample(array; n=1e5), p)
+function estimatequantile(array, p)
+    try 
+        return quantile(sample(array; n=1e5), p)
+    catch
+        @warn "quantile could not be estimated! (maybe only NaNs)"
+        return 0
+    end
+end
 
 function sample(I; n=10000)
     n = min(n, length(I))
     len = ceil(Int, √n) # take len blocks of len elements
     startindices = round.(Int, range(firstindex(I) - 1, lastindex(I) - len; length=len))
     indices = vcat((i .+ (1:len) for i in startindices)...)
-    return filter(isfinite, I[indices])
+    ret = filter(isfinite, I[indices])
+    if isempty(ret)
+        ret = filter(isfinite, I)
+    end
+    return ret
 end
 
 savenii(image, name, writedir::Nothing, header=nothing) = nothing
