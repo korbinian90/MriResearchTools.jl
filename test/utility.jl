@@ -6,7 +6,7 @@ phase_nii = readphase(fn_phase)
 
 # Read and normalize mag
 fn_mag = "data/small/Mag.nii"
-mag_nii = readmag(fn_mag; normalize=true)
+mag_nii = readmag(fn_mag; rescale=true)
 @test 1 ≤ maximum(mag_nii) ≤ 2
 @test 0 ≤ minimum(mag_nii) ≤ 1
 
@@ -33,7 +33,7 @@ R[end-9:end,:,:] .= NaN; R[:,end-9:end,:] .= NaN; R[:,:,end-9:end] .= NaN
 @test σ ≈ sqrt(1/12) atol=1e-2
 
 # robust mask
-mag = Float32.(readmag(fn_mag; normalize=true))
+mag = Float32.(readmag(fn_mag; rescale=true))
 for _ in 1:10
     mag[(end÷2):end,:,:,:] .= 0.2 .+ 0.1 .* rand.()
     m = robustmask(mag)

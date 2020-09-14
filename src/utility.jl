@@ -1,15 +1,26 @@
-function readphase(fn; keyargs...)
+function readphase(fn; rescale=true, keyargs...)
     phase = niread(fn; keyargs...)
-    minp, maxp = Float32.(approxextrema(phase))
-    phase.header.scl_slope = 2pi / (maxp - minp)
-    phase.header.scl_inter = -pi - minp * phase.header.scl_slope
+    if phase.header.scl_slope == 0 || rescale
+        minp, maxp = Float32.(approxextrema(phase))
+        if isapprox(maxp - minp, 2π; atol=0.1) # no rescaling required
+            return phase
+        end
+        minp, maxp = Float32.(approxextrema(phase.raw))
+        if isapprox(maxp - minp, 2π; atol=0.1) # no rescaling required, but header wrong
+            phase.header.scl_slope = 1
+            phase.header.scl_inter = 0
+        else # rescaling
+            phase.header.scl_slope = 2pi / (maxp - minp)
+            phase.header.scl_inter = -pi - minp * phase.header.scl_slope
+        end
+    end
     return phase
 end
 
-function readmag(fn; normalize=false, keyargs...)
+function readmag(fn; rescale=false, keyargs...)
     mag = niread(fn; keyargs...)
-    if mag.header.scl_slope == 0 || normalize
-        mini, maxi = Float32.(approxextrema(mag))
+    if mag.header.scl_slope == 0 || rescale
+        mini, maxi = Float32.(approxextrema(mag.raw))
         mag.header.scl_slope = 1 / (maxi - mini)
         mag.header.scl_inter = - mini * mag.header.scl_slope
     end
@@ -27,7 +38,6 @@ end
 
 header(v::NIVolume) = similar(v.header)
 
-approxextrema(I::NIVolume) = approxextrema(I.raw)
 function approxextrema(I)
     arr = sample(I)
     return (minimum(arr), maximum(arr))
