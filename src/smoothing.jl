@@ -5,15 +5,11 @@ function gaussiansmooth3d(image, σ=[5,5,5]; kwargs...)
     gaussiansmooth3d!(0f0 .+ copy(image), σ; kwargs...)
 end
 
-function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothing, dims=1:max(ndims(image),3), boxsizes=nothing)
+function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=ifelse(isnothing(mask), 3, 6), weight=nothing, dims=1:max(ndims(image),3), boxsizes=nothing)
     if σ isa Number
         σ = σ * ones(ndims(image))
     end
     if typeof(mask) != Nothing
-        nbox *= 2
-        # TODO do we need small boxsize?
-        #@show boxsizes = getboxsizes_small.(σ, nbox, 5)
-        #boxsizes = getboxsizes.(σ, nbox)
         image[mask .== 0] .= NaN
     end
     if typeof(weight) != Nothing
@@ -35,7 +31,7 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=4, weight=nothi
         #loop = Iterators.product((size(image) |> sz -> (sz[1:(dim-1)], sz[(dim+1):end]) .|> CartesianIndices)...)
         #Threads.@threads for (I, J) in collect(loop)
             
-            for J in CartesianIndices(size(image)[(dim+1):end])
+        for J in CartesianIndices(size(image)[(dim+1):end])
             for I in CartesianIndices(size(image)[1:(dim-1)])
                 w = if weight isa Nothing nothing else view(weight,I,:,J) end
                 linefilter(view(image,I,K,J), w)
@@ -58,28 +54,6 @@ function getboxsizes(σ, n)
     catch
         zeros(n)
     end
-end
-
-# TODO compare with MATLAB
-function getboxsizes_small(σ, n::Int, smallsize::Int)
-    smallat = [3; 4]
-    nsmall = length(smallat)
-
-    smallsize = 2ceil(smallsize / 2) - 1
-
-    wideal = √( (12σ^2 - (smallsize^2 - 1)nsmall) / (n - nsmall) + 1 )
-
-    wl::Int = wideal - (wideal + 1) % 2 # next lower odd integer
-    wu::Int = wl + 2
-
-    mideal = (12σ^2 - (n - nsmall) * (wu^2 - 1) - (smallsize^2 - 1)nsmall) / (wl^2 - wu^2)
-    m = round(mideal)
-
-    boxsizes = [if i <= m wl else wu end for i in 1:(n - nsmall)]
-    for ismall in smallat
-        insert!(boxsizes, ismall, smallsize)
-    end
-    boxsizes
 end
 
 function checkboxsizes!(boxsizes, sz, dims)
