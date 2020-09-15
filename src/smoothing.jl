@@ -1,14 +1,24 @@
-# mask should be 3D
-# image can have any higher dimension
+"""
+    gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=ifelse(isnothing(mask), 3, 6), weight=nothing, dims=1:min(ndims(image),3), boxsizes=getboxsizes.(σ, nbox))
 
+Performs Gaussian smoothing on `image` with `σ` as standard deviation of the Gaussian.
+By application of `nbox` times running average filters in each dimension.
+The length of `σ` and the length of the `dims` that are smoothed have to match. (Default `3`)
+
+Optional arguments:\n
+`mask`: Smoothing can be performed using a mask to inter-/extrapolate missing values.\n
+`nbox`: Number of box applications. Default is `3` for normal smoothing and `6` for masked smoothing.\n
+`weight`: Apply weighted smoothing. Either weighted or masked smoothing can be porformed.\n
+`dims`: Specify which dims should be smoothed. Corresponds to manually looping of the other dimensions.\n
+`boxizes`: Manually specify the boxsizes, not using the provided σ. `length(boxsizes)==length(dims) && length(boxsizes[1])==nbox`  
+"""
 function gaussiansmooth3d(image, σ=[5,5,5]; kwargs...)
     gaussiansmooth3d!(0f0 .+ copy(image), σ; kwargs...)
 end
 
-function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=ifelse(isnothing(mask), 3, 6), weight=nothing, dims=1:max(ndims(image),3), boxsizes=nothing)
-    if σ isa Number
-        σ = σ * ones(ndims(image))
-    end
+function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=ifelse(isnothing(mask), 3, 6), weight=nothing, dims=1:min(ndims(image),3), boxsizes=getboxsizes.(σ, nbox))
+    if length(σ) < length(dims) @error "Length of σ and dims does not match!" end
+    if length(boxsizes) < length(dims) || length(boxsizes[1]) != nbox @error "boxsizes has wrong size!" end
     if typeof(mask) != Nothing
         image[mask .== 0] .= NaN
     end
@@ -16,7 +26,6 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=ifelse(isnothin
         weight = Float32.(weight)
         weight[weight .== 0] .= minimum(weight[weight .!= 0])
     end
-    if boxsizes === nothing boxsizes = getboxsizes.(σ, nbox) end
     checkboxsizes!(boxsizes, size(image), dims)
 
     for ibox in 1:nbox, dim in dims
@@ -40,6 +49,8 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=ifelse(isnothin
     end
     return image
 end
+
+## Calculate the filter sizes to achieve a given σ
 
 function getboxsizes(σ, n)
     try
@@ -72,6 +83,8 @@ function checkboxsizes!(boxsizes, sz, dims)
     end
 end
 
+## Function to initialize the filters
+
 function getfilter(image, weight::Nothing, mask::Nothing, bsize, len)
     q = CircularBuffer{eltype(image)}(bsize)
     return (im, _) -> boxfilterline!(im, bsize, q)
@@ -85,6 +98,8 @@ function getfilter(image, weight, mask, bsize, len)
     buffer = ones(eltype(image), len + bsize - 1) * NaN16
     return (im, _) -> nanboxfilterline!(im, bsize, buffer)
 end
+
+## Running Average Filters
 
 function boxfilterline!(line::AbstractVector, boxsize::Int, q::CircularBuffer)
     r = div(boxsize, 2)
