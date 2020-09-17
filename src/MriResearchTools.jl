@@ -13,6 +13,7 @@ include("laplacianunwrapping.jl")
 include("intensitycorrection.jl")
 include("VSMbasedunwarping.jl")
 include("methods.jl")
+include("niftihandling.jl")
 
 romeo = unwrap # access unwrap function via alias romeo
 
