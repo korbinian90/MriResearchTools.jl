@@ -17,7 +17,7 @@ include("methods.jl")
 romeo = unwrap # access unwrap function via alias romeo
 
 export Data,
-        readphase, readmag, niread,
+        readphase, readmag, niread, write_emptynii,
         header,
         savenii,
         estimatenoise,

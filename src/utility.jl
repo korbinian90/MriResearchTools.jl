@@ -93,6 +93,8 @@ function write_emptynii(sz, path; datatype=Float64, header=NIVolume(zeros(dataty
     file = open(path, "w")
     write(file, header)
     close(file)
+    GC.gc()
+    return niread(path; mmap=true, mode="r+")
 end
 
 """

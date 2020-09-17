@@ -15,8 +15,8 @@ Open the Julia REPL and type
 
 ```julia
 julia> ] # enter julia package manager
-(v1.3) pkg> add MriResearchTools
-(v1.3) pkg> # type backspace to get back to the julia REPL
+(v1.5) pkg> add MriResearchTools
+(v1.5) pkg> # type backspace to get back to the julia REPL
 julia>
 ```
 
@@ -50,7 +50,7 @@ Laplacian unwrapping\
 `laplacianunwrap`
 
 Reading, writing and other functions for NIfTI files (adapted from JuliaIO/NIfTI)\
-`readphase` `readmag` `niread` `savenii` `header`
+`readphase` `readmag` `niread` `savenii` `header` `write_emptynii`
 
 Magnitude homogeneity correction ([example](https://github.com/korbinian90/Magnitude-Intensity-Correction/blob/master/Intensity%20Correction.ipynb))\
 `makehomogeneous`
