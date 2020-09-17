@@ -16,7 +16,7 @@ function gaussiansmooth3d(image, σ=[5,5,5]; kwargs...)
     gaussiansmooth3d!(0f0 .+ copy(image), σ; kwargs...)
 end
 
-function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=ifelse(isnothing(mask), 3, 6), weight=nothing, dims=1:min(ndims(image),3), boxsizes=getboxsizes.(σ, nbox))
+function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=ifelse(isnothing(mask), 3, 4), weight=nothing, dims=1:min(ndims(image),3), boxsizes=getboxsizes.(σ, nbox))
     if length(σ) < length(dims) @error "Length of σ and dims does not match!" end
     if length(boxsizes) < length(dims) || length(boxsizes[1]) != nbox @error "boxsizes has wrong size!" end
     if typeof(mask) != Nothing
