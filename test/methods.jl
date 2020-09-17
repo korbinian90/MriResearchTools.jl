@@ -1,11 +1,13 @@
 @testset "methods" begin
-# homodyne
+# Data
 fn_phase = "data/small/Phase.nii"
 fn_mag = "data/small/Mag.nii"
 phase_nii = readphase(fn_phase)
 mag_nii = readmag(fn_mag)
 I = mag_nii .* exp.(1im .* phase_nii)
+TEs = 4:4:12
 
+# homodyne
 h1 = homodyne(mag_nii, phase_nii)
 h2 = homodyne(Float32.(mag_nii), Float32.(phase_nii))
 h3 = homodyne(I)
@@ -24,5 +26,9 @@ I2 = copy(I)
 homodyne!(I2)
 @test I != I2
 @test h3 == I2
+
+# calculateB0
+B0 = MriResearchTools.calculateB0_unwrapped(romeo(phase_nii; TEs=TEs), mag_nii, TEs)
+@test all(isfinite.(B0))
 
 end
