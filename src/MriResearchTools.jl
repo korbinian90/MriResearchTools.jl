@@ -14,6 +14,7 @@ include("intensitycorrection.jl")
 include("VSMbasedunwarping.jl")
 include("methods.jl")
 include("niftihandling.jl")
+include("mcpc3ds.jl")
 
 romeo = unwrap # access unwrap function via alias romeo
 
@@ -36,6 +37,7 @@ export Data,
         getscaledimage,
         estimatequantile,
         RSS,
+        mcpc3ds,
         unwrap, unwrap!, romeo,
         unwrap_individual, unwrap_individual!,
         homodyne, homodyne!,
