@@ -38,8 +38,8 @@ end
 
 header(v::NIVolume) = similar(v.header)
 
-savenii(image, name, writedir::Nothing, header=nothing) = nothing
 function savenii(image, name, writedir, header=nothing)
+    if isnothing(writedir) return end
     if splitext(name)[2] != ".nii"
         name = name * ".nii"
     end
