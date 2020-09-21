@@ -8,5 +8,7 @@ complex = mag_nii .* exp.(1im .* phase_nii)
 TEs = 4:4:12
 
 mcpc3ds(complex; TEs=TEs)
+mcpc3ds(phase_nii, mag_nii; TEs=TEs)
+mcpc3ds(phase_nii; TEs=TEs)
 
 end
