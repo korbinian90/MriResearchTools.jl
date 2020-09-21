@@ -57,8 +57,8 @@ function robustmask!(image; maskedvalue=if eltype(image) <: AbstractFloat NaN el
 end
 function robustmask(weight)
     μ, σ = estimatenoise(weight)
-    m = mean(filter(isfinite, weight[weight .> μ + 4σ]))
-    return weight .> maximum((μ + 3σ, m/5))
+    m = mean(filter(isfinite, weight[weight .> 0.95μ + 4σ]))
+    return weight .> maximum((0.95μ + 3σ, m/5))
 end
 
 getcomplex(fnmag::AbstractString, fnphase::AbstractString) = getcomplex(niread(fnmag), niread(fnphase))
