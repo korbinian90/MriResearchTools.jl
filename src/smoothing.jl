@@ -20,7 +20,7 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=ifelse(isnothin
     if length(σ) < length(dims) @error "Length of σ and dims does not match!" end
     if length(boxsizes) < length(dims) || length(boxsizes[1]) != nbox @error "boxsizes has wrong size!" end
     if typeof(mask) != Nothing
-        image[mask .== 0] .= NaN
+        image .*= ifelse.(mask .== 0, NaN, 1) # 0 in mask -> NaN in image
     end
     if typeof(weight) != Nothing
         weight = Float32.(weight)
