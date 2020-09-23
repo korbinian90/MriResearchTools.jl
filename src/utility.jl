@@ -78,7 +78,7 @@ function readfromtextheader(filename, searchstring)
 end
 
 # root sum of squares combination
-RSS(mag; dim = ndims(mag)) = dropdims(.√sum(mag.^Float32(2); dims = dim); dims = dim)
+RSS(mag; dims=ndims(mag)) = dropdims(.√sum(mag.^Float32(2); dims=dims); dims=dims)
 
 function getscaledimage(array, div::Number, offset = 0, type::Symbol = :trans)
     array = reshape(array, size(array)[1:2]) # drops trailing singleton dimensions

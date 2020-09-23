@@ -20,7 +20,7 @@ end
 
 function combinewithPO(compl, po)
     combined = zeros(eltype(compl), size(compl)[1:4])
-    for iCha = 1:size(po, 5)
+    for iCha = 1:size(po, 4)
         combined .+= abs.(compl[:,:,:,:,iCha]) .* compl[:,:,:,:,iCha] ./ po[:,:,:,iCha]
     end
     return combined ./ sqrt.(abs.(combined))
