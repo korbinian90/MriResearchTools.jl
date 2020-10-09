@@ -17,6 +17,7 @@ include("niftihandling.jl")
 include("mcpc3ds.jl")
 
 romeo = unwrap # access unwrap function via alias romeo
+romeo! = unwrap!
 
 export Data,
         readphase, readmag, niread, write_emptynii,
@@ -38,7 +39,7 @@ export Data,
         estimatequantile,
         RSS,
         mcpc3ds,
-        unwrap, unwrap!, romeo,
+        unwrap, unwrap!, romeo, romeo!,
         unwrap_individual, unwrap_individual!,
         homodyne, homodyne!,
         to_dim
