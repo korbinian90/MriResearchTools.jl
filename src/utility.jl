@@ -37,7 +37,7 @@ function estimatenoise(image)
     (lowestmean, ind) = findmin(mean.(filter(isfinite, image[I...]) for I in corners))
     sigma = std(filter(isfinite, image[corners[ind]...]))
     if isnan(sigma) # no corner available
-        # estimation that is only true if have the image is signal and half noise
+        # estimation that is only true if half the image is signal and half noise
         sigma = 2estimatesigma_from_quantile(image, 1/4)
         lowestmean = sigma / 2
     end
@@ -57,8 +57,9 @@ function robustmask!(image; maskedvalue=if eltype(image) <: AbstractFloat NaN el
 end
 function robustmask(weight)
     μ, σ = estimatenoise(weight)
-    m = mean(filter(isfinite, weight[weight .> 0.95μ + 4σ]))
-    return weight .> maximum((0.95μ + 3σ, m/5))
+    m = mean(filter(isfinite, weight[weight .> 5σ]))
+    maximum((5σ, m/5))
+    return weight .> maximum((5σ, m/5))
 end
 
 getcomplex(fnmag::AbstractString, fnphase::AbstractString) = getcomplex(niread(fnmag), niread(fnphase))

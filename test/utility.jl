@@ -34,8 +34,9 @@ R[end-9:end,:,:] .= NaN; R[:,end-9:end,:] .= NaN; R[:,:,end-9:end] .= NaN
 
 # robust mask
 mag = Float32.(readmag(fn_mag; rescale=true))
-for _ in 1:10
-    mag[(end÷2):end,:,:,:] .= 0.2 .+ 0.1 .* rand.()
+@test robustmask(mag) |> m -> count(.!m) / count(m) < 0.01
+for i in 1:10
+    mag[(end÷2):end,:,:,:] .= i .* 0.025 .* rand.()
     m = robustmask(mag)
     @test 1.1 < count(.!m) / count(m) < 1.2
 end
