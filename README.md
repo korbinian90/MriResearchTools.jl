@@ -67,8 +67,8 @@ Combine multiple echoes
 Unwarping of B0 dependent shifts  
 `getVSM` `thresholdforward` `unwarp`
 
-Fast gaussian smoothing for real and complex data  
-`gaussiansmooth3d`
+Fast gaussian smoothing for real, complex data and phase (via complex smoothing) 
+`gaussiansmooth3d` `gaussiansmooth3d_phase`
   - standard
   - weighted
   - with missing values
