@@ -209,7 +209,7 @@ function nanboxfilterline!(line::AbstractVector, boxsize::Int, orig::AbstractVec
             lsum -= orig[i-1]
             line[i] = (lsum - orig[i]) / (boxsize - 2)
 
-            orig[i+2r] = 2line[i] - line[i-r]
+            orig[i+2r] = 2line[i] - line[i-r] # TODO maybe clamp the value
             if (i+r < n) line[i+r] = orig[i+2r] end
             lsum += orig[i+2r]
         end
