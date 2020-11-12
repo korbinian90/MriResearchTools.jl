@@ -13,15 +13,15 @@ function mcpc3ds(image; TEs, eco=[1,2], σ=[10,10,5],
         po=zeros(Float64,(size(image)[1:3]..., size(image,5)))
     )
     ΔTE = TEs[eco[2]] - TEs[eco[1]]
-    @time hip = getHIP(image; echoes=eco) # complex
-    @time weight = sqrt.(abs.(hip))
-    @time mask = robustmask(weight)
-    @time phaseevolution = (TEs[eco[1]] / ΔTE) .* romeo(angle.(hip); mag=weight, mask=mask) # different from ASPIRE
-    @time po .= getangle(image, eco[1]) .- phaseevolution
-    @time for icha in 1:size(po, 4)
+    hip = getHIP(image; echoes=eco) # complex
+    weight = sqrt.(abs.(hip))
+    mask = robustmask(weight)
+    phaseevolution = (TEs[eco[1]] / ΔTE) .* romeo(angle.(hip); mag=weight, mask=mask) # different from ASPIRE
+    po .= getangle(image, eco[1]) .- phaseevolution
+    for icha in 1:size(po, 4)
         po[:,:,:,icha] .= gaussiansmooth3d_phase(po[:,:,:,icha], σ; mask=mask)
     end
-    @time combined = combinewithPO(image, po)
+    combined = combinewithPO(image, po)
     if bipolar_correction
         G = bipolar_correction!(combined; TEs=TEs, σ=σ, mask=mask)
     end
