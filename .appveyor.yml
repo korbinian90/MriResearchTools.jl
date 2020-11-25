@@ -5,7 +5,8 @@ environment:
   - julia_version: nightly
 platform:
   - x86
-x64cache:
+  - x64
+cache:
   - '%USERPROFILE%\.julia\artifacts'
 matrix:
   allow_failures:
