@@ -5,7 +5,7 @@
 [![Codecov](https://codecov.io/gh/korbinian90/MriResearchTools.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/korbinian90/MriResearchTools.jl)
 
 ## Prerequisites
-A Julia installation v1.x is required.
+A Julia installation v1.1 or higher is required.
 
 Magnitude and Phase images in NIfTI fileformat (4D images with echoes in the 4th dimension)
 
