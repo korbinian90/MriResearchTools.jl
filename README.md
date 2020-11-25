@@ -1,6 +1,6 @@
 # MriResearchTools
 
-[![Build Status](https://github.com/korbinian90/TestPackage.jl/workflows/CI/badge.svg)](https://github.com/korbinian90/TestPackage.jl/actions)
+[![Build Status](https://github.com/korbinian90/TestPackage.jl/workflows/CI/badge.svg)](https://github.com/korbinian90/MriResearchTools.jl/actions)
 [![Build Status](https://ci.appveyor.com/api/projects/status/github/korbinian90/MriResearchTools.jl?svg=true)](https://ci.appveyor.com/project/korbinian90/MriResearchTools-jl)
 [![Codecov](https://codecov.io/gh/korbinian90/MriResearchTools.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/korbinian90/MriResearchTools.jl)
 [![Coveralls](https://coveralls.io/repos/github/korbinian90/MriResearchTools.jl/badge.svg?branch=master)](https://coveralls.io/github/korbinian90/MriResearchTools.jl?branch=master)
