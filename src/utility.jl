@@ -59,7 +59,10 @@ function robustmask(weight)
     μ, σ = estimatenoise(weight)
     m = mean(filter(isfinite, weight[weight .> 5σ]))
     maximum((5σ, m/5))
-    return weight .> maximum((5σ, m/5))
+    mask = weight .> maximum((5σ, m/5))
+    # remove holes and minimally grow
+    boxsizes=[[3,3] for i in 1:ndims(weight)]
+    return gaussiansmooth3d(mask; nbox=2, boxsizes=boxsizes) .> 0.55
 end
 
 getcomplex(fnmag::AbstractString, fnphase::AbstractString) = getcomplex(niread(fnmag), niread(fnphase))
