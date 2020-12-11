@@ -48,7 +48,7 @@ savenii(unwrapped, "unwrapped", outputfolder, header(phase))
 Laplacian unwrapping  
 `laplacianunwrap`
 
-MCPC3Ds multi-echo coil combination (at the moment only monopolar)  
+MCPC3Ds multi-echo coil combination  
 `mcpc3ds`
 
 Reading, writing and other functions for NIfTI files (adapted from JuliaIO/NIfTI)  
@@ -60,7 +60,7 @@ Magnitude homogeneity correction ([example](https://github.com/korbinian90/Magni
 Simple robust masking (threshold)  
 `robustmask`
 
-Combine multiple echoes  
+Combine multiple coils or echoes (magnitude only)  
 `RSS`
 
 Unwarping of B0 dependent shifts  
