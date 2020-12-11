@@ -43,6 +43,7 @@ export Data,
         unwrap, unwrap!, romeo, romeo!,
         unwrap_individual, unwrap_individual!,
         homodyne, homodyne!,
-        to_dim
+        to_dim,
+        NumART2star, r2s_from_t2s
 
 end # module

@@ -72,10 +72,13 @@ Fast gaussian smoothing for real, complex data and phase (via complex smoothing)
   - weighted
   - with missing values
 
-Other functions
+Fast numeric estimation of T2* and R2*  
+`NumART2star` `r2s_from_t2s`
+
+Other functions  
 `robustrescale` `getHIP` `getsensitivity` `getscaledimage` `estimatequantile` `estimatenoise`
 
-## Publications
+## Methods are implemented from these Publications
 ### ROMEO
 Dymerska, B., Eckstein, K., Bachrata, B., Siow, B., Trattnig, S., Shmueli, K., Robinson, S.D., 2020. Phase Unwrapping with a Rapid Opensource Minimum Spanning TreE AlgOrithm (ROMEO). Magnetic Resonance in Medicine. https://doi.org/10.1002/mrm.28563
 
@@ -85,6 +88,8 @@ Eckstein, K., Dymerska, B., Bachrata, B., Bogner, W., Poljanc, K., Trattnig, S.,
 ### Homogeneity Correction
 Eckstein, K., Trattnig, S., Robinson, S.D., 2019. A Simple Homogeneity Correction for Neuroimaging at 7T, in: Proceedings of the 27th Annual Meeting ISMRM. Presented at the ISMRM, Montréal, Québec, Canada. https://index.mirasmart.com/ISMRM2019/PDFfiles/2716.html
 
+### NumART2* - fast T2* and R2* fitting
+Hagberg, G.E., Indovina, I., Sanes, J.N., Posse, S., 2002. Real-time quantification of T2* changes using multiecho planar imaging and numerical methods. Magnetic Resonance in Medicine 48(5), 877-882. https://doi.org/10.1002/mrm.10283
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/korbinian90/MriResearchTools.jl/blob/master/LICENSE) for details
