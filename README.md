@@ -48,7 +48,7 @@ savenii(unwrapped, "unwrapped", outputfolder, header(phase))
 Laplacian unwrapping  
 `laplacianunwrap`
 
-MCPC3Ds multi-echo coil combination  
+MCPC-3D-S multi-echo coil combination  
 `mcpc3ds`
 
 Reading, writing and other functions for NIfTI files (adapted from JuliaIO/NIfTI)  
