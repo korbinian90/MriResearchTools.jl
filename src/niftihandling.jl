@@ -53,6 +53,7 @@ Warning: MRIcro can only open images with types Int32, Int64, Float32, Float64
 function savenii(image::AbstractArray, filepath; header=nothing)
     vol = NIVolume([h for h in [header] if h !== nothing]..., image)
     niwrite(filepath, vol)
+    return filepath
 end
 
 ConvertTypes = Union{BitArray, AbstractArray{UInt8}} #TODO debug NIfTI
