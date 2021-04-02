@@ -16,6 +16,7 @@ function mcpc3ds(image; TEs, eco=[1,2], σ=[10,10,5],
     hip = getHIP(image; echoes=eco) # complex
     weight = sqrt.(abs.(hip))
     mask = robustmask(weight)
+    # TODO try to include additional second-phase information in the case of 3+ echoes for ROMEO, maybe phase2=phase[3]-phase[2], TEs=[dTE21, dTE32]
     phaseevolution = (TEs[eco[1]] / ΔTE) .* romeo(angle.(hip); mag=weight, mask=mask) # different from ASPIRE
     po .= getangle(image, eco[1]) .- phaseevolution
     for icha in 1:size(po, 4)

@@ -1,5 +1,3 @@
-const DEBUG_PATH = "F:/MRI/Analysis/debug_hom"
-
 """
     makehomogeneous(mag::NIVolume; σ_mm=7, nbox=15)
 
@@ -68,17 +66,12 @@ end
 function getsensitivity(mag; σ, nbox=15)
     # segmentation
     firstecho = view(mag,:,:,:,1)
-    @debug savenii(firstecho, "mag", DEBUG_PATH)
     mask = robustmask(firstecho)
-    @debug savenii(mask, "mask", DEBUG_PATH)
     segmentation = boxsegment(firstecho, mask, nbox)
-    @debug savenii(segmentation, "segmentation", DEBUG_PATH)
     # smoothing
     σ1, σ2 = getsigma(σ)
     lowpass = gaussiansmooth3d(firstecho, σ1; mask=segmentation, nbox=8)
-    @debug savenii(lowpass, "lowpass_after_it", DEBUG_PATH)
     fillandsmooth!(lowpass, mean(firstecho[mask]), σ2)
-    @debug savenii(lowpass, "lowpass_after_fillsmooth", DEBUG_PATH)
 
     return lowpass
 end
