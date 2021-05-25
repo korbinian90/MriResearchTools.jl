@@ -28,7 +28,7 @@ homodyne!(I2)
 @test h3 == I2
 
 # calculateB0
-B0 = MriResearchTools.calculateB0_unwrapped(romeo(phase_nii; TEs=TEs), mag_nii, TEs)
+B0 = calculateB0_unwrapped(romeo(phase_nii; TEs=TEs), mag_nii, TEs)
 @test all(isfinite.(B0))
 
 end
