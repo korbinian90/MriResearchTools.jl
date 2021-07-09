@@ -6,6 +6,7 @@ using NIfTI
 using ROMEO
 using Statistics
 using DataStructures
+using ImageMorphology
 
 include("utility.jl")
 include("smoothing.jl")
@@ -15,9 +16,7 @@ include("VSMbasedunwarping.jl")
 include("methods.jl")
 include("niftihandling.jl")
 include("mcpc3ds.jl")
-
-romeo = unwrap # access unwrap function via alias romeo
-romeo! = unwrap!
+include("romeofunctions.jl")
 
 export Data,
         readphase, readmag, niread, write_emptynii,
@@ -28,6 +27,8 @@ export Data,
         robustrescale,
         #combine_echoes,
         calculateB0_unwrapped,
+        mask_from_voxelquality,
+        romeovoxelquality,
         getHIP,
         laplacianunwrap, laplacianunwrap!,
         getVSM,
