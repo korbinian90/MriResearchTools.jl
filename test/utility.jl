@@ -67,3 +67,4 @@ header_test(header(phase_nii), phase_nii.header)
 @test [1 2] == to_dim([1, 2], 2)
 a = 50:75
 @test reshape(a, 1, 1, 1, :) == to_dim(a, 4)
+@test reshape([5], 1, 1, 1, 1) == to_dim(5, 4)

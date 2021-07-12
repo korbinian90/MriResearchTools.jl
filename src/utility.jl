@@ -136,6 +136,7 @@ function rescale!(array, newmin, newmax)
     array .= (array .- oldmin) .* factor .+ newmin
 end
 
+to_dim(a::Real, dim::Int) = to_dim([a], dim)
 to_dim(V::AbstractVector, dim::Int) = reshape(V, ones(Int, dim-1)..., :)
 
 """
