@@ -12,9 +12,19 @@ Optional arguments:\n
 `dims`: Specify which dims should be smoothed. Corresponds to manually looping of the other dimensions.\n
 `boxizes`: Manually specify the boxsizes, not using the provided σ. `length(boxsizes)==length(dims) && length(boxsizes[1])==nbox`  
 """
-function gaussiansmooth3d(image, σ=[5,5,5]; kwargs...)
-    return gaussiansmooth3d!(0f0 .+ copy(image), σ; kwargs...)
+function gaussiansmooth3d(image, σ=[5,5,5]; padding=false, kwargs...)
+    if padding
+        image = pad_image(image, σ)
+    end
+    smoothed = gaussiansmooth3d!(0f0 .+ copy(image), σ; kwargs...)
+    if padding
+        smoothed = remove_padding(smoothed, σ)
+    end
+    return smoothed
 end
+
+pad_image(image, σ) = PaddedView(0, image, Tuple(size(image) .+ 2σ), Tuple(σ .+ 1))
+remove_padding(image, σ) = image[[σ[i]+1:size(image,i)-σ[i] for i in 1:ndims(image)]...]
 
 function gaussiansmooth3d_phase(phase, σ=[5,5,5]; weight=1, kwargs...)
     return angle.(gaussiansmooth3d!(weight .* exp.(1im .* phase), σ; kwargs...))

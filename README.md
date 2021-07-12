@@ -71,6 +71,7 @@ Fast gaussian smoothing for real, complex data and phase (via complex smoothing)
   - standard
   - weighted
   - with missing values
+  - optional padding to avoid border effects
 
 Fast numeric estimation of T2* and R2*  
 `NumART2star` `r2s_from_t2s`
@@ -96,4 +97,4 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 
 
 ## TODO
-more Tests, Examples and Documentation
+more Examples and Documentation

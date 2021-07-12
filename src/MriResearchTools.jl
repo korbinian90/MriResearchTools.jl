@@ -7,6 +7,7 @@ using ROMEO
 using Statistics
 using DataStructures
 using ImageMorphology
+using PaddedViews
 
 include("utility.jl")
 include("smoothing.jl")

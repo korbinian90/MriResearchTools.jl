@@ -31,7 +31,7 @@ homodyne!(I2)
 B0 = calculateB0_unwrapped(romeo(phase_nii; TEs=TEs), mag_nii, TEs)
 @test all(isfinite.(B0))
 
-# make border and part of image noise
+# make border of image noise
 phase = Float32.(phase_nii)
 phase[1:3,:,:,:] .= 2π .* rand.() .- π
 phase[(end-2):end,:,:,:] .= 2π .* rand.() .- π
@@ -43,7 +43,6 @@ phase[:,:,(end-2):end,:] .= 2π .* rand.() .- π
 # getvoxelquality
 vq = romeovoxelquality(phase; TEs=TEs)
 @test all(isfinite.(vq))
-@show minimum(vq) maximum(vq)
 @test size(vq) == size(phase_nii)[1:3]
 
 # mask_from_voxelquality
