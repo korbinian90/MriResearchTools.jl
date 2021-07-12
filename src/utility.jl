@@ -62,7 +62,7 @@ function robustmask(weight)
     mask = weight .> maximum((5σ, m/5))
     # remove holes and minimally grow
     boxsizes=[[3,3] for i in 1:ndims(weight)]
-    return gaussiansmooth3d(mask; nbox=2, boxsizes=boxsizes) .> 0.55
+    return gaussiansmooth3d(mask; nbox=2, boxsizes) .> 0.55
 end
 
 getcomplex(fnmag::AbstractString, fnphase::AbstractString) = getcomplex(niread(fnmag), niread(fnphase))
@@ -82,7 +82,7 @@ function readfromtextheader(filename, searchstring)
 end
 
 # root sum of squares combination
-RSS(mag; dims=ndims(mag)) = dropdims(.√sum(mag.^Float32(2); dims=dims); dims=dims)
+RSS(mag; dims=ndims(mag)) = dropdims(.√sum(mag.^Float32(2); dims); dims)
 
 function getscaledimage(array, div::Number, offset = 0, type::Symbol = :trans)
     array = reshape(array, size(array)[1:2]) # drops trailing singleton dimensions
@@ -101,14 +101,14 @@ function getscaledimage(array, div::Number, offset = 0, type::Symbol = :trans)
 end
 
 function getscaledimage(array, type::Symbol = :trans)
-    scaled = robustrescale(array, 0, 1, threshold = true)
+    scaled = robustrescale(array, 0, 1, threshold=true)
     getscaledimage(scaled, 1, 0, type)
 end
 
-robustrescale(array, newmin, newmax; threshold = false, mask = trues(size(array)), datatype = Float64) =
-    robustrescale!(datatype.(array), newmin, newmax; threshold = threshold, mask = mask)
+robustrescale(array, newmin, newmax; threshold=false, mask=trues(size(array)), datatype=Float64) =
+    robustrescale!(datatype.(array), newmin, newmax; threshold, mask)
 
-function robustrescale!(array, newmin, newmax; threshold = false, mask = trues(size(array)))
+function robustrescale!(array, newmin, newmax; threshold=false, mask=trues(size(array)))
     array[isnan.(array)] .= minimum(filter(isfinite, array))
     q = [0.01, 0.99] # quantiles
     oldq = estimatequantile(array[mask], q)
@@ -126,7 +126,7 @@ function robustrescale!(array, newmin, newmax; threshold = false, mask = trues(s
 end
 
 
-function rescale(array, newmin, newmax; datatype = eltype(array))
+function rescale(array, newmin, newmax; datatype=eltype(array))
     rescale!(datatype.(array), newmin, newmax)
 end
 

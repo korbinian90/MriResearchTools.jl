@@ -8,23 +8,23 @@
 mcpc3ds(phase::AbstractArray{<:Real}; keyargs...) = angle.(mcpc3ds(exp.(1im .* phase); keyargs...))
 mcpc3ds(phase, mag; keyargs...) = mcpc3ds(PhaseMag(phase, mag); keyargs...)
 # MCPC3Ds in complex (or PhaseMag)
-function mcpc3ds(image; TEs, eco=[1,2], σ=[10,10,5],
+function mcpc3ds(image; TEs, echoes=[1,2], σ=[10,10,5],
         bipolar_correction=false,
         po=zeros(Float64,(size(image)[1:3]..., size(image,5)))
     )
-    ΔTE = TEs[eco[2]] - TEs[eco[1]]
-    hip = getHIP(image; echoes=eco) # complex
+    ΔTE = TEs[echoes[2]] - TEs[echoes[1]]
+    hip = getHIP(image; echoes) # complex
     weight = sqrt.(abs.(hip))
     mask = robustmask(weight)
     # TODO try to include additional second-phase information in the case of 3+ echoes for ROMEO, maybe phase2=phase[3]-phase[2], TEs=[dTE21, dTE32]
-    phaseevolution = (TEs[eco[1]] / ΔTE) .* romeo(angle.(hip); mag=weight, mask=mask) # different from ASPIRE
-    po .= getangle(image, eco[1]) .- phaseevolution
+    phaseevolution = (TEs[echoes[1]] / ΔTE) .* romeo(angle.(hip); mag=weight, mask) # different from ASPIRE
+    po .= getangle(image, echoes[1]) .- phaseevolution
     for icha in 1:size(po, 4)
-        po[:,:,:,icha] .= gaussiansmooth3d_phase(po[:,:,:,icha], σ; mask=mask)
+        po[:,:,:,icha] .= gaussiansmooth3d_phase(po[:,:,:,icha], σ; mask)
     end
     combined = combinewithPO(image, po)
     if bipolar_correction
-        G = bipolar_correction!(combined; TEs=TEs, σ=σ, mask=mask)
+        G = bipolar_correction!(combined; TEs, σ, mask)
     end
     return combined
 end
@@ -39,7 +39,7 @@ end
 
 function bipolar_correction!(image; TEs, σ, mask)
     fG = artefact(image, TEs)
-    fG .= gaussiansmooth3d_phase(fG, σ; mask=mask)
+    fG .= gaussiansmooth3d_phase(fG, σ; mask)
     romeo!(fG; mag=getmag(image, 1)) # can be replaced by gradient-subtraction-unwrapping
     remove_artefact!(image, fG, TEs)
     return fG

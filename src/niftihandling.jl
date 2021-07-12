@@ -43,7 +43,7 @@ function savenii(image, name, writedir, header=nothing)
     if splitext(name)[2] != ".nii"
         name = name * ".nii"
     end
-    savenii(image, joinpath(writedir, name); header=header)
+    savenii(image, joinpath(writedir, name); header)
 end
 """
     savenii(image, filepath; header=nothing)

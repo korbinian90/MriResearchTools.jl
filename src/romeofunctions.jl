@@ -22,7 +22,7 @@ end
 function calculateB0_unwrapped(unwrapped_phase, mag, TEs)
     dims = 4
     TEs = to_dim(TEs, 4)
-    return (1000 / 2π) * sum(unwrapped_phase .* mag .* mag .* TEs; dims=dims) ./ sum(mag .* mag .* TEs.^2; dims=dims) |> I -> dropdims(I; dims=dims)
+    return (1000 / 2π) * sum(unwrapped_phase .* mag .* mag .* TEs; dims) ./ sum(mag .* mag .* TEs.^2; dims) |> I -> dropdims(I; dims)
 end
 
 """

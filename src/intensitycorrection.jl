@@ -10,7 +10,7 @@ Homogeneity correction for NIVolume from NIfTI files.
 
 """
 function makehomogeneous(mag::NIVolume, datatype=eltype(mag); σ_mm=7, nbox=15)
-    return makehomogeneous!(datatype.(mag); σ=mm_to_vox(σ_mm, mag), nbox=nbox)
+    return makehomogeneous!(datatype.(mag); σ=mm_to_vox(σ_mm, mag), nbox)
 end
 
 """
@@ -32,10 +32,10 @@ overbrightened.
 
 """
 function makehomogeneous(mag, datatype=eltype(mag); σ, nbox=15)
-    return makehomogeneous!(datatype.(mag); σ=σ, nbox=nbox)
+    return makehomogeneous!(datatype.(mag); σ, nbox)
 end
 function makehomogeneous!(mag; σ, nbox=15)
-    lowpass = getsensitivity(mag; σ=σ, nbox=nbox)
+    lowpass = getsensitivity(mag; σ, nbox)
     if eltype(mag) <: AbstractFloat
         mag ./= lowpass
     else # Integer doesn't support NaN
@@ -61,7 +61,7 @@ function getsensitivity(mag::NIVolume, datatype=eltype(mag); kw...)
     return getsensitivity(datatype.(mag), getpixdim(mag); kw...)
 end
 function getsensitivity(mag, pixdim; σ_mm=7, nbox=15)
-    return getsensitivity(mag; σ=mm_to_vox(σ_mm, pixdim), nbox=nbox)
+    return getsensitivity(mag; σ=mm_to_vox(σ_mm, pixdim), nbox)
 end
 function getsensitivity(mag; σ, nbox=15)
     # segmentation
@@ -89,7 +89,7 @@ function fillandsmooth!(lowpass, stablemean, σ2)
     lowpassmask = (lowpass .< stablethresh) .| isnan.(lowpass) .| (lowpass .> 10 * stablemean)
     lowpass[lowpassmask] .= 3 * stablemean
     lowpassweight = 1.2 .- lowpassmask
-    gaussiansmooth3d!(lowpass, σ2; weight = lowpassweight)
+    gaussiansmooth3d!(lowpass, σ2; weight=lowpassweight)
 end
 
 #threshold(image) = threshold(image, robustmask(image))
