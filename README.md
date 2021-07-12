@@ -6,8 +6,10 @@
 
 ## Prerequisites
 A Julia installation v1.3 or higher is required.
+To get the newest version of this package, Julia v1.5 or newer should be used.
 
-Magnitude and Phase images in NIfTI fileformat (4D images with echoes in the 4th dimension)
+Magnitude and Phase images in NIfTI fileformat
+(4D images with echoes in the 4th dimension, 5D images with channels in the 5th dimension)
 
 ## Installing
 Open the Julia REPL and type
