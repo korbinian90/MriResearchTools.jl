@@ -192,7 +192,7 @@ function nanboxfilterline!(line::AbstractVector, boxsize::Int, orig::AbstractVec
                 mode = :normal
                 lsum = sum(view(orig,i:(i+2r)))
                 line[i] = lsum / boxsize
-                continue
+                continue # skip to next loop iteration
             end
 
         elseif mode == :fill
