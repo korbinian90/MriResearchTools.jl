@@ -1,3 +1,4 @@
+    using .FFTW
     laplacianunwrap(ϕ) = laplacianunwrap!(copy(ϕ))
     function laplacianunwrap!(ϕ::AbstractArray)
         FFTW.set_num_threads(Threads.nthreads())

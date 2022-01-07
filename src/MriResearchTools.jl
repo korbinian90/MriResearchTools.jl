@@ -1,6 +1,6 @@
 module MriResearchTools
 
-using FFTW
+using Requires
 using Interpolations
 using NIfTI
 using ROMEO
@@ -11,13 +11,17 @@ using PaddedViews
 
 include("utility.jl")
 include("smoothing.jl")
-include("laplacianunwrapping.jl")
 include("intensitycorrection.jl")
 include("VSMbasedunwarping.jl")
 include("methods.jl")
 include("niftihandling.jl")
 include("mcpc3ds.jl")
 include("romeofunctions.jl")
+
+function __init__()
+        @require FFTW="7a1cc6ca-52ef-59f5-83cd-3a7055c09341" include("laplacianunwrapping.jl")
+end
+laplacianunwrap(p) = @warn "FFTW is required! Type 'using FFTW' before calling this function"
 
 export Data,
         readphase, readmag, niread, write_emptynii,

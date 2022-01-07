@@ -48,7 +48,7 @@ savenii(unwrapped, "unwrapped", outputfolder, header(phase))
 `romeo` `unwrap` `unwrap_individual` `romeovoxelquality` `mask_from_voxelquality`
 
 Laplacian unwrapping  
-`laplacianunwrap`
+`laplacianunwrap` (requires additional dependency: type `using FFTW` before first call)
 
 MCPC-3D-S multi-echo coil combination  
 `mcpc3ds`
