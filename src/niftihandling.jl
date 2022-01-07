@@ -62,7 +62,7 @@ MriResearchTools.savenii(image::ConvertTypes, args...;kwargs...) = savenii(Float
 function write_emptynii(sz, path; datatype=Float64, header=NIVolume(zeros(datatype, 1)).header)
     header = copy(header)
     header.dim = Int16.((length(sz), sz..., ones(8-1-length(sz))...))
-    header.datatype = NIfTI.nidatatype(datatype)
+    header.datatype = NIfTI.eltype_to_int16(datatype)
     header.bitpix = NIfTI.nibitpix(datatype)
 
     if isfile(path) rm(path) end

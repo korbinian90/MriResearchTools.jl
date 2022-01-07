@@ -10,17 +10,34 @@ mcpc3ds(phase, mag; keyargs...) = mcpc3ds(PhaseMag(phase, mag); keyargs...)
 # MCPC3Ds in complex (or PhaseMag)
 function mcpc3ds(image; TEs, echoes=[1,2], σ=[10,10,5],
         bipolar_correction=false,
-        po=zeros(Float64,(size(image)[1:3]..., size(image,5)))
+        smoothing=true,
+        w_exp=0,
+        smoothjl=false,
+        po=zeros(Float64,(size(image)[1:3]..., size(image,5))),
+        use_mask=true
     )
     ΔTE = TEs[echoes[2]] - TEs[echoes[1]]
     hip = getHIP(image; echoes) # complex
     weight = sqrt.(abs.(hip))
-    mask = robustmask(weight)
+    mask = nothing
+    if use_mask
+        mask = robustmask(weight)
+    end
     # TODO try to include additional second-phase information in the case of 3+ echoes for ROMEO, maybe phase2=phase[3]-phase[2], TEs=[dTE21, dTE32]
-    phaseevolution = (TEs[echoes[1]] / ΔTE) .* romeo(angle.(hip); mag=weight, mask) # different from ASPIRE
+    #phaseevolution = (TEs[echoes[1]] / ΔTE) .* romeo(angle.(hip); mag=weight, mask) # different from ASPIRE
+    phaseevolution = (TEs[echoes[1]] / ΔTE) .* angle.(hip) # different from ASPIRE
     po .= getangle(image, echoes[1]) .- phaseevolution
-    for icha in 1:size(po, 4)
-        po[:,:,:,icha] .= gaussiansmooth3d_phase(po[:,:,:,icha], σ; mask)
+    if smoothing
+        for icha in 1:size(po, 4)
+            if smoothjl
+                kernel = Kernel.gaussian((Tuple(σ)))
+                @time tmp_real = imfilter(getmag(image, 1)[:,:,:,icha] .^ w_exp .* real.(exp.(1im .* po[:,:,:,icha])), kernel)
+                @time tmp_imag = imfilter(getmag(image, 1)[:,:,:,icha] .^ w_exp .* imag.(exp.(1im .* po[:,:,:,icha])), kernel)
+                po[:,:,:,icha] .= angle.(tmp_real .+ 1im .* tmp_imag)
+            else
+                @time po[:,:,:,icha] .= gaussiansmooth3d_phase(po[:,:,:,icha], σ; mask, weight=getmag(image, 1)[:,:,:,icha] .^ w_exp)
+            end
+        end
     end
     combined = combinewithPO(image, po)
     if bipolar_correction

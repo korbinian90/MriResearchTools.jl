@@ -8,6 +8,7 @@ using Statistics
 using DataStructures
 using ImageMorphology
 using PaddedViews
+using ImageFiltering
 
 include("utility.jl")
 include("smoothing.jl")
