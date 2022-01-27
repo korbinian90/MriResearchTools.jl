@@ -10,7 +10,7 @@ mcpc3ds(phase, mag; keyargs...) = mcpc3ds(PhaseMag(phase, mag); keyargs...)
 # MCPC3Ds in complex (or PhaseMag)
 function mcpc3ds(image; TEs, echoes=[1,2], σ=[10,10,5],
         bipolar_correction=false,
-        po=zeros(Float64,(size(image)[1:3]..., size(image,5)))
+        po=zeros(getdatatype(image),(size(image)[1:3]..., size(image,5)))
     )
     ΔTE = TEs[echoes[2]] - TEs[echoes[1]]
     hip = getHIP(image; echoes) # complex
@@ -103,3 +103,5 @@ getmag(c, echo) = abs.(ecoview(c, echo))
 getmag(d::PhaseMag, echo) = ecoview(d.mag, echo)
 ecoview(a, echo) = dimview(a, 4, echo)
 dimview(a, dim, i) = view(a, ntuple(x -> if x == dim i else (:) end, ndims(a))...)
+getdatatype(cx::AbstractArray{<:Complex{T}}) where T = T
+getdatatype(other) = eltype(other)
