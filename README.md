@@ -1,7 +1,7 @@
 # MriResearchTools
 
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://korbinian90.github.io/MriResearchTools.jl/dev)
 [![Build Status](https://github.com/korbinian90/MriResearchTools.jl/workflows/CI/badge.svg)](https://github.com/korbinian90/MriResearchTools.jl/actions)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/korbinian90/MriResearchTools.jl?svg=true)](https://ci.appveyor.com/project/korbinian90/MriResearchTools-jl)
 [![Codecov](https://codecov.io/gh/korbinian90/MriResearchTools.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/korbinian90/MriResearchTools.jl)
 
 ## Prerequisites
