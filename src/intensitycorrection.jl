@@ -30,7 +30,14 @@ might be created. The stronger the bias field, the more boxes are required for s
 With too many boxes, it can happen that big darker structures are captured and appear
 overbrightened.
 
+Calculates the bias field using the `boxsegment` approach.
+It assumes that there is a "main tissue" that is present in most areas of the object.
+Published in [CLEAR-SWI](https://doi.org/10.1016/j.neuroimage.2021.118175).
+
+See also [`getsensitivity`](@ref)
 """
+makehomogeneous, makehomogeneous!
+
 function makehomogeneous(mag, datatype=eltype(mag); σ, nbox=15)
     return makehomogeneous!(datatype.(mag); σ, nbox)
 end
@@ -57,6 +64,19 @@ mm_to_vox(mm, nii::NIVolume) = mm_to_vox(mm, getpixdim(nii))
 mm_to_vox(mm, pixdim) = mm ./ pixdim
 
 
+"""
+    getsensitivity(mag; σ, nbox=15)
+
+    getsensitivity(mag, pixdim; σ_mm=7, nbox=15)
+
+    getsensitivity(mag::NIVolume, datatype=eltype(mag); σ_mm=7, nbox=15)
+
+Calculates the bias field using the `boxsegment` approach.
+It assumes that there is a "main tissue" that is present in most areas of the object.
+Published in [CLEAR-SWI](https://doi.org/10.1016/j.neuroimage.2021.118175).
+
+See also [`makehomogeneous`](@ref)
+"""
 function getsensitivity(mag::NIVolume, datatype=eltype(mag); kw...)
     return getsensitivity(datatype.(mag), getpixdim(mag); kw...)
 end

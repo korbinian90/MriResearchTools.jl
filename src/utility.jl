@@ -3,6 +3,11 @@ function approxextrema(I)
     return (minimum(arr), maximum(arr))
 end
 
+"""
+    estimatequantile(array, p)
+
+Quickly estimates the quantile `p` of a possibly large array by using a subset of the data.
+"""
 function estimatequantile(array, p)
     try 
         return quantile(sample(array; n=1e5), p)
@@ -32,7 +37,13 @@ function get_corner_indices(I; max_length=10)
 end
 
 # estimate noise parameters from corner without signal
-function estimatenoise(image)
+"""
+    estimatenoise(image::AbstractArray)
+
+Estimates the noise from the corners of the image.
+It assumes that at least one corner is without signal and only contains noise.
+"""
+function estimatenoise(image::AbstractArray)
     corners = get_corner_indices(image)
     (lowestmean, ind) = findmin(mean.(filter(isfinite, image[I...]) for I in corners))
     sigma = std(filter(isfinite, image[corners[ind]...]))
@@ -51,11 +62,25 @@ function estimatesigma_from_quantile(image, quantile)
     return std(samples)
 end
 
+
+"""
+    robustmask!(image)
+    robustmask!(image; maskedvalue)
+
+Creates a mask and applies it inplace.
+It assumes that at least one corner is without signal and only contains noise.
+"""
 function robustmask!(image; maskedvalue=if eltype(image) <: AbstractFloat NaN else 0 end)
     image[.!robustmask(image)] .= maskedvalue
     image
 end
-function robustmask(weight)
+"""
+    robustmask(weight::AbstractArray)
+
+Creates a mask from a weights images.
+It assumes that at least one corner is without signal and only contains noise.
+"""
+function robustmask(weight::AbstractArray)
     μ, σ = estimatenoise(weight)
     m = mean(filter(isfinite, weight[weight .> 5σ]))
     maximum((5σ, m/5))
@@ -82,6 +107,12 @@ function readfromtextheader(filename, searchstring)
 end
 
 # root sum of squares combination
+"""
+    RSS(mag; dims=ndims(mag))
+
+Performs root-sum-of-squares combination along the last dimension of `mag`.
+The dimension can be specificed via the `dims` keyword argument.
+"""
 RSS(mag; dims=ndims(mag)) = dropdims(.√sum(mag.^Float32(2); dims); dims)
 
 function getscaledimage(array, div::Number, offset = 0, type::Symbol = :trans)
@@ -105,11 +136,17 @@ function getscaledimage(array, type::Symbol = :trans)
     getscaledimage(scaled, 1, 0, type)
 end
 
+"""
+    robustrescale(array, newmin, newmax; threshold=false, mask=trues(size(array)), datatype=Float64)
+
+Rescales the image to the the new range, disregarding outliers.
+Only values inside `mask` are used for estimating the rescaling option
+"""
 robustrescale(array, newmin, newmax; threshold=false, mask=trues(size(array)), datatype=Float64) =
     robustrescale!(datatype.(array), newmin, newmax; threshold, mask)
 
 function robustrescale!(array, newmin, newmax; threshold=false, mask=trues(size(array)))
-    array[isnan.(array)] .= minimum(filter(isfinite, array))
+    mask[isnan.(array)] .= false
     q = [0.01, 0.99] # quantiles
     oldq = estimatequantile(array[mask], q)
     oldrange = (oldq[2] - oldq[1]) / (q[2] - q[1])
@@ -136,12 +173,33 @@ function rescale!(array, newmin, newmax)
     array .= (array .- oldmin) .* factor .+ newmin
 end
 
+"""
+    to_dim(V::AbstractVector, dim::Int)
+
+    to_dim(a::Real, dim::Int)
+
+Converts a vector or number to a higher dimension.
+
+# Examples
+```julia-repl
+julia> to_dim(5, 3)
+1×1×1 Array{Int64, 3}:
+[:, :, 1] =
+ 5
+julia> to_dim([1,2], 2)
+ 1×2 Matrix{Int64}:
+  1  2
+```
+"""
 to_dim(a::Real, dim::Int) = to_dim([a], dim)
 to_dim(V::AbstractVector, dim::Int) = reshape(V, ones(Int, dim-1)..., :)
 
 """
     getHIP(mag, phase; echoes=[1,2])
-return the hermitian inner product between the specified echoes.
+
+    getHIP(compl; echoes=[1,2])
+
+Calculates the Hermitian Inner Product between the specified echoes.
 """
 function getHIP(mag, phase; echoes=[1,2])
     e1, e2 = echoes

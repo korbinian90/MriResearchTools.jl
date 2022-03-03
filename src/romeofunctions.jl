@@ -1,7 +1,20 @@
-romeo = unwrap # access unwrap function via alias romeo
-romeo! = unwrap!
+const romeo = unwrap # access unwrap function via alias romeo
+const romeo! = unwrap!
 
-function mask_from_voxelquality(qmap, threshold)
+"""
+    mask_from_voxelquality(qmap::AbstractArray, threshold=0.5)
+
+Creates a mask from a quality map. Another option is to use `robustmask(qmap)`
+
+# Examples
+```julia-repl
+julia> qmap = romeovoxelquality(phase_3echo; TEs=[1,2,3]);
+julia> mask = mask_from_voxelquality(qmap);
+```
+
+See also [`romeovoxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref)
+"""
+function mask_from_voxelquality(qmap::AbstractArray, threshold=0.5)
     qmap_bin = qmap .> threshold # NaN defaults to false (0)
     max_hole_size = length(qmap) / 20
     qmap_bin = .!imfill(.!qmap_bin, (1, max_hole_size)) # fills all holes up to max_hole_size (uses 6 connectivity as default)
@@ -19,6 +32,14 @@ function ROMEO.calculateweights(phase::AbstractArray{T,4}; TEs, template=2, p2re
 end
 
 # calculates B0 in [Hz]
+"""
+    calculateB0_unwrapped(unwrapped_phase, mag, TEs)
+
+Calculates B0 in [Hz] from unwrapped phase.
+The phase offsets have to be removed prior.
+
+See also [`mcpc3ds`](@ref) and [`romeo`](@ref)
+"""
 function calculateB0_unwrapped(unwrapped_phase, mag, TEs)
     dims = 4
     TEs = to_dim(TEs, 4)
@@ -26,8 +47,22 @@ function calculateB0_unwrapped(unwrapped_phase, mag, TEs)
 end
 
 """
-Calculates a quality for each voxel. Takes the same inputs as ROMEO
-"""
+    romeovoxelquality(phase::AbstractArray; keyargs...)
+
+Calculates a quality for each voxel. The voxel quality can be used to create a mask.
+
+# Examples
+```julia-repl
+julia> qmap = romeovoxelquality(phase_3echo; TEs=[1,2,3]);
+julia> mask1 = mask_from_voxelquality(qmap);
+julia> mask2 = robustmask(qmap);
+```
+     
+Takes the same inputs as `romeo`/`unwrap`:
+$(@doc unwrap)
+
+See also [`mask_from_voxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref)
+""" 
 function romeovoxelquality(phase; keyargs...)
     weights = ROMEO.calculateweights(phase; type=Float32, rescale=x->x, keyargs...)
     return dropdims(sum(weights; dims=1); dims=1) ./ 3 # [0;1]

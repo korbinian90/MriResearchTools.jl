@@ -91,9 +91,9 @@ function savenii(image, name, writedir, header=nothing)
 end
 """
     savenii(image::AbstractArray, filepath; header=nothing)
+
     savenii(image::AbstractArray, name, writedir, header=nothing)
 
-Saves `image` at `filepath` as NIfTI.
 Warning: MRIcro can only open images with types Int32, Int64, Float32, Float64
 
 # Examples
