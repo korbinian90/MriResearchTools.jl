@@ -23,8 +23,7 @@ function __init__()
 end
 laplacianunwrap(p) = @warn "FFTW is required! Type 'using FFTW' before calling this function"
 
-export Data,
-        readphase, readmag, niread, write_emptynii,
+export  readphase, readmag, niread, write_emptynii,
         header,
         savenii,
         estimatenoise,
