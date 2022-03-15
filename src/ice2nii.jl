@@ -39,7 +39,7 @@ function read_volume(cfg)
             read!(file, vol)
             lines = readlines(imahead)
             eco = get_setting(Int, lines, "EchoNumber"; default=1)
-            slc = get_setting(Int, lines, "Actual3DImaPartNumber") + 1
+            slc = getslice(lines)
             rescale_slope = get_setting(Float32, lines, "RescaleSlope"; offset=4, default=1)
             rescale_intercept = get_setting(Float32, lines, "RescaleIntercept"; offset=4, default=0)
             volume[:,:,slc,eco] .= (vol .+ rescale_intercept) .* rescale_slope
@@ -47,6 +47,14 @@ function read_volume(cfg)
     end
 
     return volume
+end
+
+function getslice(lines)
+    slc = get_setting(Int, lines, "Actual3DImaPartNumber"; default=nothing)
+    if (isnothing(slc))
+        slc = get_setting(Int, lines, "AnatomicalSliceNo")
+    end
+    return slc + 1
 end
 
 function getsize(path)
