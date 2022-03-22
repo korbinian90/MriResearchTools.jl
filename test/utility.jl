@@ -47,6 +47,11 @@ savenii(mag, fn_temp)
 mag2 = niread(fn_temp)
 @test mag == mag2
 
+# setindex!
+mag_nii[1] = 1
+mag_nii[1,1,1,1] = 2
+mag_nii[CartesianIndex(1,2,3,1)] = 5
+
 # close mmapped files
 GC.gc()
 
