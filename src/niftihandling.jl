@@ -144,3 +144,8 @@ mmtovoxel(sizemm, header::NIfTI.NIfTI1Header) = mmtovoxel(sizemm, header.pixdim)
 mmtovoxel(sizemm, pixdim) = sizemm ./ pixdim
 
 getcomplex(mag::NIVolume, phase::NIVolume) = getcomplex(mag.raw, phase.raw)
+
+function Base.setindex!(vol::NIVolume{<:AbstractFloat}, v, i...)
+    scaled = v / vol.header.scl_slope + vol.header.scl_inter
+    setindex!(vol.raw, scaled, i...)
+end
