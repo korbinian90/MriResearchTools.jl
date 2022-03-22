@@ -108,7 +108,7 @@ function checkboxsizes!(boxsizes, sz, dims)
             if bs[i] > sz[dim] / 2
                 val = sz[dim] ÷ 2
                 if iseven(val) val += 1 end
-                @warn "boxsize $i for dim $dim is limited to half the image; it was changed from $(bs[i]) to $(val)!"
+                if val != bs[i] @warn "boxsize $i for dim $dim is limited to half the image; it was changed from $(bs[i]) to $(val)!" end
                 bs[i] = val
             end
         end
