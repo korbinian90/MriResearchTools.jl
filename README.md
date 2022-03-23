@@ -1,12 +1,12 @@
 # MriResearchTools
 
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://korbinian90.github.io/MriResearchTools.jl/dev)
 [![Build Status](https://github.com/korbinian90/MriResearchTools.jl/workflows/CI/badge.svg)](https://github.com/korbinian90/MriResearchTools.jl/actions)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/korbinian90/MriResearchTools.jl?svg=true)](https://ci.appveyor.com/project/korbinian90/MriResearchTools-jl)
 [![Codecov](https://codecov.io/gh/korbinian90/MriResearchTools.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/korbinian90/MriResearchTools.jl)
 
 ## Prerequisites
 A Julia installation v1.3 or higher is required.
-To get the newest version of this package, Julia v1.6 LTS is recommended.
+To get the newest version of this package, Julia v1.6 LTS or newer is recommended.
 
 Magnitude and Phase images in NIfTI fileformat
 (4D images with echoes in the 4th dimension, 5D images with channels in the 5th dimension)

@@ -1,17 +1,26 @@
 """
-    gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=ifelse(isnothing(mask), 3, 6), weight=nothing, dims=1:min(ndims(image),3), boxsizes=getboxsizes.(σ, nbox))
+    gaussiansmooth3d(image)
+
+    gaussiansmooth3d(image, σ=[5,5,5];
+        mask=nothing,
+        nbox=ifelse(isnothing(mask), 3, 6), 
+        weight=nothing, dims=1:min(ndims(image),3), 
+        boxsizes=getboxsizes.(σ, nbox)
+        )
 
 Performs Gaussian smoothing on `image` with `σ` as standard deviation of the Gaussian.
 By application of `nbox` times running average filters in each dimension.
 The length of `σ` and the length of the `dims` that are smoothed have to match. (Default `3`)
 
-Optional arguments:\n
-`mask`: Smoothing can be performed using a mask to inter-/extrapolate missing values.\n
-`nbox`: Number of box applications. Default is `3` for normal smoothing and `6` for masked smoothing.\n
-`weight`: Apply weighted smoothing. Either weighted or masked smoothing can be porformed.\n
-`dims`: Specify which dims should be smoothed. Corresponds to manually looping of the other dimensions.\n
-`boxizes`: Manually specify the boxsizes, not using the provided σ. `length(boxsizes)==length(dims) && length(boxsizes[1])==nbox`  
+Optional arguments:
+- `mask`: Smoothing can be performed using a mask to inter-/extrapolate missing values.
+- `nbox`: Number of box applications. Default is `3` for normal smoothing and `6` for masked smoothing.
+- `weight`: Apply weighted smoothing. Either weighted or masked smoothing can be porformed.
+- `dims`: Specify which dims should be smoothed. Corresponds to manually looping of the other dimensions.
+- `boxizes`: Manually specify the boxsizes, not using the provided σ. `length(boxsizes)==length(dims) && length(boxsizes[1])==nbox`
 """
+gaussiansmooth3d, gaussiansmooth3d!
+
 function gaussiansmooth3d(image, σ=[5,5,5]; padding=false, kwargs...)
     if padding
         image = pad_image(image, σ)
@@ -26,6 +35,13 @@ end
 pad_image(image, σ) = PaddedView(0, image, Tuple(size(image) .+ 2σ), Tuple(σ .+ 1))
 remove_padding(image, σ) = image[[σ[i]+1:size(image,i)-σ[i] for i in 1:ndims(image)]...]
 
+"""
+    gaussiansmooth3d_phase(phase, σ=[5,5,5]; weight=1, kwargs...)
+
+Smoothes the phase via complex smoothing. A weighting image can be given.
+The same keyword arguments are supported as in `gaussiansmooth3d`:
+$(@doc gaussiansmooth3d)
+"""
 function gaussiansmooth3d_phase(phase, σ=[5,5,5]; weight=1, kwargs...)
     return angle.(gaussiansmooth3d!(weight .* exp.(1im .* phase), σ; kwargs...))
 end
@@ -92,7 +108,7 @@ function checkboxsizes!(boxsizes, sz, dims)
             if bs[i] > sz[dim] / 2
                 val = sz[dim] ÷ 2
                 if iseven(val) val += 1 end
-                @warn "boxsize $i for dim $dim is limited to half the image; it was changed from $(bs[i]) to $(val)!"
+                if val != bs[i] @warn "boxsize $i for dim $dim is limited to half the image; it was changed from $(bs[i]) to $(val)!" end
                 bs[i] = val
             end
         end
