@@ -65,6 +65,8 @@ function combinewithPO(compl, po)
     return combined ./ sqrt.(abs.(combined))
 end
 
+## Bipolar correction
+# see https://doi.org/10.34726/hss.2021.43447, page 53, 3.1.3 Bipolar Corrections
 function bipolar_correction!(image; TEs, σ, mask)
     fG = artefact(image, TEs)
     fG .= gaussiansmooth3d_phase(fG, σ; mask)
