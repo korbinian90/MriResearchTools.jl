@@ -25,7 +25,7 @@ function ROMEO.calculateweights(phase::AbstractArray{T,4}; TEs, template=2, p2re
     args = Dict{Symbol, Any}(keyargs)
     args[:phase2] = phase[:,:,:,p2ref]
     args[:TEs] = TEs[[template, p2ref]]
-    if haskey(args, :mag)
+    if haskey(args, :mag) && size(args[:mag], 4) > 1
         args[:mag] = args[:mag][:,:,:,template]
     end
     return ROMEO.calculateweights(view(phase,:,:,:,template); args...)
