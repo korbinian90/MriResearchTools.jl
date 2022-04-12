@@ -83,7 +83,6 @@ It assumes that at least one corner is without signal and only contains noise.
 function robustmask(weight::AbstractArray)
     μ, σ = estimatenoise(weight)
     m = mean(filter(isfinite, weight[weight .> 5σ]))
-    maximum((5σ, m/5))
     mask = weight .> maximum((5σ, m/5))
     # remove small holes and minimally grow
     boxsizes=[[3,3] for i in 1:ndims(weight)]

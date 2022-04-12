@@ -64,6 +64,10 @@ $(@doc unwrap)
 See also [`mask_from_voxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref)
 """ 
 function romeovoxelquality(phase; keyargs...)
-    weights = ROMEO.calculateweights(phase; type=Float32, rescale=x->x, keyargs...)
-    return dropdims(sum(weights; dims=1); dims=1) ./ 3 # [0;1]
+    weights = ROMEO.calculateweights(phase; type=Float32, rescale=x->x, keyargs...) # [0;1]
+    qmap = dropdims(sum(weights; dims=1); dims=1)
+    qmap[2:end,:,:] .+= weights[1,1:end-1,:,:]
+    qmap[:,2:end,:] .+= weights[2,:,1:end-1,:]
+    qmap[:,:,2:end] .+= weights[3,:,:,1:end-1]
+    return qmap ./ 6 # [0;1]
 end
