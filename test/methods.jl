@@ -51,4 +51,9 @@ mask = mask_from_voxelquality(vq, 0.5)
 @test !all(mask .== true)
 @test !all(mask .== false)
 
+bm = brain_mask(mask)
+@test bm isa AbstractArray{<:Bool}
+@test !all(bm .== true)
+@test !all(bm .== false)
+
 end

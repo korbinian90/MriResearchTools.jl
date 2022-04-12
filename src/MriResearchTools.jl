@@ -9,6 +9,8 @@ using DataStructures
 using ImageMorphology
 using LocalFilters
 using PaddedViews
+using ImageSegmentation
+import StatsBase: countmap
 
 include("utility.jl")
 include("smoothing.jl")
@@ -34,6 +36,7 @@ export  readphase, readmag, niread, write_emptynii,
         #combine_echoes,
         calculateB0_unwrapped,
         mask_from_voxelquality,
+        brain_mask,
         romeovoxelquality,
         getHIP,
         laplacianunwrap, laplacianunwrap!,
