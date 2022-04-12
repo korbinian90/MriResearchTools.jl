@@ -1,7 +1,7 @@
 name = "MriResearchTools"
 uuid = "557dad86-b9bd-4533-8525-1a39684d020f"
 authors = ["Korbinian Eckstein"]
-version = "0.6.3"
+version = "0.7.0"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
@@ -20,5 +20,5 @@ Interpolations = "0.12 - 0.13"
 NIfTI = "0.4 - 0.5"
 PaddedViews = "0.5"
 Requires = "1"
-ROMEO = "0.2.5"
+ROMEO = "0.3"
 julia = "1.5"
