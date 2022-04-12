@@ -14,11 +14,11 @@ julia> mask = mask_from_voxelquality(qmap);
 
 See also [`romeovoxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref)
 """
-function mask_from_voxelquality(qmap::AbstractArray, threshold=0.1)
+function mask_from_voxelquality(qmap::AbstractArray, threshold=0.2, th2=0.8)
     qmap_bin = qmap .> threshold # NaN defaults to false (0)
     max_hole_size = length(qmap) / 20
     qmap_bin = .!imfill(.!qmap_bin, (1, max_hole_size)) # fills all holes up to max_hole_size (uses 6 connectivity as default)
-    return gaussiansmooth3d(qmap_bin, (1,1,1)) .> 0.8 # hardcoded final threshold
+    return gaussiansmooth3d(qmap_bin, (1,1,1)) .> th2
 end
 
 function ROMEO.calculateweights(phase::AbstractArray{T,4}; TEs, template=2, p2ref=1, keyargs...) where T
