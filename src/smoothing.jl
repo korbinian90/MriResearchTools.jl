@@ -102,13 +102,11 @@ function checkboxsizes!(boxsizes, sz, dims)
         bs = boxsizes[dim]
         for i in eachindex(bs)
             if iseven(bs[i])
-                @warn "boxsize $i is even: $(bs[i]); it was changed to next bigger odd integer!"
                 bs[i] += 1
             end
             if bs[i] > sz[dim] / 2
                 val = sz[dim] ÷ 2
                 if iseven(val) val += 1 end
-                if val != bs[i] @warn "boxsize $i for dim $dim is limited to half the image; it was changed from $(bs[i]) to $(val)!" end
                 bs[i] = val
             end
         end
