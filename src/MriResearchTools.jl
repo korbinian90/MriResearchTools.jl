@@ -1,6 +1,6 @@
 module MriResearchTools
 
-using Requires
+using FFTW
 using Interpolations
 using NIfTI
 using ROMEO
@@ -21,11 +21,7 @@ include("niftihandling.jl")
 include("mcpc3ds.jl")
 include("romeofunctions.jl")
 include("ice2nii.jl")
-
-function __init__()
-        @require FFTW="7a1cc6ca-52ef-59f5-83cd-3a7055c09341" include("laplacianunwrapping.jl")
-end
-laplacianunwrap(p) = @warn "FFTW is required! Type 'using FFTW' before calling this function"
+include("laplacianunwrapping.jl")
 
 export  readphase, readmag, niread, write_emptynii,
         header,
