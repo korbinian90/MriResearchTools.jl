@@ -45,11 +45,11 @@ function ROMEO.calculateweights(phase::AbstractArray{T,4}; TEs, template=2, p2re
     return ROMEO.calculateweights(view(phase,:,:,:,template); args...)
 end
 
-# calculates B0 in [Hz]
 """
     calculateB0_unwrapped(unwrapped_phase, mag, TEs)
 
 Calculates B0 in [Hz] from unwrapped phase.
+TEs in [ms].
 The phase offsets have to be removed prior.
 
 See also [`mcpc3ds`](@ref) and [`romeo`](@ref)
