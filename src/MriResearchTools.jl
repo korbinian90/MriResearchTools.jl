@@ -7,7 +7,10 @@ using ROMEO
 using Statistics
 using DataStructures
 using ImageMorphology
+using LocalFilters
 using PaddedViews
+using ImageSegmentation
+import StatsBase: countmap
 
 include("utility.jl")
 include("smoothing.jl")
@@ -17,6 +20,7 @@ include("methods.jl")
 include("niftihandling.jl")
 include("mcpc3ds.jl")
 include("romeofunctions.jl")
+include("ice2nii.jl")
 
 function __init__()
         @require FFTW="7a1cc6ca-52ef-59f5-83cd-3a7055c09341" include("laplacianunwrapping.jl")
@@ -32,6 +36,7 @@ export  readphase, readmag, niread, write_emptynii,
         #combine_echoes,
         calculateB0_unwrapped,
         mask_from_voxelquality,
+        brain_mask,
         romeovoxelquality,
         getHIP,
         laplacianunwrap, laplacianunwrap!,
@@ -50,6 +55,7 @@ export  readphase, readmag, niread, write_emptynii,
         unwrap_individual, unwrap_individual!,
         homodyne, homodyne!,
         to_dim,
+        Ice_output_config, read_volume,
         NumART2star, r2s_from_t2s
 
 end # module
