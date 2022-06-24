@@ -191,7 +191,7 @@ julia> to_dim([1,2], 2)
 ```
 """
 to_dim(a::Real, dim::Int) = to_dim([a], dim)
-to_dim(V::AbstractVector, dim::Int) = reshape(V, ones(Int, dim-1)..., :)
+to_dim(V::AbstractArray, dim::Int) = reshape(V, ones(Int, dim-1)..., :)
 
 """
     getHIP(mag, phase; echoes=[1,2])
