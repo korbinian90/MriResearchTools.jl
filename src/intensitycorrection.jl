@@ -105,8 +105,7 @@ function getsigma(σ)
 end
 
 function fillandsmooth!(lowpass, stablemean, σ2)
-    stablethresh = stablemean / 4
-    lowpassmask = (lowpass .< stablethresh) .| isnan.(lowpass) .| (lowpass .> 10 * stablemean)
+    lowpassmask = (lowpass .< stablemean / 4) .| isnan.(lowpass) .| (lowpass .> 10 * stablemean)
     lowpass[lowpassmask] .= 3 * stablemean
     lowpassweight = 1.2 .- lowpassmask
     gaussiansmooth3d!(lowpass, σ2; weight=lowpassweight)
