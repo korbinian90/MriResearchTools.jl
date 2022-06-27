@@ -1,20 +1,9 @@
-"""
-    robustmask!(image)
-    robustmask!(image; maskedvalue)
 
-Creates a mask and applies it inplace.
-It assumes that at least one corner is without signal and only contains noise.
-"""
 function robustmask!(image; maskedvalue=if eltype(image) <: AbstractFloat NaN else 0 end)
     image[.!robustmask(image)] .= maskedvalue
     image
 end
-"""
-    robustmask(weight::AbstractArray)
 
-Creates a mask from a intensity/weights images.
-It assumes that at least one corner is without signal and only contains noise.
-"""
 function robustmask(weight::AbstractArray, threshold=nothing)
     if threshold isa Nothing
         μ, σ = estimatenoise(weight)
@@ -30,6 +19,23 @@ function robustmask(weight::AbstractArray, threshold=nothing)
     return mask
 end
 
+"""
+    robustmask(weight::AbstractArray)
+
+Creates a mask from a intensity/weights images.
+It assumes that at least one corner is without signal and only contains noise.
+
+# Examples
+```julia-repl
+julia> mask1 = robustmask(mag); # Using magnitude
+julia> mask2 = robustmask(phase_based_mask(phase)); # Using phase
+julia> mask3 = robustmask(romeovoxelquality(phase; mag)); # Using magnitude and phase
+```
+
+See also [`romeovoxelquality`](@ref), [`phase_based_mask`](@ref), [`brain_mask`](@ref)
+"""
+robustmask, robustmask!
+
 function sphere(radius, dim=3)
     len = 2radius + 1
     arr = OffsetArray(falses(repeat([len], dim)...), repeat([-radius:radius], dim)...)
@@ -44,6 +50,15 @@ end
 
 Creates a mask from a phase image.
 Filtering is required afterwards (morphological or smoothing+thresholding)
+
+# Examples
+```julia-repl
+julia> phase_mask = phase_based_mask(phase);
+julia> clean_mask = robustmask(phase_mask);
+```
+
+See also [`romeovoxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref), [`brain_mask`](@ref)
+
 Original MATLAB algorithm:
     se=strel('sphere',6);
     L=del2(sign(wr));
@@ -55,7 +70,7 @@ Original MATLAB algorithm:
 function phase_based_mask(phase)
     laplacian = imfilter(sign.(phase), Kernel.Laplacian(1:ndims(phase), ndims(phase)))
     test = imfilter(abs.(laplacian), sphere(6, ndims(phase)))
-    return test .< 500
+    return test .< (500 * 6)
 end
 
 function imclose(image, strel)
@@ -70,7 +85,7 @@ end
 
 
 """
-    mask_from_voxelquality(qmap::AbstractArray, threshold=0.5)
+    mask_from_voxelquality(qmap::AbstractArray, threshold=:auto)
 
 Creates a mask from a quality map. Another option is to use `robustmask(qmap)`
 
@@ -80,11 +95,10 @@ julia> qmap = romeovoxelquality(phase_3echo; TEs=[1,2,3]);
 julia> mask = mask_from_voxelquality(qmap);
 ```
 
-See also [`romeovoxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref)
+See also [`romeovoxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref), [`brain_mask`](@ref)
 """
-function mask_from_voxelquality(qmap::AbstractArray, threshold=0.3)
-    # TODO maybe use a threshold factor to reduce threshold by 3/4
-    return robustmask(qmap, threshold)
+function mask_from_voxelquality(args...)
+    return robustmask(args...)
 end
 
 function fill_holes(mask; max_hole_size=length(mask) / 20)
@@ -96,6 +110,19 @@ function get_largest_connected_region(mask)
     return labels .== argmax(countmap(labels[labels .!= 0]))
 end
 
+"""
+    brain_mask(mask)
+
+Tries to extract the brain from a mask with skull and a gap between brain and skull.
+
+# Examples
+```julia-repl
+julia> mask = robustmask(mag)
+julia> brain = brain_mask(mask)
+```
+
+See also [`robustmask`](@ref), [`romeovoxelquality`](@ref), [`phase_based_mask`](@ref)
+"""
 function brain_mask(mask)
     # set border to false
     shrink_mask = copy(mask)

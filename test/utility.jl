@@ -38,7 +38,7 @@ mag = Float32.(readmag(fn_mag; rescale=true))
 for i in 1:10
     mag[(end÷2):end,:,:,:] .= i .* 0.025 .* rand.()
     m = robustmask(mag)
-    @test 1.1 < count(.!m) / count(m) < 1.2
+    @test 1.05 < count(.!m) / count(m) < 1.2
 end
 
 # savenii

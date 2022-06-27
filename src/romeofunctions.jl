@@ -36,14 +36,13 @@ Calculates a quality for each voxel. The voxel quality can be used to create a m
 # Examples
 ```julia-repl
 julia> qmap = romeovoxelquality(phase_3echo; TEs=[1,2,3]);
-julia> mask1 = mask_from_voxelquality(qmap);
-julia> mask2 = robustmask(qmap);
+julia> mask = robustmask(qmap);
 ```
      
 Takes the same inputs as `romeo`/`unwrap`:
 $(@doc unwrap)
 
-See also [`mask_from_voxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref)
+See also [`romeo`](@ref), [`robustmask`](@ref), [`brain_mask`](@ref), [`phase_based_mask`](@ref)
 """ 
 function romeovoxelquality(phase; keyargs...)
     weights = ROMEO.calculateweights(phase; type=Float32, rescale=x->x, keyargs...) # [0;1]
