@@ -22,6 +22,7 @@ include("mcpc3ds.jl")
 include("romeofunctions.jl")
 include("ice2nii.jl")
 include("laplacianunwrapping.jl")
+include("masking.jl")
 
 export  readphase, readmag, niread, write_emptynii,
         header,

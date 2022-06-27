@@ -1,39 +1,6 @@
 const romeo = unwrap # access unwrap function via alias romeo
 const romeo! = unwrap!
 
-"""
-    mask_from_voxelquality(qmap::AbstractArray, threshold=0.5)
-
-Creates a mask from a quality map. Another option is to use `robustmask(qmap)`
-
-# Examples
-```julia-repl
-julia> qmap = romeovoxelquality(phase_3echo; TEs=[1,2,3]);
-julia> mask = mask_from_voxelquality(qmap);
-```
-
-See also [`romeovoxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref)
-"""
-function mask_from_voxelquality(qmap::AbstractArray, threshold=0.2, th2=0.8)
-    qmap_bin = qmap .> threshold # NaN defaults to false (0)
-    qmap_bin = fill_holes(qmap_bin)
-    return gaussiansmooth3d(qmap_bin, (1,1,1)) .> th2
-end
-
-function fill_holes(mask; max_hole_size=length(mask) / 20)
-    return .!imfill(.!mask, (1, max_hole_size)) # fills all holes up to max_hole_size (uses 6 connectivity as default for 3D)
-end
-
-function get_largest_connected_region(mask)
-    labels = label_components(mask)
-    return labels .== argmax(countmap(labels[labels .!= 0]))
-end
-
-function brain_mask(mask)
-    bm = get_largest_connected_region(mask)
-    return bm
-end
-
 function ROMEO.calculateweights(phase::AbstractArray{T,4}; TEs, template=2, p2ref=1, keyargs...) where T
     args = Dict{Symbol, Any}(keyargs)
     args[:phase2] = phase[:,:,:,p2ref]

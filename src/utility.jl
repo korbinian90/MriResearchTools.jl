@@ -62,33 +62,6 @@ function estimatesigma_from_quantile(image, quantile)
     return std(samples)
 end
 
-
-"""
-    robustmask!(image)
-    robustmask!(image; maskedvalue)
-
-Creates a mask and applies it inplace.
-It assumes that at least one corner is without signal and only contains noise.
-"""
-function robustmask!(image; maskedvalue=if eltype(image) <: AbstractFloat NaN else 0 end)
-    image[.!robustmask(image)] .= maskedvalue
-    image
-end
-"""
-    robustmask(weight::AbstractArray)
-
-Creates a mask from a weights images.
-It assumes that at least one corner is without signal and only contains noise.
-"""
-function robustmask(weight::AbstractArray)
-    μ, σ = estimatenoise(weight)
-    m = mean(filter(isfinite, weight[weight .> 5σ]))
-    mask = weight .> maximum((5σ, m/5))
-    # remove small holes and minimally grow
-    boxsizes=[[3,3] for i in 1:ndims(weight)]
-    return gaussiansmooth3d(mask; nbox=2, boxsizes) .> 0.55
-end
-
 getcomplex(fnmag::AbstractString, fnphase::AbstractString) = getcomplex(niread(fnmag), niread(fnphase))
 
 function getcomplex(mag, phase)
