@@ -133,14 +133,28 @@ end
 
 function boxfilterline!(line::AbstractVector, boxsize::Int, q::CircularBuffer)
     r = div(boxsize, 2)
-    initvals = view(line, 1:boxsize)
+    initvals = view(line, 1:r)
     lsum = sum(initvals)
     append!(q, initvals)
 
+    # start with edge effect
+    @inbounds for i in 1:(r+1)
+        lsum += line[i+r]
+        push!(q, line[i+r])
+        line[i] = lsum / (r + i)
+    end
+
+    # middle part
     @inbounds for i in (r+2):(length(line)-r)
         lsum += line[i+r] - popfirst!(q)
         push!(q, line[i+r])
         line[i] = lsum / boxsize
+    end
+
+    # end with edge effect
+    @inbounds for i in (length(line)-r+1):length(line)
+        lsum -= popfirst!(q)
+        line[i] = lsum / (r + length(line) - i + 1)
     end
 end
 
