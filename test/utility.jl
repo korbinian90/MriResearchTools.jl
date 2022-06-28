@@ -38,7 +38,7 @@ mag = Float32.(readmag(fn_mag; rescale=true))
 for i in 1:10
     mag[(end÷2):end,:,:,:] .= i .* 0.025 .* rand.()
     m = robustmask(mag)
-    @test 1.05 < count(.!m) / count(m) < 1.2
+    @test 1.0 < count(.!m) / count(m) < 1.2
 end
 
 # savenii
@@ -46,6 +46,22 @@ fn_temp = tempname()
 savenii(mag, fn_temp)
 mag2 = niread(fn_temp)
 @test mag == mag2
+
+dir_temp = tempdir()
+savenii(mag, "name", dir_temp)
+@test isfile(joinpath(dir_temp, "name.nii"))
+
+dir_temp = tempdir()
+savenii(mag, "name2.nii", dir_temp)
+@test isfile(joinpath(dir_temp, "name2.nii"))
+
+dir_temp = tempdir()
+savenii(mag, "name3.nii.gz", dir_temp)
+@test isfile(joinpath(dir_temp, "name3.nii.gz"))
+
+@test filesize(joinpath(dir_temp, "name2.nii")) != filesize(joinpath(dir_temp, "name3.nii.gz"))
+
+rm.(joinpath.(dir_temp, ["name.nii", "name2.nii", "name3.nii.gz"]))
 
 # setindex!
 mag_nii[1] = 1

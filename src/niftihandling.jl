@@ -84,8 +84,8 @@ header(v::NIVolume) = similar(v.header)
 
 function savenii(image, name, writedir, header=nothing)
     if isnothing(writedir) return end
-    if splitext(name)[2] != ".nii"
-        name = name * ".nii"
+    if !(last(splitext(name)) in [".nii", ".gz"])
+        name = "$name.nii"
     end
     savenii(image, joinpath(writedir, name); header)
 end
