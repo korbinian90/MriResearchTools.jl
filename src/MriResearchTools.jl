@@ -7,9 +7,10 @@ using ROMEO
 using Statistics
 using DataStructures
 using ImageMorphology
+using ImageFiltering
 using LocalFilters
 using PaddedViews
-using ImageSegmentation
+using OffsetArrays
 import StatsBase: countmap
 
 include("utility.jl")

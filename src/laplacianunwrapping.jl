@@ -31,7 +31,6 @@ It is not the fastest implementation of laplacian unwrapping (doesn't use discre
 laplacianunwrap, laplacianunwrap!
 
 # FFT variant
-using OffsetArrays, ImageFiltering
 function laplacianunwrap_fft(ϕ::AbstractArray, z_weight=1)
     FFTW.set_num_threads(min(4, Threads.nthreads()))
 
