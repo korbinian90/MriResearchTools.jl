@@ -30,7 +30,7 @@ The automatic threshold is multiplied with `factor`.
 # Examples
 ```julia-repl
 julia> mask1 = robustmask(mag); # Using magnitude
-julia> mask2 = robustmask(phase_based_mask(phase)); # Using phase
+julia> mask2 = phase_based_mask(phase); # Using phase
 julia> mask3 = robustmask(romeovoxelquality(phase; mag)); # Using magnitude and phase
 julia> brain = brain_mask(robustmask(romeovoxelquality(phase; mag); threshold=0.9));
 ```
@@ -57,7 +57,6 @@ Filtering is required afterwards (morphological or smoothing+thresholding)
 # Examples
 ```julia-repl
 julia> phase_mask = phase_based_mask(phase);
-julia> clean_mask = robustmask(phase_mask);
 ```
 
 See also [`romeovoxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref), [`brain_mask`](@ref)
@@ -70,22 +69,17 @@ Original MATLAB algorithm:
     PB=imclose(PB,se);
     mask{2}=round(imopen(PB,se));
 """
-function phase_based_mask(phase)
+function phase_based_mask(phase; filter=true)
+    strel = sphere(6, ndims(phase))
     laplacian = imfilter(sign.(phase), Kernel.Laplacian(1:ndims(phase), ndims(phase)))
-    test = imfilter(abs.(laplacian), sphere(6, ndims(phase)))
-    return test .< (500 * 6)
+    test = imfilter(abs.(laplacian), strel)
+    PB = test .< (500 * 6)
+    if filter
+        PB = LocalFilters.closing(PB, strel)
+        PB = LocalFilters.opening(PB, strel)
+    end
+    return PB
 end
-
-function imclose(image, strel)
-    image = extreme_filter(max, image, strel)
-    return extreme_filter(min, image, strel)
-end
-
-function imopen(image, strel)
-    image = extreme_filter(min, image, strel)
-    return extreme_filter(max, image, strel)
-end
-
 
 """
     mask_from_voxelquality(qmap::AbstractArray, threshold=:auto)
