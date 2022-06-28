@@ -128,14 +128,14 @@ function brain_mask(mask, strength=7)
     end
 
     boxsizes=[[strength] for i in 1:ndims(shrink_mask)]
-    smooth = gaussiansmooth3d(shrink_mask; nbox=1, boxsizes)
-    shrink_mask2 = smooth .> 0.7
+    smoothed = gaussiansmooth3d(shrink_mask; nbox=1, boxsizes)
+    shrink_mask2 = smoothed .> 0.7
 
     brain_mask = get_largest_connected_region(shrink_mask2)
 
     # grow brain mask
     boxsizes=[[strength,strength] for i in 1:ndims(shrink_mask2)]
-    smooth = gaussiansmooth3d(brain_mask; nbox=2, boxsizes)
-    brain_mask = smooth .> 0.2
-    return brain_mask .&& mask
+    smoothed = gaussiansmooth3d(brain_mask; nbox=2, boxsizes)
+    brain_mask = smoothed .> 0.2
+    return brain_mask .& mask
 end
