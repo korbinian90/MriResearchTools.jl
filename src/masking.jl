@@ -4,32 +4,35 @@ function robustmask!(image; maskedvalue=if eltype(image) <: AbstractFloat NaN el
     image
 end
 
-function robustmask(weight::AbstractArray, threshold=nothing)
+function robustmask(weight::AbstractArray; factor=1, threshold=nothing)
     if threshold isa Nothing
         μ, σ = estimatenoise(weight)
         m = mean(filter(isfinite, weight[weight .> 5σ]))
         threshold = maximum((5σ, m/5))
     end
-    mask = weight .> threshold
+    mask = weight .> (threshold * factor)
     # remove small holes and minimally grow
     boxsizes=[[5] for i in 1:ndims(weight)]
     mask = gaussiansmooth3d(mask; nbox=1, boxsizes) .> 0.4
     mask = fill_holes(mask)
-    mask = gaussiansmooth3d(mask; nbox=1, boxsizes) .> 0.6
+    boxsizes=[[3,3] for i in 1:ndims(weight)]
+    mask = gaussiansmooth3d(mask; nbox=2, boxsizes) .> 0.6
     return mask
 end
 
 """
-    robustmask(weight::AbstractArray)
+    robustmask(weight::AbstractArray; factor=1, threshold=nothing)
 
-Creates a mask from a intensity/weights images.
+Creates a mask from an intensity/weight images by estimating a threshold and hole filling.
 It assumes that at least one corner is without signal and only contains noise.
+The automatic threshold is multiplied with `factor`.
 
 # Examples
 ```julia-repl
 julia> mask1 = robustmask(mag); # Using magnitude
 julia> mask2 = robustmask(phase_based_mask(phase)); # Using phase
 julia> mask3 = robustmask(romeovoxelquality(phase; mag)); # Using magnitude and phase
+julia> brain = brain_mask(robustmask(romeovoxelquality(phase; mag); threshold=0.9));
 ```
 
 See also [`romeovoxelquality`](@ref), [`phase_based_mask`](@ref), [`brain_mask`](@ref)
@@ -97,9 +100,7 @@ julia> mask = mask_from_voxelquality(qmap);
 
 See also [`romeovoxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref), [`brain_mask`](@ref)
 """
-function mask_from_voxelquality(args...)
-    return robustmask(args...)
-end
+mask_from_voxelquality = robustmask
 
 function fill_holes(mask; max_hole_size=length(mask) / 20)
     return .!imfill(.!mask, (1, max_hole_size)) # fills all holes up to max_hole_size (uses 6 connectivity as default for 3D)
@@ -123,7 +124,7 @@ julia> brain = brain_mask(mask)
 
 See also [`robustmask`](@ref), [`romeovoxelquality`](@ref), [`phase_based_mask`](@ref)
 """
-function brain_mask(mask)
+function brain_mask(mask, strength=7)
     # set border to false
     shrink_mask = copy(mask)
     if ndims(shrink_mask) == 3 && all(size(shrink_mask) .> 5)
@@ -132,14 +133,14 @@ function brain_mask(mask)
         shrink_mask[:,[1,end],:] .= false
     end
 
-    boxsizes=[[7] for i in 1:ndims(shrink_mask)]
+    boxsizes=[[strength] for i in 1:ndims(shrink_mask)]
     smooth = gaussiansmooth3d(shrink_mask; nbox=1, boxsizes)
     shrink_mask2 = smooth .> 0.7
 
     brain_mask = get_largest_connected_region(shrink_mask2)
 
     # grow brain mask
-    boxsizes=[[7,7] for i in 1:ndims(shrink_mask2)]
+    boxsizes=[[strength,strength] for i in 1:ndims(shrink_mask2)]
     smooth = gaussiansmooth3d(brain_mask; nbox=2, boxsizes)
     brain_mask = smooth .> 0.2
     return brain_mask .&& mask

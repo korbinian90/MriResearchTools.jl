@@ -46,7 +46,7 @@ vq = romeovoxelquality(phase; TEs=TEs)
 @test size(vq) == size(phase_nii)[1:3]
 
 # mask_from_voxelquality
-mask = mask_from_voxelquality(vq, 0.5)
+mask = mask_from_voxelquality(vq; threshold=0.5)
 @test mask isa AbstractArray{<:Bool}
 @test !all(mask .== true)
 @test !all(mask .== false)
