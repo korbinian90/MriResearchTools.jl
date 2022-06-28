@@ -101,7 +101,3 @@ Hagberg, G.E., Eckstein, K., Tuzzi, E., Zhou, J., Robinson, S.D., Scheffler, K.,
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/korbinian90/MriResearchTools.jl/blob/master/LICENSE) for details
-
-
-## TODO
-more Examples and Documentation
