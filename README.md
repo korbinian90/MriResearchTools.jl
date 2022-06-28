@@ -97,7 +97,7 @@ Eckstein, K., Bachrata, B., Hangel, G., Widhalm, G., Enzinger, C., Barth, M., Tr
 Hagberg, G.E., Indovina, I., Sanes, J.N., Posse, S., 2002. Real-time quantification of T2* changes using multiecho planar imaging and numerical methods. Magnetic Resonance in Medicine 48(5), 877-882. https://doi.org/10.1002/mrm.10283
 
 ### Phase-based-masking
-Hagberg, G.E., Eckstein, K., Tuzzi, E., Zhou, J., Robinson, S.D., Scheffler, K., 2022. Phase-based masking for quantitative susceptibility mapping of the human brain at 9.4T. Magnetic Resonance in Medicine
+Hagberg, G.E., Eckstein, K., Tuzzi, E., Zhou, J., Robinson, S.D., Scheffler, K., 2022. Phase-based masking for quantitative susceptibility mapping of the human brain at 9.4T. Magnetic Resonance in Medicine. https://doi.org/10.1002/mrm.29368
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/korbinian90/MriResearchTools.jl/blob/master/LICENSE) for details
