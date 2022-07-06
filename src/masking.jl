@@ -69,11 +69,11 @@ Original MATLAB algorithm:
     PB=imclose(PB,se);
     mask{2}=round(imopen(PB,se));
 """
-function phase_based_mask(phase; filter=true)
+function phase_based_mask(phase; filter=true, threshold=1.0)
     strel = sphere(6, ndims(phase))
     laplacian = imfilter(sign.(phase), Kernel.Laplacian(1:ndims(phase), ndims(phase)))
     test = imfilter(abs.(laplacian), strel)
-    PB = test .< (500 * 6)
+    PB = test .< (500 * 6 * threshold)
     if filter
         PB = LocalFilters.closing(PB, strel)
         PB = LocalFilters.opening(PB, strel)
