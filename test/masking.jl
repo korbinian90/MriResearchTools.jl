@@ -14,6 +14,8 @@ fn_phase = "data/small/Phase.nii"
 phase = Float32.(readphase(fn_phase))
 PB = phase_based_mask(phase)
 phase_based_mask(phase; filter=false)
+qm = phase_based_mask(phase; filter=false, threshold=nothing)
+robustmask(qm)
 
 # brain mask
 brain_mask(PB)

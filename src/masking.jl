@@ -49,10 +49,11 @@ function sphere(radius, dim=3)
 end
 
 """
-    phase_based_mask(phase, mask=trues(size(phase)))
+    phase_based_mask(phase; filter=true, threshold=1.0)
 
 Creates a mask from a phase image.
-Filtering is required afterwards (morphological or smoothing+thresholding)
+Morphological filtering is activated by default.
+To return the mask before thresholding pass `threshold=nothing`.
 
 # Examples
 ```julia-repl
@@ -73,6 +74,9 @@ function phase_based_mask(phase; filter=true, threshold=1.0)
     strel = sphere(6, ndims(phase))
     laplacian = imfilter(sign.(phase), Kernel.Laplacian(1:ndims(phase), ndims(phase)))
     test = imfilter(abs.(laplacian), strel)
+    if isnothing(threshold)
+        return test * 500 * 6
+    end
     PB = test .< (500 * 6 * threshold)
     if filter
         PB = LocalFilters.closing(PB, strel)
