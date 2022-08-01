@@ -1,6 +1,9 @@
 function approxextrema(I)
-    arr = sample(I)
-    return (minimum(arr), maximum(arr))
+    min, max = extrema(sample(I))
+    if (min == max)
+        min, max = extrema(I)
+    end
+    return (min, max)
 end
 
 """
@@ -17,7 +20,7 @@ function estimatequantile(array, p)
     end
 end
 
-function sample(I; n=10000)
+function sample(I; n=1e5)
     n = min(n, length(I))
     len = ceil(Int, √n) # take len blocks of len elements
     startindices = round.(Int, range(firstindex(I) - 1, lastindex(I) - len; length=len))

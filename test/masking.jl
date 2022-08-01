@@ -3,10 +3,10 @@
 fn_mag = "data/small/Mag.nii"
 mag = Float32.(readmag(fn_mag; rescale=true))
 @test robustmask(mag) |> m -> count(.!m) / count(m) < 0.01
-for i in 1:10 # test with different noise levels
+for i in 1:8 # test with different noise levels
     mag[(end÷2):end,:,:,:] .= i .* 0.025 .* rand.()
     m = robustmask(mag)
-    @test 1.0 < count(.!m) / count(m) < 1.2
+    @test 1.0 < count(.!m) / count(m) < 1.25
 end
 
 # phase_based_mask
