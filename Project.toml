@@ -1,7 +1,7 @@
 name = "MriResearchTools"
 uuid = "557dad86-b9bd-4533-8525-1a39684d020f"
 authors = ["Korbinian Eckstein"]
-version = "1.0.3"
+version = "1.0.4"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
@@ -22,7 +22,7 @@ DataStructures = "0.11 - 0.18"
 FFTW = "1"
 ImageFiltering = "0.7"
 ImageMorphology = "0.2 - 0.4"
-Interpolations = "0.12 - 0.13"
+Interpolations = "0.12 - 0.14"
 LocalFilters = "1"
 NIfTI = "0.4 - 0.5"
 OffsetArrays = "1"
