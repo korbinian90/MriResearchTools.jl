@@ -10,6 +10,9 @@ mag_nii = readmag(fn_mag; rescale=true)
 @test 1 ≤ maximum(mag_nii) ≤ 2
 @test 0 ≤ minimum(mag_nii) ≤ 1
 
+fn_mag_gz = "data/small/Mag.nii.gz"
+@test all(readmag(fn_mag_gz) .== readmag(fn_mag))
+
 function header_test(hdr, hdr2)
     @test hdr.scl_inter == 0
     @test hdr.scl_slope == 1
@@ -40,6 +43,6 @@ dir_temp = tempdir()
 savenii(mag, "name3.nii.gz", dir_temp)
 @test isfile(joinpath(dir_temp, "name3.nii.gz"))
 
-@test filesize(joinpath(dir_temp, "name2.nii")) != filesize(joinpath(dir_temp, "name3.nii.gz"))
+@test filesize(joinpath(dir_temp, "name2.nii")) != filesize(joinpath(dir_temp, "name3.nii.gz")) > 0
 
 rm.(joinpath.(dir_temp, ["name.nii", "name2.nii", "name3.nii.gz"]))
