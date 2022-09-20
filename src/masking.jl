@@ -101,13 +101,17 @@ See also [`romeovoxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref), [`b
 mask_from_voxelquality = robustmask
 
 function fill_holes(mask; max_hole_size=length(mask) / 20)
-    return .!imfill(.!mask, (1, max_hole_size)) # fills all holes up to max_hole_size (uses 6 connectivity as default for 3D)
+    for _ in 1:sqrt(sqrt(max_hole_size))
+        mask = gaussiansmooth3d(mask; nbox=1, boxsizes=[3,3,3]) .> 0.5
+    end
+    return mask
+    # return .!imfill(.!mask, (1, max_hole_size)) # fills all holes up to max_hole_size (uses 6 connectivity as default for 3D)
 end
 
-function get_largest_connected_region(mask)
-    labels = label_components(mask)
-    return labels .== argmax(countmap(labels[labels .!= 0]))
-end
+# function get_largest_connected_region(mask)
+#     labels = label_components(mask)
+#     return labels .== argmax(countmap(labels[labels .!= 0]))
+# end
 
 """
     brain_mask(mask)
@@ -133,9 +137,10 @@ function brain_mask(mask, strength=7)
 
     boxsizes=[[strength] for i in 1:ndims(shrink_mask)]
     smoothed = gaussiansmooth3d(shrink_mask; nbox=1, boxsizes)
-    shrink_mask2 = smoothed .> 0.7
+    shrink_mask2 = smoothed .> 0.6
+    brain_mask = shrink_mask2 .> 0.6
 
-    brain_mask = get_largest_connected_region(shrink_mask2)
+    # brain_mask = get_largest_connected_region(shrink_mask2)
 
     # grow brain mask
     boxsizes=[[strength,strength] for i in 1:ndims(shrink_mask2)]
