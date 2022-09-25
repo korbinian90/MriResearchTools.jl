@@ -13,6 +13,13 @@ mag_nii = readmag(fn_mag; rescale=true)
 fn_mag_gz = "data/small/Mag.nii.gz"
 @test all(readmag(fn_mag_gz) .== readmag(fn_mag))
 
+# Test int16 rescale
+fn_int16 = "data/small/int16.nii"
+int16_nii = readmag(fn_int16)
+int16_nii[:]
+int16p_nii = readphase(fn_int16)
+int16p_nii[:]
+
 function header_test(hdr, hdr2)
     @test hdr.scl_inter == 0
     @test hdr.scl_slope == 1
