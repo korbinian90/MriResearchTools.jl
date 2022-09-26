@@ -201,7 +201,7 @@ function nanboxfilterline!(line::AbstractVector, boxsize::Int, orig::AbstractVec
 
     mode = :nan
 
-    @inbounds for i in 1:length(line)
+    @inbounds for i in eachindex(line)
         if isnan(lsum) @warn "lsum nan"; break end
 
         # check for mode change

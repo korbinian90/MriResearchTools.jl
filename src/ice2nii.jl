@@ -14,7 +14,7 @@ function Ice_output_config(name, path, nslices, nfiles; nechoes=1, nchannels=1, 
 end
 
 function get_setting(T, lines, setting; offset=3, default=0)
-    for iLine in 1:length(lines)
+    for iLine in eachindex(lines)
         if occursin(setting, lines[iLine])
             try
                 return parse(T, lines[iLine + offset])
