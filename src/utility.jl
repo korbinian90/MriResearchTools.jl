@@ -179,7 +179,7 @@ Calculates the Hermitian Inner Product between the specified echoes.
 function getHIP(mag, phase; echoes=[1,2])
     e1, e2 = echoes
     compl = zeros(ComplexF64, size(mag)[1:3])
-    for iCha in 1:size(mag, 5)
+    for iCha in axes(mag, 5)
         compl .+= exp.(1.0im .* (phase[:,:,:,e2,iCha] .- phase[:,:,:,e1,iCha])) .* mag[:,:,:,e1,iCha] .* mag[:,:,:,e2,iCha]
     end
     compl
@@ -188,7 +188,7 @@ end
 function getHIP(compl; echoes=[1,2])
     e1, e2 = echoes
     c = zeros(eltype(compl), size(compl)[1:3])
-    for iCha in 1:size(compl, 5)
+    for iCha in axes(compl, 5)
         c .+=  compl[:,:,:,e2,iCha] .* conj.(compl[:,:,:,e1,iCha])
     end
     return c

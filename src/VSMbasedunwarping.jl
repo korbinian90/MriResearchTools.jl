@@ -20,7 +20,7 @@ switchdim(v) = permutedims(v, [2, 1, (3:ndims(v))...])
 unwarp(VSM, distorted) = unwarp!(similar(distorted), VSM, distorted)
 
 function unwarp!(unwarped, VSM, distorted)
-    xi = 1:size(distorted, 1)
+    xi = axes(distorted, 1)
     for J in CartesianIndices(size(distorted)[4:end])
         for I in CartesianIndices(size(distorted)[2:3])
             xtrue = xi .+ VSM[:,I]
