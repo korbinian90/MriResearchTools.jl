@@ -47,19 +47,19 @@ function mcpc3ds(image; TEs, echoes=[1,2], σ=[10,10,5],
     # TODO try to include additional second-phase information in the case of 3+ echoes for ROMEO, maybe phase2=phase[3]-phase[2], TEs=[dTE21, dTE32]
     phaseevolution = (TEs[echoes[1]] / ΔTE) .* romeo(angle.(hip); mag=weight, mask) # different from ASPIRE
     po .= getangle(image, echoes[1]) .- phaseevolution
-    for icha in 1:size(po, 4)
+    for icha in axes(po, 4)
         po[:,:,:,icha] .= gaussiansmooth3d_phase(po[:,:,:,icha], σ; mask)
     end
     combined = combinewithPO(image, po)
     if bipolar_correction
-        G = bipolar_correction!(combined; TEs, σ, mask)
+        fG = bipolar_correction!(combined; TEs, σ, mask)
     end
     return combined
 end
 
 function combinewithPO(compl, po)
     combined = zeros(eltype(compl), size(compl)[1:4])
-    for icha = 1:size(po, 4)
+    for icha = axes(po, 4)
         @views combined .+= abs.(compl[:,:,:,:,icha]) .* compl[:,:,:,:,icha] ./ exp.(1im .* po[:,:,:,icha])
     end
     return combined ./ sqrt.(abs.(combined))
@@ -80,19 +80,20 @@ getk(TEs) = (TEs[1] + TEs[3]) / TEs[2]
 
 function artefact(I, TEs)
     k = getk(TEs)
-    p2 = if abs(k - round(k)) < 0.01 # no unwrapping for integer k required
-            getangle(I, 2)
-        else
-            romeo(getangle(I, 2); mag=getmag(I, 2))
-        end
-    return  getangle(I, 1) .+ getangle(I, 3) .- k .* p2
+    ϕ1 = getangle(I, 1)
+    ϕ2 = getangle(I, 2)
+    ϕ3 = getangle(I, 3)
+    if abs(k - round(k)) < 0.01 # no unwrapping for integer k required
+        ϕ2 = romeo(ϕ2; mag=getmag(I, 2))
+    end
+    return  ϕ1 .+ ϕ3 .- k .* ϕ2
 end
 
 function remove_artefact!(image, fG, TEs)
     m = getm(TEs)
     k = getk(TEs)
     f = (2 - k) * m - k
-    for ieco in 1:size(image, 4)
+    for ieco in axes(image, 4)
         t = ifelse(iseven(ieco), m + 1, m) / f
         subtract_angle!(image, ieco, t .* fG)
     end
@@ -110,7 +111,7 @@ end
 
 function combinewithPO(image::PhaseMag, po)
     combined = zeros(Complex{eltype(image)}, size(image)[1:4])
-    for icha = 1:size(po, 4)
+    for icha in axes(po, 4)
         @views combined .+= image.mag[:,:,:,:,icha] .* image.mag[:,:,:,:,icha] .* exp.(1im .* (image.phase[:,:,:,:,icha] .- po[:,:,:,icha]))
     end
     return PhaseMag(angle.(combined), sqrt.(abs.(combined)))
