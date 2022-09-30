@@ -42,7 +42,7 @@ function read_volume(cfg)
             slc = getslice(lines)
             rescale_slope = get_setting(Float32, lines, "RescaleSlope"; offset=4, default=1)
             rescale_intercept = get_setting(Float32, lines, "RescaleIntercept"; offset=4, default=0)
-            volume[:,:,slc,eco] .= (vol .+ rescale_intercept) .* rescale_slope
+            volume[:,:,slc,eco] .= vol .* rescale_slope .+ rescale_intercept
         end
     end
 
