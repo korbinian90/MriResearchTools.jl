@@ -127,6 +127,7 @@ Base.iterate(t::PhaseMag, i) = if i == 1 (t.phase, 2) else (t.mag, 3) end
 Base.iterate(t::PhaseMag) = t.phase, t.mag
 Base.eltype(t::PhaseMag) = promote_type(eltype(t.mag), eltype(t.phase))
 Base.size(t::PhaseMag, args...) = size(t.phase, args...)
+Base.axes(t::PhaseMag, dim) = 1:size(t.phase, dim)
 getHIP(data::PhaseMag; keyargs...) = getHIP(data.mag, data.phase; keyargs...)
 getangle(c, echo) = angle.(ecoview(c, echo))
 getangle(d::PhaseMag, echo) = ecoview(d.phase, echo)
