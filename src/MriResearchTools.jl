@@ -11,6 +11,7 @@ using ImageFiltering
 using LocalFilters
 using PaddedViews
 using OffsetArrays
+using QSM
 import StatsBase: countmap
 
 include("utility.jl")
@@ -24,6 +25,7 @@ include("romeofunctions.jl")
 include("ice2nii.jl")
 include("laplacianunwrapping.jl")
 include("masking.jl")
+include("qsm.jl")
 
 export  readphase, readmag, niread, write_emptynii,
         header,
@@ -55,6 +57,7 @@ export  readphase, readmag, niread, write_emptynii,
         homodyne, homodyne!,
         to_dim,
         Ice_output_config, read_volume,
-        NumART2star, r2s_from_t2s
+        NumART2star, r2s_from_t2s,
+        qsm_average, qsm_B0, qsm_laplacian_combine, qsm_romeo_B0
 
 end # module

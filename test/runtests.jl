@@ -1,5 +1,6 @@
 using MriResearchTools
 using Test
+using TestItemRunner
 
 @testset "MriResearchTools.jl" begin
     include("masking.jl")
@@ -12,3 +13,5 @@ using Test
     include("VSMbasedunwarping.jl")
     include("smoothing.jl")
 end
+
+@run_package_tests

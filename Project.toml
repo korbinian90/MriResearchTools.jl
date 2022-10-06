@@ -1,7 +1,7 @@
 name = "MriResearchTools"
 uuid = "557dad86-b9bd-4533-8525-1a39684d020f"
 authors = ["Korbinian Eckstein"]
-version = "1.0.7"
+version = "1.1.0"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
@@ -13,6 +13,7 @@ LocalFilters = "085fde7c-5f94-55e4-8448-8bbb5db6dde9"
 NIfTI = "a3a9e032-41b5-5fc4-967a-a6b7a19844d3"
 OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
 PaddedViews = "5432bcbf-9aad-5242-b902-cca2824c8663"
+QSM = "794fc106-2fa4-440f-961c-0d7d7b47016a"
 ROMEO = "1ea8258b-a15d-4adb-ad20-01632f467a84"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
