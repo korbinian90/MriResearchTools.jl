@@ -70,7 +70,7 @@ end
 function bipolar_correction!(image; TEs, σ, mask)
     fG = artefact(image, TEs)
     fG .= gaussiansmooth3d_phase(fG, σ; mask)
-    romeo!(fG; mag=getmag(image, 1)) # can be replaced by gradient-subtraction-unwrapping
+    romeo!(fG; mag=getmag(image, 1), correctglobal=true) # can be replaced by gradient-subtraction-unwrapping
     remove_artefact!(image, fG, TEs)
     return fG
 end
