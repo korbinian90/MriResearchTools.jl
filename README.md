@@ -16,8 +16,8 @@ Open the Julia REPL and type
 
 ```julia
 julia> ] # enter julia package manager
-(v1.5) pkg> add MriResearchTools
-(v1.5) pkg> # type backspace to get back to the julia REPL
+(v1.8) pkg> add MriResearchTools
+(v1.8) pkg> # type backspace to get back to the julia REPL
 julia>
 ```
 
