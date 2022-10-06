@@ -1,3 +1,4 @@
+@testset "VSMbasedunwarping" begin
 phasefile = joinpath("data", "small", "Phase.nii")
 magfile = joinpath("data", "small", "Mag.nii")
 phase = Float32.(readphase(phasefile))
@@ -13,3 +14,5 @@ dim = 2
 vsm = getVSM(B0, rbw, dim)
 
 unwarp(vsm, mag, dim)
+
+end

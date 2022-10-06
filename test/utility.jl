@@ -1,3 +1,4 @@
+@testset "utility" begin
 # sample
 sample = MriResearchTools.sample
 @test length(sample(1:10)) >= 10
@@ -37,3 +38,5 @@ GC.gc()
 a = 50:75
 @test reshape(a, 1, 1, 1, :) == to_dim(a, 4)
 @test reshape([5], 1, 1, 1, 1) == to_dim(5, 4)
+
+end

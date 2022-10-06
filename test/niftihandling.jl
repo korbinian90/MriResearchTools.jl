@@ -1,3 +1,4 @@
+@testset "niftihandling" begin
 # Read and properly scale phase
 fn_phase = "data/small/Phase.nii"
 phase_nii = readphase(fn_phase)
@@ -53,3 +54,5 @@ savenii(mag, "name3.nii.gz", dir_temp)
 @test filesize(joinpath(dir_temp, "name2.nii")) != filesize(joinpath(dir_temp, "name3.nii.gz")) > 0
 
 rm.(joinpath.(dir_temp, ["name.nii", "name2.nii", "name3.nii.gz"]))
+
+end

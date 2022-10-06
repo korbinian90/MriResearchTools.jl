@@ -1,3 +1,4 @@
+@testset "unwrapping" begin
 phasefile = joinpath("data", "small", "Phase.nii")
 magfile = joinpath("data", "small", "Mag.nii")
 phase = Float32.(readphase(phasefile))
@@ -16,3 +17,5 @@ test(romeo)
 test(unwrap)
 test(unwrap_individual)
 @test !all(laplacianunwrap(phase) .== phase)
+
+end
