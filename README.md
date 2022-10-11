@@ -48,6 +48,9 @@ savenii(unwrapped, "unwrapped", outputfolder, header(phase))
 [ROMEO](https://github.com/korbinian90/ROMEO.jl) 3D/4D Phase Unwrapping  
 `romeo` `unwrap` `unwrap_individual` `romeovoxelquality` `mask_from_voxelquality`
 
+[QSM](https://github.com/kamesy/QSM.jl) 3D/4D QSM (experimental stage)
+`qsm_average` `qsm_B0` `qsm_laplacian_combine` `qsm_romeo_B0` `qsm_mask_filled`
+
 Laplacian unwrapping  
 `laplacianunwrap`
 
