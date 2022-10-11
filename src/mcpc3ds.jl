@@ -1,4 +1,4 @@
-# TODO σ_mm=5
+# TODO sigma_mm=5
 
 
 # MCPC-3D-S is implemented for both complex and phase + magnitude data to allow
@@ -14,7 +14,7 @@ Perform MCPC-3D-S coil combination and phase offset removal on 4D (multi-echo) a
 
 ## Optional Keyword Arguments
 - `echoes`: only use the defined echoes. default: `echoes=[1,2]`
-- `σ`: smoothing parameter for phase offsets. default: `σ=[10,10,5]`
+- `sigma`: smoothing parameter for phase offsets. default: `sigma=[10,10,5]`
 - `bipolar_correction`: removes linear phase artefact. default: `bipolar_correction=false`
 - `po`: phase offsets are stored in this array. Can be used to retrieve phase offsets or work with memory mapping.
 
@@ -36,7 +36,7 @@ julia> combined = mcpc3ds(phase, mag; TEs=[4,8,12], po)
 mcpc3ds(phase::AbstractArray{<:Real}; keyargs...) = angle.(mcpc3ds(exp.(1im .* phase); keyargs...))
 mcpc3ds(phase, mag; keyargs...) = mcpc3ds(PhaseMag(phase, mag); keyargs...)
 # MCPC3Ds in complex (or PhaseMag)
-function mcpc3ds(image; TEs, echoes=[1,2], σ=[10,10,5],
+function mcpc3ds(image; TEs, echoes=[1,2], sigma=[10,10,5],
         bipolar_correction=false,
         po=zeros(getdatatype(image),(size(image)[1:3]..., size(image,5)))
     )
@@ -48,11 +48,11 @@ function mcpc3ds(image; TEs, echoes=[1,2], σ=[10,10,5],
     phaseevolution = (TEs[echoes[1]] / ΔTE) .* romeo(angle.(hip); mag=weight, mask) # different from ASPIRE
     po .= getangle(image, echoes[1]) .- phaseevolution
     for icha in axes(po, 4)
-        po[:,:,:,icha] .= gaussiansmooth3d_phase(po[:,:,:,icha], σ; mask)
+        po[:,:,:,icha] .= gaussiansmooth3d_phase(po[:,:,:,icha], sigma; mask)
     end
     combined = combinewithPO(image, po)
     if bipolar_correction
-        fG = bipolar_correction!(combined; TEs, σ, mask)
+        fG = bipolar_correction!(combined; TEs, sigma, mask)
     end
     return combined
 end
@@ -67,9 +67,9 @@ end
 
 ## Bipolar correction
 # see https://doi.org/10.34726/hss.2021.43447, page 53, 3.1.3 Bipolar Corrections
-function bipolar_correction!(image; TEs, σ, mask)
+function bipolar_correction!(image; TEs, sigma, mask)
     fG = artefact(image, TEs)
-    fG .= gaussiansmooth3d_phase(fG, σ; mask)
+    fG .= gaussiansmooth3d_phase(fG, sigma; mask)
     romeo!(fG; mag=getmag(image, 1), correctglobal=true) # can be replaced by gradient-subtraction-unwrapping
     remove_artefact!(image, fG, TEs)
     return fG

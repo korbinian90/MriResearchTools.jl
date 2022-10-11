@@ -1,7 +1,7 @@
 """
     homodyne(mag, phase)
     
-    homodyne(mag, phase; dims, σ)
+    homodyne(mag, phase; dims, sigma)
 
     homodyne(I; kwargs...)
 
@@ -11,7 +11,7 @@ homodyne, homodyne!
 
 homodyne(mag, phase; kwargs...) = homodyne(mag .* exp.(1im .* phase); kwargs...)
 homodyne(I; kwargs...) = homodyne!(copy(I); kwargs...)
-homodyne!(I; dims=1:2, σ=8 .* ones(length(dims))) = I ./= gaussiansmooth3d(I, σ; dims)
+homodyne!(I; dims=1:2, sigma=8 .* ones(length(dims))) = I ./= gaussiansmooth3d(I, sigma; dims)
 
 """
     NumART2star(image::AbstractArray{T,4}, TEs) where T

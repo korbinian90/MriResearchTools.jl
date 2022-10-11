@@ -1,53 +1,53 @@
 """
     gaussiansmooth3d(image)
 
-    gaussiansmooth3d(image, σ=[5,5,5];
+    gaussiansmooth3d(image, sigma=[5,5,5];
         mask=nothing,
         nbox=ifelse(isnothing(mask), 3, 6), 
         weight=nothing, dims=1:min(ndims(image),3), 
-        boxsizes=getboxsizes.(σ, nbox)
+        boxsizes=getboxsizes.(sigma, nbox)
         )
 
-Performs Gaussian smoothing on `image` with `σ` as standard deviation of the Gaussian.
+Performs Gaussian smoothing on `image` with `sigma` as standard deviation of the Gaussian.
 By application of `nbox` times running average filters in each dimension.
-The length of `σ` and the length of the `dims` that are smoothed have to match. (Default `3`)
+The length of `sigma` and the length of the `dims` that are smoothed have to match. (Default `3`)
 
 Optional arguments:
 - `mask`: Smoothing can be performed using a mask to inter-/extrapolate missing values.
 - `nbox`: Number of box applications. Default is `3` for normal smoothing and `6` for masked smoothing.
 - `weight`: Apply weighted smoothing. Either weighted or masked smoothing can be porformed.
 - `dims`: Specify which dims should be smoothed. Corresponds to manually looping of the other dimensions.
-- `boxizes`: Manually specify the boxsizes, not using the provided σ. `length(boxsizes)==length(dims) && length(boxsizes[1])==nbox`
+- `boxizes`: Manually specify the boxsizes, not using the provided sigma. `length(boxsizes)==length(dims) && length(boxsizes[1])==nbox`
 """
 gaussiansmooth3d, gaussiansmooth3d!
 
-function gaussiansmooth3d(image, σ=[5,5,5]; padding=false, kwargs...)
+function gaussiansmooth3d(image, sigma=[5,5,5]; padding=false, kwargs...)
     if padding
-        image = pad_image(image, σ)
+        image = pad_image(image, sigma)
     end
-    smoothed = gaussiansmooth3d!(0f0 .+ copy(image), σ; kwargs...)
+    smoothed = gaussiansmooth3d!(0f0 .+ copy(image), sigma; kwargs...)
     if padding
-        smoothed = remove_padding(smoothed, σ)
+        smoothed = remove_padding(smoothed, sigma)
     end
     return smoothed
 end
 
-pad_image(image, σ) = PaddedView(0, image, Tuple(size(image) .+ 2σ), Tuple(σ .+ 1))
-remove_padding(image, σ) = image[[σ[i]+1:size(image,i)-σ[i] for i in 1:ndims(image)]...]
+pad_image(image, sigma) = PaddedView(0, image, Tuple(size(image) .+ 2sigma), Tuple(sigma .+ 1))
+remove_padding(image, sigma) = image[[sigma[i]+1:size(image,i)-sigma[i] for i in 1:ndims(image)]...]
 
 """
-    gaussiansmooth3d_phase(phase, σ=[5,5,5]; weight=1, kwargs...)
+    gaussiansmooth3d_phase(phase, sigma=[5,5,5]; weight=1, kwargs...)
 
 Smoothes the phase via complex smoothing. A weighting image can be given.
 The same keyword arguments are supported as in `gaussiansmooth3d`:
 $(@doc gaussiansmooth3d)
 """
-function gaussiansmooth3d_phase(phase, σ=[5,5,5]; weight=1, kwargs...)
-    return angle.(gaussiansmooth3d!(weight .* exp.(1im .* phase), σ; kwargs...))
+function gaussiansmooth3d_phase(phase, sigma=[5,5,5]; weight=1, kwargs...)
+    return angle.(gaussiansmooth3d!(weight .* exp.(1im .* phase), sigma; kwargs...))
 end
 
-function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=ifelse(isnothing(mask), 3, 4), weight=nothing, dims=1:min(ndims(image),3), boxsizes=getboxsizes.(σ, nbox))
-    if length(σ) < length(dims) @error "Length of σ and dims does not match!" end
+function gaussiansmooth3d!(image, sigma=[5,5,5]; mask=nothing, nbox=ifelse(isnothing(mask), 3, 4), weight=nothing, dims=1:min(ndims(image),3), boxsizes=getboxsizes.(sigma, nbox))
+    if length(sigma) < length(dims) @error "Length of sigma and dims does not match!" end
     if length(boxsizes) < length(dims) || length(boxsizes[1]) != nbox @error "boxsizes has wrong size!" end
     if typeof(mask) != Nothing
         image .*= ifelse.(mask .== 0, NaN, 1) # 0 in mask -> NaN in image
@@ -80,15 +80,15 @@ function gaussiansmooth3d!(image, σ=[5,5,5]; mask=nothing, nbox=ifelse(isnothin
     return image
 end
 
-## Calculate the filter sizes to achieve a given σ
+## Calculate the filter sizes to achieve a given sigma
 
-function getboxsizes(σ, n)
+function getboxsizes(sigma, n)
     try
-        wideal = √( (12σ^2 / n) + 1 )
+        wideal = √( (12sigma^2 / n) + 1 )
         wl::Int = round(wideal - (wideal + 1) % 2) # next lower odd integer
         wu::Int = wl + 2
 
-        mideal = (12σ^2 - n*wl.^2 - 4n*wl - 3n) / (-4wl - 4)
+        mideal = (12sigma^2 - n*wl.^2 - 4n*wl - 3n) / (-4wl - 4)
         m = round(mideal)
 
         [if i <= m wl else wu end for i in 1:n]

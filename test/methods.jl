@@ -11,7 +11,7 @@ TEs = 4:4:12
 h1 = homodyne(mag_nii, phase_nii)
 h2 = homodyne(Float32.(mag_nii), Float32.(phase_nii))
 h3 = homodyne(I)
-h4 = homodyne(mag_nii, phase_nii; σ=[5,5])
+h4 = homodyne(mag_nii, phase_nii; sigma=[5,5])
 h5 = homodyne(mag_nii, phase_nii; dims=1:3)
 
 @test h1 == h2

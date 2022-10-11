@@ -1,30 +1,30 @@
 """
-    makehomogeneous(mag::NIVolume; σ_mm=7, nbox=15)
+    makehomogeneous(mag::NIVolume; sigma_mm=7, nbox=15)
 
 Homogeneity correction for NIVolume from NIfTI files.
 
 ###  Keyword arguments:
 
-- `σ_mm`: σ size for smoothing to obtain bias field. Takes NIfTI voxel size into account
+- `sigma_mm`: sigma size for smoothing to obtain bias field. Takes NIfTI voxel size into account
 - `nbox`: Number of boxes in each dimension for the box-segmentation step.
 
 """
-function makehomogeneous(mag::NIVolume, datatype=eltype(mag); σ_mm=7, nbox=15)
-    return makehomogeneous!(datatype.(mag); σ=mm_to_vox(σ_mm, mag), nbox)
+function makehomogeneous(mag::NIVolume, datatype=eltype(mag); sigma_mm=7, nbox=15)
+    return makehomogeneous!(datatype.(mag); sigma=mm_to_vox(sigma_mm, mag), nbox)
 end
 
 """
-    makehomogeneous(mag; σ, nbox=15)
+    makehomogeneous(mag; sigma, nbox=15)
 
 Homogeneity correction of 3D arrays. 4D volumes are corrected using the first 3D volume to
 obtain the bias field.
 
 ###  Keyword arguments:
 
-- `σ`: σ size in voxel for smoothing to obtain bias field. (mandatory)
+- `sigma`: sigma size in voxel for smoothing to obtain bias field. (mandatory)
 - `nbox`: Number of boxes in each dimension for the box-segmentation step.
 
-Larger σ-values make the bias field smoother, but might not be able to catch the
+Larger sigma-values make the bias field smoother, but might not be able to catch the
 inhomogeneity. Smaller values can catch fast varying inhomogeneities but new inhomogeneities
 might be created. The stronger the bias field, the more boxes are required for segmentation.
 With too many boxes, it can happen that big darker structures are captured and appear
@@ -38,11 +38,11 @@ See also [`getsensitivity`](@ref)
 """
 makehomogeneous, makehomogeneous!
 
-function makehomogeneous(mag, datatype=eltype(mag); σ, nbox=15)
-    return makehomogeneous!(datatype.(mag); σ, nbox)
+function makehomogeneous(mag, datatype=eltype(mag); sigma, nbox=15)
+    return makehomogeneous!(datatype.(mag); sigma, nbox)
 end
-function makehomogeneous!(mag; σ, nbox=15)
-    lowpass = getsensitivity(mag; σ, nbox)
+function makehomogeneous!(mag; sigma, nbox=15)
+    lowpass = getsensitivity(mag; sigma, nbox)
     if eltype(mag) <: AbstractFloat
         mag ./= lowpass
     else # Integer doesn't support NaN
@@ -65,11 +65,11 @@ mm_to_vox(mm, pixdim) = mm ./ pixdim
 
 
 """
-    getsensitivity(mag; σ, nbox=15)
+    getsensitivity(mag; sigma, nbox=15)
 
-    getsensitivity(mag, pixdim; σ_mm=7, nbox=15)
+    getsensitivity(mag, pixdim; sigma_mm=7, nbox=15)
 
-    getsensitivity(mag::NIVolume, datatype=eltype(mag); σ_mm=7, nbox=15)
+    getsensitivity(mag::NIVolume, datatype=eltype(mag); sigma_mm=7, nbox=15)
 
 Calculates the bias field using the `boxsegment` approach.
 It assumes that there is a "main tissue" that is present in most areas of the object.
@@ -80,35 +80,35 @@ See also [`makehomogeneous`](@ref)
 function getsensitivity(mag::NIVolume, datatype=eltype(mag); kw...)
     return getsensitivity(datatype.(mag), getpixdim(mag); kw...)
 end
-function getsensitivity(mag, pixdim; σ_mm=7, nbox=15)
-    return getsensitivity(mag; σ=mm_to_vox(σ_mm, pixdim), nbox)
+function getsensitivity(mag, pixdim; sigma_mm=7, nbox=15)
+    return getsensitivity(mag; sigma=mm_to_vox(sigma_mm, pixdim), nbox)
 end
-function getsensitivity(mag; σ, nbox=15)
+function getsensitivity(mag; sigma, nbox=15)
     # segmentation
     firstecho = view(mag,:,:,:,1)
     mask = robustmask(firstecho)
     segmentation = boxsegment(firstecho, mask, nbox)
     # smoothing
-    σ1, σ2 = getsigma(σ)
-    lowpass = gaussiansmooth3d(firstecho, σ1; mask=segmentation, nbox=8)
-    fillandsmooth!(lowpass, mean(firstecho[mask]), σ2)
+    sigma1, sigma2 = getsigma(sigma)
+    lowpass = gaussiansmooth3d(firstecho, sigma1; mask=segmentation, nbox=8)
+    fillandsmooth!(lowpass, mean(firstecho[mask]), sigma2)
 
     return lowpass
 end
 
 # split sigma in two parts
-function getsigma(σ)
+function getsigma(sigma)
     factorfinalsmoothing = 0.7
-    σ1 = sqrt(1 - factorfinalsmoothing^2) .* σ
-    σ2 = factorfinalsmoothing .* σ
-    return σ1, σ2
+    sigma1 = sqrt(1 - factorfinalsmoothing^2) .* sigma
+    sigma2 = factorfinalsmoothing .* sigma
+    return sigma1, sigma2
 end
 
-function fillandsmooth!(lowpass, stablemean, σ2)
+function fillandsmooth!(lowpass, stablemean, sigma2)
     lowpassmask = (lowpass .< stablemean / 4) .| isnan.(lowpass) .| (lowpass .> 10 * stablemean)
     lowpass[lowpassmask] .= 3 * stablemean
     lowpassweight = 1.2 .- lowpassmask
-    gaussiansmooth3d!(lowpass, σ2; weight=lowpassweight)
+    gaussiansmooth3d!(lowpass, sigma2; weight=lowpassweight)
 end
 
 #threshold(image) = threshold(image, robustmask(image))
