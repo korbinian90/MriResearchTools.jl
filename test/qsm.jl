@@ -10,7 +10,7 @@ TEs = 4:4:12
 vsz = header(phase_nii).pixdim[2:4]
 phase = Float32.(phase_nii)
 mag = Float32.(mag_nii)
-mask = romeovoxelquality(phase[:,:,:,1]) .> 0.5
+mask = qsm_mask_filled(phase[:,:,:,1])
 
 args = (phase, mag, mask, TEs, vsz)
 

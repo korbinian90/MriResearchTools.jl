@@ -58,6 +58,7 @@ export  readphase, readmag, niread, write_emptynii,
         to_dim,
         Ice_output_config, read_volume,
         NumART2star, r2s_from_t2s,
-        qsm_average, qsm_B0, qsm_laplacian_combine, qsm_romeo_B0
+        qsm_average, qsm_B0, qsm_laplacian_combine, qsm_romeo_B0,
+        qsm_mask_filled
 
 end # module
