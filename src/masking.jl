@@ -35,7 +35,7 @@ julia> mask3 = robustmask(romeovoxelquality(phase; mag)); # Using magnitude and 
 julia> brain = brain_mask(robustmask(romeovoxelquality(phase; mag); threshold=0.9));
 ```
 
-See also [`romeovoxelquality`](@ref), [`phase_based_mask`](@ref), [`brain_mask`](@ref)
+See also [`ROMEO.romeovoxelquality`](@ref), [`phase_based_mask`](@ref), [`brain_mask`](@ref)
 """
 robustmask, robustmask!
 
@@ -60,7 +60,7 @@ To return the mask before thresholding pass `threshold=nothing`.
 julia> phase_mask = phase_based_mask(phase);
 ```
 
-See also [`romeovoxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref), [`brain_mask`](@ref)
+See also [`ROMEO.romeovoxelquality`](@ref), [`ROMEO.romeo`](@ref), [`robustmask`](@ref), [`brain_mask`](@ref)
 
 Original MATLAB algorithm:
     se=strel('sphere',6);
@@ -96,7 +96,7 @@ julia> qmap = romeovoxelquality(phase_3echo; TEs=[1,2,3]);
 julia> mask = mask_from_voxelquality(qmap);
 ```
 
-See also [`romeovoxelquality`](@ref), [`romeo`](@ref), [`robustmask`](@ref), [`brain_mask`](@ref)
+See also [`ROMEO.romeovoxelquality`](@ref), [`ROMEO.romeo`](@ref), [`robustmask`](@ref), [`brain_mask`](@ref)
 """
 mask_from_voxelquality = robustmask
 
@@ -120,7 +120,7 @@ julia> mask = robustmask(mag)
 julia> brain = brain_mask(mask)
 ```
 
-See also [`robustmask`](@ref), [`romeovoxelquality`](@ref), [`phase_based_mask`](@ref)
+See also [`robustmask`](@ref), [`ROMEO.romeovoxelquality`](@ref), [`phase_based_mask`](@ref)
 """
 function brain_mask(mask, strength=7)
     # set border to false
