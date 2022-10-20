@@ -8,7 +8,7 @@ function robustmask(weight::AbstractArray; factor=1, threshold=nothing)
     if threshold isa Nothing
         μ, σ = estimatenoise(weight)
         m = mean(filter(isfinite, weight[weight .> 5σ]))
-        threshold = maximum((5σ, m/5))
+        threshold = minimum((5σ, m/2))
     end
     mask = weight .> (threshold * factor)
     # remove small holes and minimally grow
