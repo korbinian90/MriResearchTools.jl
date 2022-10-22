@@ -68,7 +68,7 @@ function gaussiansmooth3d!(image, sigma=[5,5,5]; mask=nothing, nbox=ifelse(isnot
         if size(image, dim) == 1 || bsize < 3
             continue
         end
-        linefilter = getfilter(image, weight, mask, bsize, size(image, dim))
+        linefilter! = getfilter(image, weight, mask, bsize, size(image, dim))
         K = ifelse(mask isa Nothing || isodd(ibox), :, size(image, dim):-1:1)
 
         # TODO parallel? -> Distributed arrays? -> use slices
@@ -77,8 +77,8 @@ function gaussiansmooth3d!(image, sigma=[5,5,5]; mask=nothing, nbox=ifelse(isnot
             
         for J in CartesianIndices(size(image)[(dim+1):end])
             for I in CartesianIndices(size(image)[1:(dim-1)])
-                w = if weight isa Nothing nothing else view(weight,I,:,J) end
-                linefilter(view(image,I,K,J), w)
+                w = if weight isa Nothing nothing else view(weight,I,K,J) end
+                linefilter!(view(image,I,K,J), w)
             end
         end
     end
