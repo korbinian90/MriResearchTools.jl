@@ -43,7 +43,12 @@ The same keyword arguments are supported as in `gaussiansmooth3d`:
 $(@doc gaussiansmooth3d)
 """
 function gaussiansmooth3d_phase(phase, sigma=[5,5,5]; weight=1, kwargs...)
-    return angle.(gaussiansmooth3d!(weight .* exp.(1im .* phase), sigma; kwargs...))
+    clx = weight .* exp.(1im .* phase)
+    phase_real = real.(clx)
+    phase_imag = imag.(clx)
+    gaussiansmooth3d!(phase_real, sigma; kwargs...)
+    gaussiansmooth3d!(phase_imag, sigma; kwargs...)
+    return angle.(complex.(phase_real, phase_imag))
 end
 
 function gaussiansmooth3d!(image, sigma=[5,5,5]; mask=nothing, nbox=ifelse(isnothing(mask), 3, 4), weight=nothing, dims=1:min(ndims(image),3), boxsizes=getboxsizes.(sigma, nbox))
