@@ -48,7 +48,7 @@ function mcpc3ds(image; TEs, echoes=[1,2], sigma=[10,10,5],
     phaseevolution = (TEs[echoes[1]] / ΔTE) .* romeo(angle.(hip); mag=weight, mask) # different from ASPIRE
     po .= getangle(image, echoes[1]) .- phaseevolution
     for icha in axes(po, 4)
-        po[:,:,:,icha] .= gaussiansmooth3d_phase(po[:,:,:,icha], sigma; mask)
+        po[:,:,:,icha] .= gaussiansmooth3d_phase(view(po,:,:,:,icha), sigma; mask)
     end
     combined = combinewithPO(image, po)
     if bipolar_correction

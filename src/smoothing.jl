@@ -46,8 +46,10 @@ function gaussiansmooth3d_phase(phase, sigma=[5,5,5]; weight=1, kwargs...)
     clx = weight .* exp.(1im .* phase)
     phase_real = real.(clx)
     phase_imag = imag.(clx)
-    gaussiansmooth3d!(phase_real, sigma; kwargs...)
-    gaussiansmooth3d!(phase_imag, sigma; kwargs...)
+    @sync begin
+    Threads.@spawn gaussiansmooth3d!(phase_real, sigma; kwargs...)
+    Threads.@spawn gaussiansmooth3d!(phase_imag, sigma; kwargs...)
+    end
     return angle.(complex.(phase_real, phase_imag))
 end
 
@@ -71,10 +73,6 @@ function gaussiansmooth3d!(image, sigma=[5,5,5]; mask=nothing, nbox=ifelse(isnot
         linefilter! = getfilter(image, weight, mask, bsize, size(image, dim))
         K = ifelse(mask isa Nothing || isodd(ibox), :, size(image, dim):-1:1)
 
-        # TODO parallel? -> Distributed arrays? -> use slices
-        #loop = Iterators.product((size(image) |> sz -> (sz[1:(dim-1)], sz[(dim+1):end]) .|> CartesianIndices)...)
-        #Threads.@threads for (I, J) in collect(loop)
-            
         for J in CartesianIndices(size(image)[(dim+1):end])
             for I in CartesianIndices(size(image)[1:(dim-1)])
                 w = if weight isa Nothing nothing else view(weight,I,K,J) end
