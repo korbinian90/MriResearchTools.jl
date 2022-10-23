@@ -59,8 +59,8 @@ end
 
 function combinewithPO(compl, po)
     combined = zeros(eltype(compl), size(compl)[1:4])
-    for icha = axes(po, 4)
-        @views combined .+= abs.(compl[:,:,:,:,icha]) .* compl[:,:,:,:,icha] ./ exp.(1im .* po[:,:,:,icha])
+    @sync for iecho in axes(combined, 4)
+        Threads.@spawn @views combined[:,:,:,iecho] = sum(abs.(compl[:,:,:,iecho,icha]) .* compl[:,:,:,iecho,icha] ./ exp.(1im .* po[:,:,:,icha]) for icha in axes(po,4))
     end
     return combined ./ sqrt.(abs.(combined))
 end
