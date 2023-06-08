@@ -1,5 +1,7 @@
-# VSMBasedUnwarping.jl
-# Methods for unwarping geometric distortions in MRI images
+# Methods for unwarping B0-induced geometric distortions in MRI images
+
+# Please cite: Eckstein et al. Correction for Geometric Distortion in Bipolar Gradient Echo Images from B0 Field Variations, ISMRM 2019
+# https://cds.ismrm.org/protected/19MProceedings/PDFfiles/4510.html
 
 function unwarp(VSM, distorted, dim)
     if dim == 2
@@ -37,8 +39,16 @@ function unwarpline(xtrue, distorted, xnew)
     interpolate((xtrue,), distorted, Gridded(Linear()))(xnew)
 end
 
-function getVSM(B0, rbw, dim, threshold = 5.0)
-    VSM = B0 ./ (2π * rbw)
+"""
+    getVSM(B0, rbw, dim, threshold=5.0)
+
+Calculates a voxel-shift-map.
+B0 is given in [Hz].
+rbw is the receiverbandwidth or PixelBandwidth in [Hz].
+dim is the dimension of the readout (in which the distortion occurs)
+"""
+function getVSM(B0, rbw, dim, threshold=5.0)
+    VSM = B0 ./ rbw
     thresholdforward(VSM, -0.9, threshold, dim)
 end
 
