@@ -57,6 +57,36 @@ function mcpc3ds(image; TEs, echoes=[1,2], sigma=[10,10,5],
     return combined
 end
 
+"""
+    mcpc3ds_meepi(phase, mag; TEs, keyargs...)
+
+    mcpc3ds_meepi(compl; TEs, keyargs...)
+
+    mcpc3ds_meepi(phase; TEs, keyargs...)
+
+Perform MCPC-3D-S phase offset removal on 5D MEEPI (multi-echo, multi-timepoint) input.
+The phase offsets are calculated for the template timepoint and removed from all volumes.
+
+## Optional Keyword Arguments
+- `echoes`: only use the defined echoes. default: `echoes=[1,2]`
+- `sigma`: smoothing parameter for phase offsets. default: `sigma=[10,10,5]`
+- `bipolar_correction`: removes linear phase artefact. default: `bipolar_correction=false`
+- `po`: phase offsets are stored in this array. Can be used to retrieve phase offsets or work with memory mapping.
+- `template_tp`: timepoint for the template calculation. default: `template_tp=1`
+"""
+mcpc3ds_meepi(phase::AbstractArray{<:Real}; keyargs...) = mcpc3ds_meepi(exp.(1im .* phase); keyargs...)
+mcpc3ds_meepi(phase, mag; keyargs...) = mcpc3ds_meepi(PhaseMag(phase, mag); keyargs...)
+function mcpc3ds_meepi(image; template_tp=1, po=zeros(getdatatype(image),size(image)[1:3]), kwargs...)
+    template = selectdim(image, 5, template_tp)
+    mcpc3ds(template; po, kwargs...) # calculates and sets po
+
+    corrected_phase = similar(po, size(image))
+    for tp in axes(image, 5)
+        corrected_phase[:,:,:,:,tp] = getangle(combinewithPO(selectdim(image, 5, tp), po))
+    end
+    return corrected_phase
+end
+
 function combinewithPO(compl, po)
     combined = zeros(eltype(compl), size(compl)[1:4])
     @sync for iecho in axes(combined, 4)
@@ -129,10 +159,11 @@ Base.eltype(t::PhaseMag) = promote_type(eltype(t.mag), eltype(t.phase))
 Base.size(t::PhaseMag, args...) = size(t.phase, args...)
 Base.axes(t::PhaseMag, dim) = 1:size(t.phase, dim)
 getHIP(data::PhaseMag; keyargs...) = getHIP(data.mag, data.phase; keyargs...)
-getangle(c, echo) = angle.(ecoview(c, echo))
-getangle(d::PhaseMag, echo) = ecoview(d.phase, echo)
-getmag(c, echo) = abs.(ecoview(c, echo))
-getmag(d::PhaseMag, echo) = ecoview(d.mag, echo)
+getangle(c, echo=:) = angle.(ecoview(c, echo))
+getangle(d::PhaseMag, echo=:) = ecoview(d.phase, echo)
+getmag(c, echo=:) = abs.(ecoview(c, echo))
+getmag(d::PhaseMag, echo=:) = ecoview(d.mag, echo)
+Base.selectdim(A::PhaseMag, d, i) = PhaseMag(selectdim(A.mag, d, i), selectdim(A.phase, d, i))
 ecoview(a, echo) = dimview(a, 4, echo)
 dimview(a, dim, i) = view(a, ntuple(x -> if x == dim i else (:) end, ndims(a))...)
 getdatatype(cx::AbstractArray{<:Complex{T}}) where T = T

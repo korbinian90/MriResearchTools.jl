@@ -16,8 +16,8 @@ Open the Julia REPL and type
 
 ```julia
 julia> ] # enter julia package manager
-(v1.8) pkg> add MriResearchTools
-(v1.8) pkg> # type backspace to get back to the julia REPL
+(v1.9) pkg> add MriResearchTools
+(v1.9) pkg> # type backspace to get back to the julia REPL
 julia>
 ```
 
@@ -48,7 +48,7 @@ savenii(unwrapped, "unwrapped", outputfolder, header(phase))
 [ROMEO](https://github.com/korbinian90/ROMEO.jl) 3D/4D Phase Unwrapping  
 `romeo` `unwrap` `unwrap_individual` `romeovoxelquality` `mask_from_voxelquality`
 
-[QSM](https://github.com/kamesy/QSM.jl) 3D/4D QSM (experimental stage)
+[QSM](https://github.com/kamesy/QSM.jl) 3D/4D QSM (experimental stage)  
 `qsm_average` `qsm_B0` `qsm_laplacian_combine` `qsm_romeo_B0` `qsm_mask_filled`
 
 Laplacian unwrapping  
@@ -56,6 +56,9 @@ Laplacian unwrapping
 
 MCPC-3D-S multi-echo coil combination  
 `mcpc3ds`
+
+MCPC-3D-S phase offset removal of multi-echo, multi-timepoint data  
+`mcpc3ds_meepi`
 
 Reading, writing and other functions for NIfTI files (adapted from JuliaIO/NIfTI)  
 `readphase` `readmag` `niread` `savenii` `header` `write_emptynii`
