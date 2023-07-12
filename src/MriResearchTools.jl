@@ -11,7 +11,7 @@ using ImageFiltering
 using LocalFilters
 using PaddedViews
 using OffsetArrays
-using QSM
+import QSM: ismv, lbv, pdf, sharp, vsharp, nltv, rts, tikh, tkd, tsvd, tv
 import StatsBase: countmap
 
 include("utility.jl")

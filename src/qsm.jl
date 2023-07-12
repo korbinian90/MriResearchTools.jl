@@ -1,6 +1,7 @@
 const γ = 267.52
 
 function qsm(phase, mask, TE, vsz; bfc_mask=mask, B0=3, bfc_algo=vsharp, qsm_algo=rts, unwrapping=laplacianunwrap, bdir=(0,0,1), kw...)
+    vsz = Tuple(vsz)
     uphas = unwrapping(phase)
     uphas .*= inv(B0 * γ * TE) # convert units
     fl = bfc_algo(uphas, bfc_mask, vsz) # remove non-harmonic background fields
