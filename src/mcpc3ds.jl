@@ -70,7 +70,6 @@ The phase offsets are calculated for the template timepoint and removed from all
 ## Optional Keyword Arguments
 - `echoes`: only use the defined echoes. default: `echoes=[1,2]`
 - `sigma`: smoothing parameter for phase offsets. default: `sigma=[10,10,5]`
-- `bipolar_correction`: removes linear phase artefact. default: `bipolar_correction=false`
 - `po`: phase offsets are stored in this array. Can be used to retrieve phase offsets or work with memory mapping.
 - `template_tp`: timepoint for the template calculation. default: `template_tp=1`
 """
@@ -78,7 +77,7 @@ mcpc3ds_meepi(phase::AbstractArray{<:Real}; keyargs...) = mcpc3ds_meepi(exp.(1im
 mcpc3ds_meepi(phase, mag; keyargs...) = mcpc3ds_meepi(PhaseMag(phase, mag); keyargs...)
 function mcpc3ds_meepi(image; template_tp=1, po=zeros(getdatatype(image),size(image)[1:3]), kwargs...)
     template = selectdim(image, 5, template_tp)
-    mcpc3ds(template; po, kwargs...) # calculates and sets po
+    mcpc3ds(template; po, bipolar_correction=false, kwargs...) # calculates and sets po
 
     corrected_phase = similar(po, size(image))
     for tp in axes(image, 5)
