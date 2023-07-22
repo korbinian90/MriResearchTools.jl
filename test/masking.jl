@@ -1,4 +1,5 @@
 @testset "Masking" begin
+using ImageFiltering
 # robust mask
 fn_mag = "data/small/Mag.nii"
 mag = Float32.(readmag(fn_mag; rescale=true))
