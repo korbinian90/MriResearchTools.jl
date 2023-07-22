@@ -6,8 +6,8 @@ version = "2.3.0"
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
-ImageFiltering = "6a3955dd-da59-5b1f-98d4-e7296123deb5"
 ImageMorphology = "787d08f9-d448-5407-9aad-5290dd7ab264"
+ImageFiltering = "6a3955dd-da59-5b1f-98d4-e7296123deb5"
 Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
 LocalFilters = "085fde7c-5f94-55e4-8448-8bbb5db6dde9"
 NIfTI = "a3a9e032-41b5-5fc4-967a-a6b7a19844d3"
@@ -20,9 +20,11 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [weakdeps]
 QSM = "794fc106-2fa4-440f-961c-0d7d7b47016a"
+ImageFiltering = "6a3955dd-da59-5b1f-98d4-e7296123deb5"
 
 [extensions]
 QSMExt = "QSM"
+PhaseBasedMaskingExt = "ImageFiltering"
 
 [compat]
 DataStructures = "0.11 - 0.18"

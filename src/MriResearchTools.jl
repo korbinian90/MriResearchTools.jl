@@ -7,14 +7,12 @@ using ROMEO
 using Statistics
 using DataStructures
 using ImageMorphology
-using ImageFiltering
 using LocalFilters
 using PaddedViews
 using OffsetArrays
 import StatsBase: countmap
 
 include("utility.jl")
-include("transformations.jl")
 include("smoothing.jl")
 include("intensitycorrection.jl")
 include("VSMbasedunwarping.jl")
@@ -25,8 +23,16 @@ include("romeofunctions.jl")
 include("ice2nii.jl")
 include("laplacianunwrapping.jl")
 include("masking.jl")
+
+qsm_average(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_average`")
+qsm_B0(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_B0`")
+qsm_laplacian_combine(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_laplacian_combine`")
+qsm_romeo_B0(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_romeo_B0`")
+qsm_mask_filled(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_mask_filled`")
+phase_based_mask(args...; kwargs...) = @warn("Load ImageFiltering.jl to use this method: `using ImageFiltering`\n If already loadad, check expected arguments via `?phase_based_masking`")
 if !isdefined(Base, :get_extension)
     include("../ext/QSMExt.jl")
+    include("../ext/PhaseBasedMaskingExt.jl")
 end
 
 export  readphase, readmag, niread, write_emptynii,
@@ -62,12 +68,5 @@ export  readphase, readmag, niread, write_emptynii,
         Ice_output_config, read_volume,
         NumART2star, r2s_from_t2s,
         qsm_average, qsm_B0, qsm_laplacian_combine, qsm_romeo_B0, qsm_mask_filled
-
-# qsm_average = qsm_B0 = qsm_laplacian_combine = qsm_romeo_B0 = qsm_mask_filled = (args...; kwargs...) -> "Load QSM.jl to use this method: `using QSM`"
-qsm_average(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_average`")
-qsm_B0(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_B0`")
-qsm_laplacian_combine(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_laplacian_combine`")
-qsm_romeo_B0(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_romeo_B0`")
-qsm_mask_filled(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_mask_filled`")
 
 end # module
