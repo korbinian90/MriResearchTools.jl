@@ -12,6 +12,5 @@ using TestItemRunner
     include("mcpc3ds.jl")
     include("VSMbasedunwarping.jl")
     include("smoothing.jl")
+    include("qsm.jl")
 end
-
-@run_package_tests

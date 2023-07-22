@@ -1,7 +1,7 @@
 name = "MriResearchTools"
 uuid = "557dad86-b9bd-4533-8525-1a39684d020f"
 authors = ["Korbinian Eckstein"]
-version = "2.2.0"
+version = "2.3.0"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
@@ -17,6 +17,12 @@ QSM = "794fc106-2fa4-440f-961c-0d7d7b47016a"
 ROMEO = "1ea8258b-a15d-4adb-ad20-01632f467a84"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+
+[weakdeps]
+QSM = "794fc106-2fa4-440f-961c-0d7d7b47016a"
+
+[extensions]
+QSMExt = "QSM"
 
 [compat]
 DataStructures = "0.11 - 0.18"

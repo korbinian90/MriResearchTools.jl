@@ -11,10 +11,10 @@ using ImageFiltering
 using LocalFilters
 using PaddedViews
 using OffsetArrays
-import QSM: ismv, lbv, pdf, sharp, vsharp, nltv, rts, tikh, tkd, tsvd, tv
 import StatsBase: countmap
 
 include("utility.jl")
+include("transformations.jl")
 include("smoothing.jl")
 include("intensitycorrection.jl")
 include("VSMbasedunwarping.jl")
@@ -25,10 +25,13 @@ include("romeofunctions.jl")
 include("ice2nii.jl")
 include("laplacianunwrapping.jl")
 include("masking.jl")
-include("qsm.jl")
+if !isdefined(Base, :get_extension)
+    include("../ext/QSMExt.jl")
+end
 
 export  readphase, readmag, niread, write_emptynii,
-        header,
+        header, affine,
+        affine_transformation,
         savenii,
         estimatenoise,
         robustmask, robustmask!,
@@ -58,7 +61,13 @@ export  readphase, readmag, niread, write_emptynii,
         to_dim,
         Ice_output_config, read_volume,
         NumART2star, r2s_from_t2s,
-        qsm_average, qsm_B0, qsm_laplacian_combine, qsm_romeo_B0,
-        qsm_mask_filled
+        qsm_average, qsm_B0, qsm_laplacian_combine, qsm_romeo_B0, qsm_mask_filled
+
+# qsm_average = qsm_B0 = qsm_laplacian_combine = qsm_romeo_B0 = qsm_mask_filled = (args...; kwargs...) -> "Load QSM.jl to use this method: `using QSM`"
+qsm_average(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_average`")
+qsm_B0(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_B0`")
+qsm_laplacian_combine(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_laplacian_combine`")
+qsm_romeo_B0(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_romeo_B0`")
+qsm_mask_filled(args...; kwargs...) = @warn("Load QSM.jl to use this method: `using QSM`\n If already loadad, check expected arguments via `?qsm_mask_filled`")
 
 end # module
