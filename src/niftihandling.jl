@@ -149,3 +149,9 @@ function Base.setindex!(vol::NIVolume{<:AbstractFloat}, v, i...)
     scaled = v / vol.header.scl_slope + vol.header.scl_inter
     setindex!(vol.raw, scaled, i...)
 end
+
+function affine(nii::NIVolume)
+    fields = [:srow_x, :srow_y, :srow_z]
+    rows = (transpose(collect(getfield(nii.header, f))) for f in fields)
+    return vcat(rows..., [0 0 0 1])
+end

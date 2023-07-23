@@ -13,6 +13,7 @@ using OffsetArrays
 import StatsBase: countmap
 
 include("utility.jl")
+include("transformations.jl")
 include("smoothing.jl")
 include("intensitycorrection.jl")
 include("VSMbasedunwarping.jl")
