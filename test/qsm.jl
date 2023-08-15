@@ -1,4 +1,4 @@
-@testitem "Test QSM.jl integration" begin
+@testset "Test QSM.jl integration" begin
 using QSM
 # using QSMExt
 cd(@__DIR__)

@@ -14,7 +14,7 @@ Magnitude and Phase images in NIfTI fileformat
 ## Installing
 Open the Julia REPL and type
 
-```julia
+```bash
 julia> ] # enter julia package manager
 (v1.9) pkg> add MriResearchTools
 (v1.9) pkg> # type backspace to get back to the julia REPL
@@ -47,9 +47,6 @@ savenii(unwrapped, "unwrapped", outputfolder, header(phase))
 
 [ROMEO](https://github.com/korbinian90/ROMEO.jl) 3D/4D Phase Unwrapping  
 `romeo` `unwrap` `unwrap_individual` `romeovoxelquality` `mask_from_voxelquality`
-
-[QSM](https://github.com/kamesy/QSM.jl) 3D/4D QSM (experimental stage)  
-`qsm_average` `qsm_B0` `qsm_laplacian_combine` `qsm_romeo_B0` `qsm_mask_filled`
 
 Laplacian unwrapping  
 `laplacianunwrap`
@@ -84,6 +81,10 @@ Fast gaussian smoothing for real, complex data and phase (via complex smoothing)
 
 Fast numeric estimation of T2* and R2*  
 `NumART2star` `r2s_from_t2s`
+
+[QSM.jl](https://github.com/kamesy/QSM.jl) integration with single-echo / multi-echo data (experimental stage)  
+`qsm_average` `qsm_B0` `qsm_laplacian_combine` `qsm_romeo_B0` `qsm_mask_filled`  
+Needs the command `using QSM` to load.
 
 Other functions  
 `robustrescale` `getHIP` `getsensitivity` `getscaledimage` `estimatequantile` `estimatenoise`
