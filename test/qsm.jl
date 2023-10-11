@@ -1,4 +1,5 @@
-@testitem "Test QSM.jl integration" begin
+@testitem "Test QSM integration" begin
+
 # using QSM
 using QuantitativeSusceptibilityMappingTGV
 
@@ -16,17 +17,19 @@ mag = Float32.(mag_nii)
 mask = qsm_mask_filled(phase[:,:,:,1])
 B0 = 3
 
-args = (phase, mag, mask, TEs, vsz, B0)
+args = (phase, mag, mask, TEs, vsz)
 
 # QSM single-echo
 
 
 # QSM multi-echo postaverage (inverse-variance-weighted averaging)
-qsm_laplacian_average = qsm_average(args...; unwrapping=laplacianunwrap)
-qsm_romeo_average = qsm_average(args...; unwrapping=romeo)
+qsm_laplacian_average = qsm_average(args...; B0)
+# QSM.jl
+# qsm_laplacian_average = qsm_average(args...; B0, unwrapping=laplacianunwrap)
+# qsm_romeo_average = qsm_average(args...; B0, unwrapping=romeo)
 
 # QSM multi-echo phase combine
-qsm_laplacian_combined = qsm_laplacian_combine(args...)
-qsm_romeo_B0_map = qsm_romeo_B0(args...)
+qsm_laplacian_combined = qsm_laplacian_combine(args...; B0)
+qsm_romeo_B0_map = qsm_romeo_B0(args...; B0)
 
 end
