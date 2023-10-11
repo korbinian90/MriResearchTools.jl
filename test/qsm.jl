@@ -1,4 +1,7 @@
 @testitem "Test QSM.jl integration" begin
+# using QSM
+using QuantitativeSusceptibilityMappingTGV
+
 cd(@__DIR__)
 # Data
 fn_phase = "data/small/Phase.nii"
@@ -11,8 +14,9 @@ vsz = header(phase_nii).pixdim[2:4]
 phase = Float32.(phase_nii)
 mag = Float32.(mag_nii)
 mask = qsm_mask_filled(phase[:,:,:,1])
+B0 = 3
 
-args = (phase, mag, mask, TEs, vsz)
+args = (phase, mag, mask, TEs, vsz, B0)
 
 # QSM single-echo
 

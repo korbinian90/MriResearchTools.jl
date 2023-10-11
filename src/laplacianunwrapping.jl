@@ -23,7 +23,6 @@ pqterm(sz::NTuple{4}) = [p^2 + q^2 + t^2 + r^2 for p in 1:sz[1], q in 1:sz[2], t
 """
     laplacianunwrap(ϕ::AbstractArray)
 
-Requires `using ImageFiltering`.
 Performs laplacian unwrapping on the input phase. (1D - 4D)
 The phase has to be scaled to radians.
 The implementation is close to the original publication: Schofield and Zhu 2003, https://doi.org/10.1364/OL.28.001194.
@@ -32,6 +31,7 @@ It is not the fastest implementation of laplacian unwrapping (doesn't use discre
 laplacianunwrap, laplacianunwrap!
 
 # FFT variant
+# Requires `using ImageFiltering`.
 function laplacianunwrap_fft(ϕ::AbstractArray, z_weight=1)
     FFTW.set_num_threads(min(4, Threads.nthreads()))
 
