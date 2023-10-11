@@ -1,4 +1,4 @@
-@testset "Smoothing" begin
+@testitem "Smoothing" begin
 
 phasefile = joinpath("data", "small", "Phase.nii")
 magfile = joinpath("data", "small", "Mag.nii")

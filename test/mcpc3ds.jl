@@ -1,4 +1,4 @@
-@testset "mcpc3ds" begin
+@testitem "mcpc3ds" begin
 # Data
 fn_phase = "data/small/Phase.nii"
 fn_mag = "data/small/Mag.nii"

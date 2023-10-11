@@ -1,6 +1,4 @@
-@testset "Test QSM.jl integration" begin
-using QSM
-# using QSMExt
+@testitem "Test QSM.jl integration" begin
 cd(@__DIR__)
 # Data
 fn_phase = "data/small/Phase.nii"

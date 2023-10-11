@@ -1,4 +1,4 @@
-@testset "utility" begin
+@testitem "utility" begin
 # sample
 sample = MriResearchTools.sample
 @test length(sample(1:10)) >= 10

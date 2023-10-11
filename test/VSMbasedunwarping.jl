@@ -1,4 +1,4 @@
-@testset "VSMbasedunwarping" begin
+@testitem "VSMbasedunwarping" begin
 phasefile = joinpath("data", "small", "Phase.nii")
 magfile = joinpath("data", "small", "Mag.nii")
 phase = Float32.(readphase(phasefile))

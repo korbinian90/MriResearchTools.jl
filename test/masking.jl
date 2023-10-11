@@ -1,4 +1,4 @@
-@testset "Masking" begin
+@testitem "Masking" begin
 using ImageFiltering
 # robust mask
 fn_mag = "data/small/Mag.nii"

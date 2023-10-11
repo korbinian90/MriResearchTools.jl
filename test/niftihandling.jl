@@ -1,4 +1,4 @@
-@testset "niftihandling" begin
+@testitem "niftihandling" begin
 # Read and properly scale phase
 fn_phase = "data/small/Phase.nii"
 phase_nii = readphase(fn_phase)
