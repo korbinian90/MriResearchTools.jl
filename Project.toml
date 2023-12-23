@@ -1,7 +1,7 @@
 name = "MriResearchTools"
 uuid = "557dad86-b9bd-4533-8525-1a39684d020f"
 authors = ["Korbinian Eckstein"]
-version = "3.1.0"
+version = "3.1.1"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
@@ -40,7 +40,7 @@ NIfTI = "0.4 - 0.5.7, 0.6"
 OffsetArrays = "1"
 PaddedViews = "0.5"
 QSM = "0.4 - 0.5"
-QuantitativeSusceptibilityMappingTGV = "0.2"
+QuantitativeSusceptibilityMappingTGV = "0.2 - 0.4"
 ROMEO = "1.0"
 StatsBase = "0.33 - 0.34"
 julia = "1.7"
