@@ -9,7 +9,18 @@ struct Ice_output_config
     size::Tuple{Int, Int}
 end
 
+"""
+    Ice_output_config(name, path, nslices, nfiles; nechoes=1, nchannels=1, dtype=Int16)
+    
+    `name` can be a unique part of the full file name
+    `nfiles` is the number of .ima files in the folder
+    
+    Example:
+    cfg = Ice_output_config("Aspire_P", "/path/to/ima_folder", 120, 720)
+    volume = read_volume(cfg)
+"""
 function Ice_output_config(name, path, nslices, nfiles; nechoes=1, nchannels=1, dtype=Int16)
+    #TODO automatically detect number of files in folder
     return Ice_output_config(name, path, nslices, nfiles, nechoes, nchannels, dtype, getsize(path))
 end
 
@@ -26,6 +37,13 @@ function get_setting(T, lines, setting; offset=3, default=0)
     return default
 end
 
+"""
+    read_volume(cfg)
+    
+    Example:
+    cfg = Ice_output_config("Aspire_P", "/path/to/ima_folder", 120, 720)
+    volume = read_volume(cfg)
+"""
 function read_volume(cfg)
     volume = create_volume(cfg)
 
