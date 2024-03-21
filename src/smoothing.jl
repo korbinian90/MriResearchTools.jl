@@ -34,8 +34,11 @@ function gaussiansmooth3d(image, sigma=[5,5,5]; padding=false, kwargs...)
     return smoothed
 end
 
-pad_image(image, sigma) = PaddedView(0, image, Tuple(size(image) .+ 2sigma), Tuple(sigma .+ 1))
-remove_padding(image, sigma) = image[[sigma[i]+1:size(image,i)-sigma[i] for i in 1:ndims(image)]...]
+
+pad_image(image, sigma) = pad_image(image, round.(Int, sigma, RoundUp))
+pad_image(image, sigma::AbstractArray{<:Int}) = PaddedView(0, image, Tuple(size(image) .+ 2sigma), Tuple(sigma .+ 1))
+remove_padding(image, sigma) = remove_padding(image, round.(Int, sigma, RoundUp))
+remove_padding(image, sigma::AbstractArray{<:Int}) = image[[sigma[i]+1:size(image,i)-sigma[i] for i in 1:ndims(image)]...]
 
 """
     gaussiansmooth3d_phase(phase, sigma=[5,5,5]; weight=1, kwargs...)
