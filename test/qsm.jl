@@ -23,13 +23,13 @@ args = (phase, mag, mask, TEs, vsz)
 
 
 # QSM multi-echo postaverage (inverse-variance-weighted averaging)
-qsm_laplacian_average = qsm_average(args...; B0)
+qsm_laplacian_average = qsm_average(args...; B0, iterations=100)
 # QSM.jl
 # qsm_laplacian_average = qsm_average(args...; B0, unwrapping=laplacianunwrap)
 # qsm_romeo_average = qsm_average(args...; B0, unwrapping=romeo)
 
 # QSM multi-echo phase combine
-qsm_laplacian_combined = qsm_laplacian_combine(args...; B0)
-qsm_romeo_B0_map = qsm_romeo_B0(args...; B0)
+qsm_laplacian_combined = qsm_laplacian_combine(args...; B0, iterations=100)
+qsm_romeo_B0_map = qsm_romeo_B0(args...; B0, iterations=100)
 
 end
