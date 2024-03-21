@@ -24,6 +24,7 @@ Optional arguments:
 gaussiansmooth3d, gaussiansmooth3d!
 
 function gaussiansmooth3d(image, sigma=[5,5,5]; padding=false, kwargs...)
+    sigma = float.(collect(sigma))
     if padding
         image = pad_image(image, sigma)
     end
