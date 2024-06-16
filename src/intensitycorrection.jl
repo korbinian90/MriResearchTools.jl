@@ -46,7 +46,7 @@ function makehomogeneous!(mag; sigma, nbox=15)
     if eltype(mag) <: AbstractFloat
         mag ./= lowpass
     else # Integer doesn't support NaN
-        lowpass[isnan.(lowpass) .| (lowpass .<= 0)] .= typemax(eltype(lowpass))
+        lowpass[isnan.(lowpass).|(lowpass.<=0)] .= typemax(eltype(lowpass))
         mag .= div.(mag, lowpass ./ 2048) .|> x -> min(x, typemax(eltype(mag)))
     end
     mag
@@ -73,6 +73,8 @@ mm_to_vox(mm, pixdim) = mm ./ pixdim
 
 Calculates the bias field using the `boxsegment` approach.
 It assumes that there is a "main tissue" that is present in most areas of the object.
+If not set, sigma_mm defaults to 7mm, with a maximum of 10% FoV. The sigma_mm value should 
+correspond to the bias field, for a faster changing bias field this needs to be smaller.
 Published in [CLEAR-SWI](https://doi.org/10.1016/j.neuroimage.2021.118175).
 
 See also [`makehomogeneous`](@ref)
@@ -85,7 +87,7 @@ function getsensitivity(mag, pixdim; sigma_mm=get_default_sigma_mm(mag, pixdim),
 end
 function getsensitivity(mag; sigma, nbox=15)
     # segmentation
-    firstecho = view(mag,:,:,:,1)
+    firstecho = view(mag, :, :, :, 1)
     mask = robustmask(firstecho)
     segmentation = boxsegment(firstecho, mask, nbox)
     # smoothing
@@ -121,7 +123,11 @@ end
 
 #threshold(image) = threshold(image, robustmask(image))
 function threshold(image, mask; width=0.1)
-    m = try quantile(skipmissing(image[mask]), 0.9) catch; 0 end
+    m = try
+        quantile(skipmissing(image[mask]), 0.9)
+    catch
+        0
+    end
     return ((1 - width) * m .< image .< (1 + width) * m) .& mask
 end
 
