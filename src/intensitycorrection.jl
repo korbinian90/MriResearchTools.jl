@@ -100,9 +100,12 @@ end
 
 # Default is 7mm, but a maximum of 10% FoV
 function get_default_sigma_mm(mag, pixdim)
-    sigma_mm = 7
-    FoV = size(mag) .* pixdim
-    sigma_mm = median(min.(sigma_mm, 0.1 .* FoV))
+    sigma_mm = zeros(min(ndims(mag), length(pixdim)))
+    for i in eachindex(sigma_mm)
+        sigma_mm[i] = pixdim[i] * size(mag, i)
+    end
+    sigma_mm = median(sigma_mm)
+    sigma_mm = min(sigma_mm, 7)
     return sigma_mm
 end
 
