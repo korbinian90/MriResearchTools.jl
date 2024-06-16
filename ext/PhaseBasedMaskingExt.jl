@@ -17,7 +17,7 @@ To return the mask before thresholding pass `threshold=nothing`.
 julia> phase_mask = phase_based_mask(phase);
 ```
 
-See also [`ROMEO.romeovoxelquality`](@ref), [`ROMEO.romeo`](@ref), [`robustmask`](@ref), [`brain_mask`](@ref)
+See also [`robustmask`](@ref), [`brain_mask`](@ref)
 
 Original MATLAB algorithm:
     se=strel('sphere',6);
