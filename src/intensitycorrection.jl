@@ -21,7 +21,7 @@ obtain the bias field.
 
 ###  Keyword arguments:
 
-- `sigma`: sigma size in voxel for smoothing to obtain bias field. (mandatory)
+- `sigma`: sigma size in voxel for each dimension for smoothing to obtain bias field. (mandatory)
 - `nbox`: Number of boxes in each dimension for the box-segmentation step.
 
 Larger sigma-values make the bias field smoother, but might not be able to catch the
@@ -80,7 +80,7 @@ See also [`makehomogeneous`](@ref)
 function getsensitivity(mag::NIVolume, datatype=eltype(mag); kw...)
     return getsensitivity(datatype.(mag), getpixdim(mag); kw...)
 end
-function getsensitivity(mag, pixdim; sigma_mm=7, nbox=15)
+function getsensitivity(mag, pixdim; sigma_mm=get_default_sigma_mm(mag, pixdim), nbox=15)
     return getsensitivity(mag; sigma=mm_to_vox(sigma_mm, pixdim), nbox)
 end
 function getsensitivity(mag; sigma, nbox=15)
@@ -94,6 +94,14 @@ function getsensitivity(mag; sigma, nbox=15)
     fillandsmooth!(lowpass, mean(firstecho[mask]), sigma2)
 
     return lowpass
+end
+
+# Default is 7mm, but a maximum of 10% FoV
+function get_default_sigma_mm(mag, pixdim)
+    sigma_mm = 7
+    FoV = size(mag) .* pixdim
+    sigma_mm = median(min.(sigma_mm, 0.1 .* FoV))
+    return sigma_mm
 end
 
 # split sigma in two parts
