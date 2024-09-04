@@ -6,7 +6,7 @@
 
 ## Prerequisites
 A Julia installation v1.3 or higher is required.
-To get the newest version of this package, Julia v1.6 LTS or newer is recommended.
+To get the newest version of this package, Julia v1.7 or newer is recommended.
 
 Magnitude and Phase images in NIfTI fileformat
 (4D images with echoes in the 4th dimension, 5D images with channels in the 5th dimension)
@@ -16,8 +16,8 @@ Open the Julia REPL and type
 
 ```bash
 julia> ] # enter julia package manager
-(v1.9) pkg> add MriResearchTools
-(v1.9) pkg> # type backspace to get back to the julia REPL
+(v1.11) pkg> add MriResearchTools
+(v1.11) pkg> # type backspace to get back to the julia REPL
 julia>
 ```
 
@@ -33,7 +33,7 @@ magfile = joinpath(nifti_folder, "Mag.nii") # Path to the magnitude image in nif
 phasefile = joinpath(nifti_folder, "Phase.nii") # Path to the phase image
 # load images
 mag = readmag(magfile)
-phase = readphase(phasefile)
+phase = readphase(phasefile; fix_ge=true) # fix_ge=true only for GE data with corrupted phase
 # unwrap
 unwrapped = romeo(phase; mag=mag, TEs=TEs)
 # save unwrapped image
@@ -82,9 +82,9 @@ Fast gaussian smoothing for real, complex data and phase (via complex smoothing)
 Fast numeric estimation of T2* and R2*  
 `NumART2star` `r2s_from_t2s`
 
-[QSM.jl](https://github.com/kamesy/QSM.jl) integration with single-echo / multi-echo data (experimental stage)  
+QSM integration with single-echo / multi-echo data (experimental stage)  
 `qsm_average` `qsm_B0` `qsm_laplacian_combine` `qsm_romeo_B0` `qsm_mask_filled`  
-Needs the command `using QSM` to load.
+Needs the command `using QuantitativeSusceptibilityMappingTGV` for the [TGV QSM](https://github.com/korbinian90/QuantitativeSusceptibilityMappingTGV.jl) backend or `using QSM` to load the [QSM.jl](https://github.com/kamesy/QSM.jl) (rts default) backend.
 
 Other functions  
 `robustrescale` `getHIP` `getsensitivity` `getscaledimage` `estimatequantile` `estimatenoise`

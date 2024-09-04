@@ -1,7 +1,8 @@
 """
-    readphase(filename; rescale=true, keyargs...)
+    readphase(filename; rescale=true, fix_ge=false, keyargs...)
 
 Reads the NIfTI phase with sanity checking and optional rescaling to [-π;π].
+Warning for GE: `fix_ge=true` is probably required and will add pi to every second slice.
 
 # Examples
 ```julia-repl
@@ -11,25 +12,41 @@ julia> phase = readphase("phase.nii")
 ### Optional keyargs are forwarded to `niread`:
 $(@doc niread)
 """
-function readphase(filename; rescale=true, keyargs...)
+function readphase(filename; rescale=true, fix_ge=false, keyargs...)
     phase = niread(filename; keyargs...)
     if phase.header.scl_slope == 0 # slope of 0 is always wrong
         phase.header.scl_slope = 1
     end
     if rescale
         minp, maxp = Float32.(approxextrema(phase))
-        if isapprox(maxp - minp, 2π; atol=0.1) # no rescaling required
-            return phase
-        end
-        minp, maxp = Float32.(approxextrema(phase.raw))
-        if isapprox(maxp - minp, 2π; atol=0.1) # no rescaling required, but header wrong
-            phase.header.scl_slope = 1
-            phase.header.scl_inter = 0
-        else # rescaling
-            phase.header.scl_slope = 2pi / (maxp - minp)
-            phase.header.scl_inter = -pi - minp * phase.header.scl_slope
+        if !isapprox(maxp - minp, 2π; atol=0.1) # rescaling required
+            minp, maxp = Float32.(approxextrema(phase.raw))
+            if isapprox(maxp - minp, 2π; atol=0.1) # no rescaling required, but header wrong
+                phase.header.scl_slope = 1
+                phase.header.scl_inter = 0
+            else # rescaling
+                phase.header.scl_slope = 2pi / (maxp - minp)
+                phase.header.scl_inter = -pi - minp * phase.header.scl_slope
+            end
         end
     end
+    if fix_ge
+        fix_ge_phase!(phase.raw)
+        phase.header.scl_slope = -phase.header.scl_slope # phase is inverted
+    end
+    return phase
+end
+
+# Add pi to every second slice
+function fix_ge_phase!(phase::AbstractArray{T}) where T
+    minp, maxp = approxextrema(phase)
+    if T <: Integer
+        pi = round(T, (maxp - minp) / 2)
+    else
+        pi = (maxp - minp) / 2
+    end
+    every_second_slice = selectdim(phase, 3, 2:2:size(phase, 3))
+    every_second_slice .= rem.(every_second_slice .+ pi, 2pi, RoundNearest)
     return phase
 end
 

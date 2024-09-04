@@ -21,6 +21,10 @@ int16_nii[:]
 int16p_nii = readphase(fn_int16)
 int16p_nii[:]
 
+# Test GE fix for crash
+readphase(fn_phase; fix_ge=true)
+readphase(fn_int16; fix_ge=true)
+
 function header_test(hdr, hdr2)
     @test hdr.scl_inter == 0
     @test hdr.scl_slope == 1
