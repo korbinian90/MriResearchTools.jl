@@ -28,8 +28,23 @@ homodyne!(I2)
 @test h3 == I2
 
 # calculateB0
-B0 = calculateB0_unwrapped(romeo(phase_nii; TEs=TEs), mag_nii, TEs)
+unwrapped = romeo(phase_nii; TEs=TEs)
+B0 = calculateB0_unwrapped(unwrapped, mag_nii, TEs)
 @test all(isfinite.(B0))
+B0 = calculateB0_unwrapped(unwrapped, mag_nii, TEs, :phase_snr)
+@test all(isfinite.(B0))
+B0 = calculateB0_unwrapped(unwrapped, mag_nii, TEs, :average)
+@test all(isfinite.(B0))
+B0 = calculateB0_unwrapped(unwrapped, mag_nii, TEs, :TEs)
+@test all(isfinite.(B0))
+B0 = calculateB0_unwrapped(unwrapped, mag_nii, TEs, :mag)
+@test all(isfinite.(B0))
+B0 = calculateB0_unwrapped(unwrapped, mag_nii, TEs, :magTEs)
+@test all(isfinite.(B0))
+B0 = calculateB0_unwrapped(unwrapped, mag_nii, TEs, :simulated_mag)
+@test all(isfinite.(B0))
+snr = get_B0_snr(mag_nii, TEs)
+@test all(isfinite.(snr))
 
 # make border of image noise
 phase = Float32.(phase_nii)
