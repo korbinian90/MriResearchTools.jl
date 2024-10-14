@@ -10,12 +10,35 @@ The phase offsets have to be removed prior.
 
 See also [`mcpc3ds`](@ref)
 """
-function calculateB0_unwrapped(unwrapped_phase, mag, TEs)
+function calculateB0_unwrapped(unwrapped_phase, mag, TEs, type=:phase_snr)
     dims = 4
     TEs = to_dim(TEs, 4)
-    B0 = (1000 / 2π) * sum(unwrapped_phase .* mag .* mag .* TEs; dims) ./ sum(mag .* mag .* TEs.^2; dims) |> I -> dropdims(I; dims)
+    weight = get_B0_phase_weighting(mag, TEs, type)
+    B0 = (1000 / 2π) * sum(unwrapped_phase .* weight; dims) ./ sum(weight .* TEs; dims) |> I -> dropdims(I; dims)
     B0[.!isfinite.(B0)] .= 0
     return B0
+end
+
+function get_B0_phase_weighting(mag, TEs, type)
+    if type == :phase_snr
+        mag .* mag .* TEs
+    elseif type == :average
+        to_dim(ones(length(TEs)), 4)
+    elseif type == :TEs
+        TEs
+    elseif type == :mag
+        mag
+    elseif type == :magTEs
+        mag .* TEs
+    elseif type == :simulated_mag
+        mag = to_dim(exp.(-TEs / 20), 4)
+        mag .* mag .* TEs
+    end
+end
+
+function get_B0_snr(mag, TEs, type=:phase_snr)
+    weight = get_B0_phase_weighting(mag, to_dim(TEs, 4), type)
+    sum(mag .* weight; dims=4) ./ sum(weight; dims=4)
 end
 
 romeovoxelquality = voxelquality
