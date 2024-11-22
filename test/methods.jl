@@ -39,12 +39,12 @@ B0 = calculateB0_unwrapped(unwrapped, mag_nii, TEs, :TEs)
 @test all(isfinite.(B0))
 B0 = calculateB0_unwrapped(unwrapped, mag_nii, TEs, :mag)
 @test all(isfinite.(B0))
-B0 = calculateB0_unwrapped(unwrapped, mag_nii, TEs, :magTEs)
-@test all(isfinite.(B0))
 B0 = calculateB0_unwrapped(unwrapped, mag_nii, TEs, :simulated_mag)
 @test all(isfinite.(B0))
 snr = get_B0_snr(mag_nii, TEs)
 @test all(isfinite.(snr))
+m = "The phase weighting option 'magTEs' is not defined!"
+@test_throws ErrorException(m) B0 = calculateB0_unwrapped(unwrapped, mag_nii, TEs, :magTEs)
 
 # make border of image noise
 phase = Float32.(phase_nii)
