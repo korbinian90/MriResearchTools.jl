@@ -14,25 +14,25 @@ function calculateB0_unwrapped(unwrapped_phase, mag, TEs, type=:phase_snr)
     dims = 4
     TEs = to_dim(TEs, 4)
     weight = get_B0_phase_weighting(mag, TEs, type)
-    B0 = (1000 / 2π) * sum(unwrapped_phase .* weight; dims) ./ sum(weight .* TEs; dims) |> I -> dropdims(I; dims)
+    B0 = (1000 / 2π) * sum(unwrapped_phase ./ TEs .* weight; dims) ./ sum(weight; dims) |> I -> dropdims(I; dims)
     B0[.!isfinite.(B0)] .= 0
     return B0
 end
 
 function get_B0_phase_weighting(mag, TEs, type)
     if type == :phase_snr
-        mag .* mag .* TEs
+        mag .* TEs
     elseif type == :average
         to_dim(ones(length(TEs)), 4)
     elseif type == :TEs
         TEs
     elseif type == :mag
         mag
-    elseif type == :magTEs
-        mag .* TEs
     elseif type == :simulated_mag
         mag = to_dim(exp.(-TEs / 20), 4)
-        mag .* mag .* TEs
+        mag .* TEs
+    else
+        error("The phase weighting option '$type' is not defined!")
     end
 end
 
