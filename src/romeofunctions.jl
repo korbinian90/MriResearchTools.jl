@@ -22,6 +22,8 @@ end
 function get_B0_phase_weighting(mag, TEs, type)
     if type == :phase_snr
         mag .* TEs
+    elseif type == :phase_var
+        mag .* mag .* TEs .* TEs
     elseif type == :average
         to_dim(ones(length(TEs)), 4)
     elseif type == :TEs
