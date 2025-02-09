@@ -4,8 +4,8 @@ end
 
 function MriResearchTools.qsm_romeo_B0(phase::AbstractArray, mag, mask, TEs, res; kw...)
     phasecorr, _ = mcpc3ds(phase, mag; TEs)
-    unwrapped = romeo(phasecorr; TEs, mag)
-    B0_map = calculateB0_unwrapped(unwrapped, mag, TEs .* 1e3)
+    unwrapped = romeo(phasecorr; TEs, mag, individual=true, correct_global=true)
+    B0_map = calculateB0_unwrapped(unwrapped, mag, TEs .* 1e3, :average)
     return qsm_B0(B0_map, mask, res; kw...)
 end
 
@@ -23,9 +23,14 @@ function laplacian_combine(phase::AbstractArray, mag, TEs; type=:weighted_averag
     end
 end
 
+function MriResearchTools.qsm_mask_filled(phase::AbstractArray, vsz; quality_thresh=0.5, smooth_thresh=0.5, smooth_sigma_in_mm=[5,5,5])
+    smooth_sigma = smooth_sigma_in_mm ./ vsz
+    qsm_mask_filled(phase; quality_thresh, smooth_thresh, smooth_sigma)
+end
+
 function MriResearchTools.qsm_mask_filled(phase::AbstractArray; quality_thresh=0.5, smooth_thresh=0.5, smooth_sigma=[5,5,5])
-    mask_small = romeovoxelquality(phase) .> quality_thresh
-    mask_filled = gaussiansmooth3d(mask_small, smooth_sigma) .> smooth_thresh
+    mask_small = (romeovoxelquality(phase) .> quality_thresh) .& (phase .!= 0)
+    mask_filled = gaussiansmooth3d(mask_small, smooth_sigma; padding=true) .> smooth_thresh
     return mask_filled
 end
 
