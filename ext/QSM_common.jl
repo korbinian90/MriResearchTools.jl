@@ -31,6 +31,10 @@ end
 function MriResearchTools.qsm_mask_filled(phase::AbstractArray; quality_thresh=0.5, smooth_thresh=0.5, smooth_sigma=[5,5,5])
     mask_small = (romeovoxelquality(phase) .> quality_thresh) .& (phase .!= 0)
     mask_filled = gaussiansmooth3d(mask_small, smooth_sigma; padding=true) .> smooth_thresh
+    if sum(mask_filled) == 0
+        @warn("QSM Mask cannot be created (maybe too low quality data?)")
+        mask_filled .= true
+    end
     return mask_filled
 end
 
