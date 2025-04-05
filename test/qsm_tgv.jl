@@ -1,7 +1,7 @@
-@testitem "Test QSM integration" begin
+@testitem "Test QuantitativeSusceptibilityMappingTGV integration" begin
 
 # using QSM
-using QSM
+using QuantitativeSusceptibilityMappingTGV
 
 cd(@__DIR__)
 # Data

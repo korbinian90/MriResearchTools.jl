@@ -1,4 +1,4 @@
-function MriResearchTools.qsm_average(phase::AbstractArray, mag, mask, TEs, vsz; kw...)
+function MriResearchTools.qsm_average(phase::AbstractArray, mag::AbstractArray, mask::AbstractArray, TEs, vsz; kw...)
     weighted_average((qsm(phase[:,:,:,i], mask, TEs[i], vsz; kw...) for i in axes(phase, 4)), mag, TEs)
 end
 
@@ -6,6 +6,10 @@ function MriResearchTools.qsm_romeo_B0(phase::AbstractArray, mag, mask, TEs, res
     phasecorr, _ = mcpc3ds(phase, mag; TEs)
     unwrapped = romeo(phasecorr; TEs, mag, individual=true, correct_global=true)
     B0_map = calculateB0_unwrapped(unwrapped, mag, TEs .* 1e3, :average)
+    if isnothing(mask)
+        mask = qsm_mask_filled(B0_map .* 2pi .* 40, res) # needs to be scaled to a reasonable TE=40 for masking
+    end
+    haskey(kw, :save) && kw[:save](mask, "qsm_mask")
     return qsm_B0(B0_map, mask, res; kw...)
 end
 

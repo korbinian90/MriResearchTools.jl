@@ -8,7 +8,7 @@ include("QSM_common.jl")
 
 const γ = 267.52
 
-function qsm(phase::AbstractArray, mask, TE, vsz; bfc_mask=mask, B0=3, bfc_algo=vsharp, qsm_algo=rts, unwrapping=laplacianunwrap, bdir=(0,0,1), kw...)
+function qsm(phase::AbstractArray, mask::AbstractArray, TE, vsz; bfc_mask=mask, B0=3, bfc_algo=vsharp, qsm_algo=rts, unwrapping=laplacianunwrap, bdir=(0,0,1), kw...)
     vsz = Tuple(vsz)
     uphas = unwrapping(phase)
     uphas .*= inv(B0 * γ * TE) # convert units
@@ -20,17 +20,22 @@ function qsm(phase::AbstractArray, mask, TE, vsz; bfc_mask=mask, B0=3, bfc_algo=
         mask = mask .& mask2
     end
 
+    # remove unsupported keywords
+    kw = filter(x -> x in [:pad, :Dkernel, :bdir, :lstol, :delta, :mu, :rho, :tol, :maxit, :verbose, :tau, :gamma], keys(kw))
     x = qsm_algo(fl, mask, vsz; bdir, kw...)
     return x
 end
 
-function MriResearchTools.qsm_B0(B0_map::AbstractArray, mask, vsz; bfc_mask=mask, B0=3, bfc_algo=vsharp, qsm_algo=rts, bdir=(0,0,1), kw...)
+function MriResearchTools.qsm_B0(B0_map::AbstractArray, mask::AbstractArray, vsz; bfc_mask=mask, B0=3, bfc_algo=vsharp, qsm_algo=rts, bdir=(0,0,1), kw...)
     scaled = B0_map .* (2π / (B0 * γ))
     fl = bfc_algo(scaled, bfc_mask, vsz)
     if fl isa Tuple
         fl, mask2 = fl
         mask = mask .& mask2
     end
+    
+    # remove unsupported keywords
+    kw = filter(x -> x in [:pad, :Dkernel, :bdir, :lstol, :delta, :mu, :rho, :tol, :maxit, :verbose, :tau, :gamma], keys(kw))
     x = qsm_algo(fl, mask, vsz; bdir, kw...)
     return x
 end
