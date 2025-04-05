@@ -99,17 +99,17 @@ julia> savenii(vol .+ 10, "vol10.nii"; header=hdr)
 """
 header(v::NIVolume) = similar(v.header)
 
-function savenii(image, name, writedir, header=nothing)
+function savenii(image, name, writedir, header=nothing; kwargs...)
     if isnothing(writedir) return end
     if !(last(splitext(name)) in [".nii", ".gz"])
         name = "$name.nii"
     end
-    savenii(image, joinpath(writedir, name); header)
+    savenii(image, joinpath(writedir, name); header, kwargs...)
 end
 """
-    savenii(image::AbstractArray, filepath; header=nothing)
+    savenii(image::AbstractArray, filepath; header=nothing, kwargs...)
 
-    savenii(image::AbstractArray, name, writedir, header=nothing)
+    savenii(image::AbstractArray, name, writedir, header=nothing, kwargs...)
 
 Warning: MRIcro can only open images with types Int32, Int64, Float32, Float64
 
@@ -118,10 +118,12 @@ Warning: MRIcro can only open images with types Int32, Int64, Float32, Float64
 julia> savenii(ones(64,64,5), "image.nii")
 
 julia> savenii(ones(64,64,5), "image2", "folder")
+
+julia> savenii(ones(64,64,5), "image2", "folder"; voxel_size=(0.54,0.54,2.0))
 ```
 """
-function savenii(image::AbstractArray, filepath; header=nothing)
-    vol = NIVolume([h for h in [header] if h !== nothing]..., image)
+function savenii(image::AbstractArray, filepath; header=nothing, kwargs...)
+    vol = NIVolume([h for h in [header] if h !== nothing]..., image; kwargs...)
     niwrite(filepath, vol)
     return filepath
 end
