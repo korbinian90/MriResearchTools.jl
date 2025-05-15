@@ -20,7 +20,7 @@ B0 = 3
 args = (phase, mag, mask, TEs, vsz)
 
 # QSM single-echo
-
+qsm_romeo_B0(phase[:,:,:,1], mag[:,:,:,1], mask, TEs[1], vsz; B0, iterations=5)
 
 # QSM multi-echo postaverage (inverse-variance-weighted averaging)
 qsm_laplacian_average = qsm_average(args...; B0, iterations=5)
