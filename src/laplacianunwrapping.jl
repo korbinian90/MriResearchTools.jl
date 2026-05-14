@@ -30,42 +30,53 @@ It is not the fastest implementation of laplacian unwrapping (doesn't use discre
 """
 laplacianunwrap, laplacianunwrap!
 
-# FFT variant
-# Requires `using ImageFiltering`.
+# FFT variant — periodic-boundary discrete Laplacian, evaluated entirely in
+# k-space. Matches the Bilgic / ICE Laplacian-unwrap implementation more
+# closely than the default DCT-based version, which uses mirror boundaries.
+# Works for 2D and 3D arrays. `z_weight` (3D only) rescales the through-slice
+# coupling: 1 = isotropic, 0 = pure in-plane.
+"""
+    laplacianunwrap_fft(ϕ::AbstractArray, z_weight=1)
+
+Periodic-boundary Laplacian phase unwrap (Schofield & Zhu, 2003) using a
+discrete 5-point (2D) / 7-point (3D) Laplacian stencil evaluated by FFT.
+Self-contained; no ImageFiltering dependency.
+"""
 function laplacianunwrap_fft(ϕ::AbstractArray, z_weight=1)
     FFTW.set_num_threads(min(4, Threads.nthreads()))
-
-    kernel = float.(convert(AbstractArray, Kernel.Laplacian((true,true,true))))
-    kernel[0,0,1] = kernel[0,0,-1] = z_weight
-    kernel[0,0,0] += 2 * (1 - z_weight)
-
-    ∇²(x) = imfilter(x, kernel)
-
-
-    kernel_full = centered(zeros(size(ϕ)))
-    kernel_full[CartesianIndices(kernel)] .= kernel
-        
-    del_op = fft(kernel_full)
-    
+    del_op = _laplacian_kspace_kernel(size(ϕ), z_weight, eltype(ϕ))
     del_inv = 1 ./ del_op
     del_inv[.!isfinite.(del_inv)] .= 0
-    
-    del_phase = cos.(ϕ) .* ∇²(sin.(ϕ)) .- sin.(ϕ) .* ∇²(cos.(ϕ))
-    
-    unwrapped = real.(ifft( fft(del_phase) .* del_inv ))
-    
-    return unwrapped
+    cs, sn = cos.(ϕ), sin.(ϕ)
+    ∇²(x) = real.(ifft(fft(x) .* del_op))
+    del_phase = cs .* ∇²(sn) .- sn .* ∇²(cs)
+    return real.(ifft(fft(del_phase) .* del_inv))
 end
 
-function laplacianunwrap_mixed(ϕ::AbstractArray)
-    FFTW.set_num_threads(min(4, Threads.nthreads()))
-
-    kernel = Kernel.Laplacian((true,true,true))
-    ∇²(x) = imfilter(x, kernel)
-    
-    del_phase = cos.(ϕ) .* ∇²(sin.(ϕ)) .- sin.(ϕ) .* ∇²(cos.(ϕ))
-    
-    unwrapped = ∇⁻²(del_phase)
-    
-    return unwrapped
+# Build the DFT of a centred discrete Laplacian stencil. For ND, the
+# stencil has -2N at the centre and +1 at each of the 2N neighbours
+# (with z taps scaled by z_weight in 3D).
+function _laplacian_kspace_kernel(sz::NTuple{N,Int}, z_weight, T) where {N}
+    kernel = zeros(float(T), sz)
+    centre = ntuple(d -> (sz[d] ÷ 2) + 1, N)
+    # in-plane (and z if z_weight==1) taps
+    if N == 2
+        kernel[centre...] = -4
+        kernel[centre[1]-1, centre[2]  ] = 1
+        kernel[centre[1]+1, centre[2]  ] = 1
+        kernel[centre[1],   centre[2]-1] = 1
+        kernel[centre[1],   centre[2]+1] = 1
+    elseif N == 3
+        zw = float(z_weight)
+        kernel[centre...] = -(4 + 2 * zw)
+        kernel[centre[1]-1, centre[2],   centre[3]  ] = 1
+        kernel[centre[1]+1, centre[2],   centre[3]  ] = 1
+        kernel[centre[1],   centre[2]-1, centre[3]  ] = 1
+        kernel[centre[1],   centre[2]+1, centre[3]  ] = 1
+        kernel[centre[1],   centre[2],   centre[3]-1] = zw
+        kernel[centre[1],   centre[2],   centre[3]+1] = zw
+    else
+        error("laplacianunwrap_fft supports 2D or 3D arrays, got $(N)D")
+    end
+    return fft(ifftshift(kernel))
 end
