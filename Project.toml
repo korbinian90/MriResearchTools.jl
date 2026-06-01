@@ -1,6 +1,6 @@
 name = "MriResearchTools"
 uuid = "557dad86-b9bd-4533-8525-1a39684d020f"
-version = "3.4.0"
+version = "3.5.0"
 authors = ["Korbinian Eckstein"]
 
 [deps]
