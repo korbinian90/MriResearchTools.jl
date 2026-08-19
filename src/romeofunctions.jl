@@ -43,4 +43,4 @@ function get_B0_snr(mag, TEs, type=:phase_snr)
     sum(mag .* weight; dims=4) ./ sum(weight; dims=4)
 end
 
-romeovoxelquality = voxelquality
+const romeovoxelquality = voxelquality
