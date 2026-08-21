@@ -24,7 +24,7 @@ include("ice2nii.jl")
 include("laplacianunwrapping.jl")
 include("masking.jl")
 include("qsm_common.jl")
-include("provenance.jl")
+include("citations.jl")
 
 qsm(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm`")
 qsm_average(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm_average`")
@@ -68,7 +68,7 @@ export  readphase, readmag, niread, write_emptynii,
         homodyne, homodyne!,
         to_dim,
         Ice_output_config, read_volume,
-        write_provenance, CITATIONS, NOTICES,
+        write_provenance, register_citation!, describe_input, CITATIONS, NOTICES,
         NumART2star, r2s_from_t2s,
         qsm_average, qsm_B0, qsm_laplacian_combine, qsm_romeo_B0, qsm_mask_filled
 
