@@ -60,6 +60,44 @@ test rather than passing unnoticed. Not fixed here because the cause is not
 obvious from comparing the two code paths and guessing would be worse than
 naming it. `src/mcpc3ds.jl:78`.
 
+### M2b. The FFTW cap: a foundation package taxed by an optional backend
+
+`[compat] FFTW = "1.6 - 1.8"`, added in e1b3e52 (2026-01-08, "QSM.jl fails
+because of a breaking change in FFTW"). It sits in the **main** compat table, so
+it constrains every environment that installs MriResearchTools, whether or not
+that user has ever heard of QSM.jl. There is no way to scope a compat entry to
+"only when this weakdep is loaded", so this cannot be narrowed - it is all users
+or none.
+
+Measured here: MriResearchTools runs fine on FFTW 1.10.0. Both `laplacianunwrap`
+and `laplacianunwrap_fft` return finite results of the right shape, and the only
+FFTW API this package uses is `FFTW.set_num_threads`, unchanged across the
+break. The cap is entirely on QSM.jl's behalf.
+
+QSM.jl upstream, checked 2026-08-22:
+
+| | |
+|---|---|
+| Last release | v0.5.4, 2023-12-03 |
+| Last code commit | 2023-12-03 (last commit of any kind 2024-02-15) |
+| kamesy/QSM.jl#13, our own FFTW fix | opened 2026-01-08, still open, no maintainer response |
+| kamesy/QSM.jl#8, "Compatibility with Julia v1.10" | open since 2024-01-24 |
+
+QSM.jl is also not in the shipped product: `CompileMRI/App/Project.toml` depends
+on QuantitativeSusceptibilityMappingTGV only. It appears solely as a weakdep here
+and in two test environments, and its extension collides with the TGV one on load
+order anyway (M1).
+
+Options, in the order they are worth considering: a General registry compat patch
+against QSM 0.5.4 (fixes it for everyone with no upstream action, needs a manual
+PR to General); dropping the QSM.jl extension and the cap; keeping the extension
+but removing the cap and telling QSM.jl users to pin FFTW themselves; emailing
+the author to ask for co-maintainer rights rather than for one merge. Waiting is
+not one of them - it has already been waited on for 7.5 months.
+
+CompatHelper PR #39 here ("bump compat for FFTW to 1") is this decision, sitting
+open.
+
 ### M3. Abstract and untyped public API (F10)
 Every CLI carries a `Dict{String,Any}` of settings; the option surface has no
 type that can reject a wrong name or a wrong type. This is the structural cause
