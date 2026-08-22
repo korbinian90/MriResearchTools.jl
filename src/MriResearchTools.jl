@@ -68,7 +68,7 @@ export  readphase, readmag, niread, write_emptynii,
         homodyne, homodyne!,
         to_dim,
         Ice_output_config, read_volume,
-        write_provenance, register_citation!, describe_input, CITATIONS, NOTICES,
+        write_provenance, write_citations, register_citation!, describe_input,
         NumART2star, r2s_from_t2s,
         qsm_average, qsm_B0, qsm_laplacian_combine, qsm_romeo_B0, qsm_mask_filled
 

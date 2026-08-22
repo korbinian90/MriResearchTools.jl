@@ -4,14 +4,14 @@
 const ROMEO = MriResearchTools.ROMEO
 
 for k in (:aspire, :homogeneity, :laplacian, :rts, :phase_based_masking, :qsmxt)
-    @test haskey(CITATIONS, k)
+    @test haskey(ROMEO.CITATIONS, k)
 end
 # ... and it must not claim methods it does not implement.
-@test !haskey(CITATIONS, :clearswi)
+@test !haskey(ROMEO.CITATIONS, :clearswi)
 
 # Loading this package makes ROMEO's registry richer; it is one shared registry,
 # not a copy per package.
-@test CITATIONS === ROMEO.CITATIONS
+@test ROMEO.CITATIONS === MriResearchTools.ROMEO.CITATIONS
 
 settings = Dict{String,Any}("TEs" => [4.0, 8.0, 12.0], "weights" => "romeo3")
 
@@ -44,7 +44,7 @@ write_provenance(dir2, "t2"; version="1", args=String[], settings=Dict{String,An
 @test !occursin("US10605885B2", read(joinpath(dir2, "citations_t2.txt"), String))
 
 # Every notice must belong to a citation.
-@test all(haskey(CITATIONS, k) for k in keys(NOTICES))
+@test all(haskey(ROMEO.CITATIONS, k) for k in keys(ROMEO.NOTICES))
 
 @test occursin("(not found)", describe_input("does/not/exist.nii"))
 end
