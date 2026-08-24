@@ -29,12 +29,15 @@ QuantitativeSusceptibilityMappingTGVExt = "QuantitativeSusceptibilityMappingTGV"
 
 [compat]
 DataStructures = "0.11 - 0.18, 0.19"
-# Capped only for the QSM.jl backend (see ext/QSMExt.jl): QSM 0.5.4 calls
-# FFTW.libfftw3[], which throws from FFTW 1.9 on. This package itself works on
-# FFTW 1.10 - it only uses FFTW.set_num_threads. The cap applies to every user,
-# because a compat entry cannot be scoped to a weakdep. Drop it if QSM.jl support
-# is dropped, or once QSM's own bound is fixed upstream or in the registry.
-FFTW = "1.6 - 1.8"
+# Deliberately not capped below 1.9, even though the QSM.jl backend needs it to
+# be: QSM 0.5.4 calls FFTW.libfftw3[], which throws from FFTW 1.9 on. A compat
+# entry cannot be scoped to a weakdep, so capping here caps every user. Measured
+# against the registry: of 473 packages depending on FFTW, 41 require newer than
+# 1.8 - KomaMRIBase among them - and capping made this the only package in
+# General accepting 1.8 but not 1.10. This package itself only uses
+# FFTW.set_num_threads and is unaffected either way. QSM.jl users pin FFTW in
+# their own environment instead; see the README.
+FFTW = "1.6"
 ImageFiltering = "0.7"
 ImageMorphology = "0.2 - 0.4"
 Interpolations = "0.12 - 0.15, 0.16"

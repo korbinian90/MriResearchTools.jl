@@ -3,9 +3,11 @@
 # NOT the recommended backend. QuantitativeSusceptibilityMappingTGV is what the
 # compiled mritools binaries use and what is supported here. QSM.jl is kept
 # reachable for the dipole inversions it offers that TGV does not, but upstream
-# has had no release since 2023-12-03, and it is the sole reason this package
-# caps FFTW at 1.8 for everyone: QSM 0.5.4 calls `FFTW.libfftw3[]`, which throws
-# on FFTW >= 1.9. See kamesy/QSM.jl#13, open and unanswered since 2026-01-08.
+# has had no release since 2023-12-03. QSM 0.5.4 calls `FFTW.libfftw3[]`, which
+# throws from FFTW 1.9 on, so this extension only works if the user pins FFTW to
+# 1.8 in their own environment - the package no longer caps FFTW on everyone's
+# behalf to accommodate it. The README says how; test/Project.toml pins it so
+# this extension stays under test. See kamesy/QSM.jl#13, open since 2026-01-08.
 #
 # This extension and QuantitativeSusceptibilityMappingTGVExt define the same
 # `qsm_B0` and friends with identical signatures, so loading both means the one
