@@ -124,6 +124,10 @@ julia> savenii(ones(64,64,5), "image2", "folder"; voxel_size=(0.54,0.54,2.0))
 """
 function savenii(image::AbstractArray, filepath; header=nothing, kwargs...)
     vol = NIVolume([h for h in [header] if h !== nothing]..., image; kwargs...)
+    dir = dirname(filepath)
+    if !isdir(dir)
+        mkpath(dir)
+    end
     niwrite(filepath, vol)
     return filepath
 end

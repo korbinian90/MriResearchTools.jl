@@ -63,7 +63,7 @@ function gaussiansmooth3d!(image, sigma=[5,5,5]; mask=nothing, nbox=ifelse(isnot
     if length(sigma) < length(dims) @error "Length of sigma and dims does not match!" end
     if length(boxsizes) < length(dims) || length(boxsizes[1]) != nbox @error "boxsizes has wrong size!" end
     if typeof(mask) != Nothing
-        image .*= ifelse.(mask .== 0, NaN, 1) # 0 in mask -> NaN in image
+        image .*= ifelse.(mask .== 0, NaN, 1) # 0 in mask -> NaN in image (works in ND)
     end
     if typeof(weight) != Nothing
         weight = Float32.(weight)
@@ -77,10 +77,10 @@ function gaussiansmooth3d!(image, sigma=[5,5,5]; mask=nothing, nbox=ifelse(isnot
             continue
         end
         linefilter! = getfilter(image, weight, mask, bsize, size(image, dim))
-        K = ifelse(mask isa Nothing || isodd(ibox), :, size(image, dim):-1:1)
+        K = ifelse(mask isa Nothing || isodd(ibox), :, size(image, dim):-1:1) # reverse direction every second iteration because of asymmetric NaN extrapolation
 
-        for J in CartesianIndices(size(image)[(dim+1):end])
-            for I in CartesianIndices(size(image)[1:(dim-1)])
+        for J in CartesianIndices(size(image)[(dim+1):end]) # all dimensions after the current one
+            for I in CartesianIndices(size(image)[1:(dim-1)]) # all dimensions before the current one
                 w = if weight isa Nothing nothing else view(weight,I,K,J) end
                 linefilter!(view(image,I,K,J), w)
             end
@@ -133,9 +133,13 @@ function getfilter(image, weight, mask::Nothing, bsize, len)
     qw = CircularBuffer{eltype(weight)}(bsize)
     return (im, w) -> boxfilterline!(im, bsize, w, q, qw)
 end
-function getfilter(image, weight, mask, bsize, len)
+function getfilter(image, weight::Nothing, mask, bsize, len)
     buffer = ones(eltype(image), len + bsize - 1) * NaN16
     return (im, _) -> nanboxfilterline!(im, bsize, buffer)
+end
+function getfilter(image, weight, mask, bsize, len)
+   # not implemented
+   @error "Weighted smoothing with mask is not implemented yet!"
 end
 
 ## Running Average Filters

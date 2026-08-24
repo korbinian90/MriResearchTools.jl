@@ -82,17 +82,21 @@ See also [`makehomogeneous`](@ref)
 function getsensitivity(mag::NIVolume, datatype=eltype(mag); kw...)
     return getsensitivity(datatype.(mag), getpixdim(mag); kw...)
 end
-function getsensitivity(mag, pixdim; sigma_mm=get_default_sigma_mm(mag, pixdim), nbox=15)
-    return getsensitivity(mag; sigma=mm_to_vox(sigma_mm, pixdim), nbox)
+function getsensitivity(mag, pixdim; sigma_mm=get_default_sigma_mm(mag, pixdim), nbox=15, nbox_smoother=8, mask=nothing)
+    return getsensitivity(mag; sigma=mm_to_vox(sigma_mm, pixdim), nbox, nbox_smoother, mask)
 end
-function getsensitivity(mag; sigma, nbox=15)
-    # segmentation
+function getsensitivity(mag; sigma, nbox=15, nbox_smoother=8, mask=nothing)
+    # `nbox` is the number of boxes per dimension for the boxsegment step
+    # `nbox_smoother` is the number of iterative box-filter passes used by
+    # gaussiansmooth3d to approximate a Gaussian of the requested sigma
     firstecho = view(mag, :, :, :, 1)
-    mask = robustmask(firstecho)
+    if isnothing(mask)
+        mask = robustmask(firstecho)
+    end
     segmentation = boxsegment(firstecho, mask, nbox)
     # smoothing
     sigma1, sigma2 = getsigma(sigma)
-    lowpass = gaussiansmooth3d(firstecho, sigma1; mask=segmentation, nbox=8)
+    lowpass = gaussiansmooth3d(firstecho, sigma1; mask=segmentation, nbox=nbox_smoother)
     fillandsmooth!(lowpass, mean(firstecho[mask]), sigma2)
 
     return lowpass
