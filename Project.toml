@@ -28,7 +28,7 @@ QSMExt = "QSM"
 QuantitativeSusceptibilityMappingTGVExt = "QuantitativeSusceptibilityMappingTGV"
 
 [compat]
-DataStructures = "0.11 - 0.18"
+DataStructures = "0.11 - 0.18, 0.19"
 # Capped only for the QSM.jl backend (see ext/QSMExt.jl): QSM 0.5.4 calls
 # FFTW.libfftw3[], which throws from FFTW 1.9 on. This package itself works on
 # FFTW 1.10 - it only uses FFTW.set_num_threads. The cap applies to every user,
