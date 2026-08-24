@@ -83,8 +83,13 @@ Fast numeric estimation of T2* and R2*
 `NumART2star` `r2s_from_t2s`
 
 QSM integration with single-echo / multi-echo data (experimental stage)  
-`qsm_average` `qsm_B0` `qsm_laplacian_combine` `qsm_romeo_B0` `qsm_mask_filled`  
-Needs the command `using QuantitativeSusceptibilityMappingTGV` for the [TGV QSM](https://github.com/korbinian90/QuantitativeSusceptibilityMappingTGV.jl) backend or `using QSM` to load the [QSM.jl](https://github.com/kamesy/QSM.jl) (rts default) backend.
+`qsm_average` `qsm_B0` `qsm_laplacian_combine` `qsm_romeo_B0`  
+Use `using QuantitativeSusceptibilityMappingTGV` for the [TGV QSM](https://github.com/korbinian90/QuantitativeSusceptibilityMappingTGV.jl) backend. This is the recommended and supported backend, and the one the compiled `mritools` binaries ship.  
+A second backend, [QSM.jl](https://github.com/kamesy/QSM.jl) (rts default), is still reachable with `using QSM`, but it is **not recommended**: upstream has had no release since December 2023, and it pins this package to FFTW 1.8 or older, because QSM 0.5.4 calls `FFTW.libfftw3[]`, which throws from FFTW 1.9 on. Prefer TGV unless you specifically need one of QSM.jl's dipole inversions.  
+Load exactly one of the two backends per session: both extensions define these functions with the same signatures, so with both loaded the backend that loaded last silently wins.
+
+QSM masking (no backend required)  
+`qsm_mask_filled`
 
 Other functions  
 `robustrescale` `getHIP` `getsensitivity` `getscaledimage` `estimatequantile` `estimatenoise`

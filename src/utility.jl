@@ -121,7 +121,7 @@ robustrescale(array, newmin, newmax; threshold=false, mask=trues(size(array)), d
     robustrescale!(datatype.(array), newmin, newmax; threshold, mask)
 
 function robustrescale!(array, newmin, newmax; threshold=false, mask=trues(size(array)))
-    mask[isnan.(array)] .= false
+    mask = mask .& .!isnan.(array) # do not mutate a caller-supplied mask
     q = [0.01, 0.99] # quantiles
     oldq = estimatequantile(array[mask], q)
     oldrange = (oldq[2] - oldq[1]) / (q[2] - q[1])

@@ -1,6 +1,6 @@
 name = "MriResearchTools"
 uuid = "557dad86-b9bd-4533-8525-1a39684d020f"
-version = "3.5.0"
+version = "3.6.0"
 authors = ["Korbinian Eckstein"]
 
 [deps]
@@ -29,6 +29,11 @@ QuantitativeSusceptibilityMappingTGVExt = "QuantitativeSusceptibilityMappingTGV"
 
 [compat]
 DataStructures = "0.11 - 0.18"
+# Capped only for the QSM.jl backend (see ext/QSMExt.jl): QSM 0.5.4 calls
+# FFTW.libfftw3[], which throws from FFTW 1.9 on. This package itself works on
+# FFTW 1.10 - it only uses FFTW.set_num_threads. The cap applies to every user,
+# because a compat entry cannot be scoped to a weakdep. Drop it if QSM.jl support
+# is dropped, or once QSM's own bound is fixed upstream or in the registry.
 FFTW = "1.6 - 1.8"
 ImageFiltering = "0.7"
 ImageMorphology = "0.2 - 0.4"
@@ -39,7 +44,7 @@ OffsetArrays = "1"
 PaddedViews = "0.5"
 QSM = "0.4 - 0.5"
 QuantitativeSusceptibilityMappingTGV = "0.2 - 0.5"
-ROMEO = "1.0"
+ROMEO = "1.5"
 Statistics = "1"
 StatsBase = "0.33 - 0.34"
 julia = "1.9"

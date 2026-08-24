@@ -23,13 +23,14 @@ include("romeofunctions.jl")
 include("ice2nii.jl")
 include("laplacianunwrapping.jl")
 include("masking.jl")
+include("qsm_common.jl")
+include("citations.jl")
 
 qsm(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm`")
 qsm_average(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm_average`")
 qsm_B0(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm_B0`")
 qsm_laplacian_combine(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm_laplacian_combine`")
 qsm_romeo_B0(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm_romeo_B0`")
-qsm_mask_filled(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm_mask_filled`")
 phase_based_mask(args...; kwargs...) = @warn("Load ImageFiltering.jl to use this method: `using ImageFiltering`\n If already loadad, check expected arguments via `?phase_based_masking`")
 if !isdefined(Base, :get_extension)
     include("../ext/QSMExt.jl")
@@ -67,6 +68,7 @@ export  readphase, readmag, niread, write_emptynii,
         homodyne, homodyne!,
         to_dim,
         Ice_output_config, read_volume,
+        write_provenance, write_citations, register_citation!, describe_input,
         NumART2star, r2s_from_t2s,
         qsm_average, qsm_B0, qsm_laplacian_combine, qsm_romeo_B0, qsm_mask_filled
 
