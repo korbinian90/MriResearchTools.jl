@@ -60,7 +60,7 @@ julia> mask = mask_from_voxelquality(qmap);
 
 See also [`robustmask`](@ref), [`brain_mask`](@ref)
 """
-mask_from_voxelquality = robustmask
+const mask_from_voxelquality = robustmask
 
 function fill_holes(mask; max_hole_size=length(mask) / 20)
     return .!imfill(.!mask, (1, max_hole_size)) # fills all holes up to max_hole_size (uses 6 connectivity as default for 3D)
