@@ -32,7 +32,12 @@ jobs:
           - macOS-latest
           - windows-latest
         arch:
-          - x64
+          # 'default', not 'x64': macos-latest is Apple Silicon, and
+          # julia-actions/setup-julia v3 errors on an explicit x64 request there
+          # rather than quietly using an x64 build as v2 did. 'default' gives x64
+          # on ubuntu and windows and aarch64 on macOS, which is what macOS users
+          # actually run.
+          - default
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
