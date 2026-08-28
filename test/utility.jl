@@ -40,3 +40,25 @@ a = 50:75
 @test reshape([5], 1, 1, 1, 1) == to_dim(5, 4)
 
 end
+
+@testitem "getHIP element type" begin
+# The accumulator follows the data instead of being pinned to ComplexF64. It is
+# the largest transient in mcpc3ds, and the result is only ever consumed through
+# abs() and angle(), where Float32 is orders below the noise.
+mag = Float32.(4000 .* rand(8, 8, 4, 2, 8))
+phase = Float32.(2pi .* rand(8, 8, 4, 2, 8) .- pi)
+hip32 = getHIP(mag, phase)
+@test eltype(hip32) === ComplexF32
+
+# Float64 input is preserved - this follows the input, it does not force a narrowing.
+@test eltype(getHIP(Float64.(mag), Float64.(phase))) === ComplexF64
+# An integer magnitude must not produce a Complex{Int} accumulator that cis cannot
+# be accumulated into.
+@test eltype(getHIP(round.(UInt16, mag), phase)) === ComplexF32
+
+# Agreement with the Float64 computation, on the two quantities anyone reads.
+hip64 = getHIP(Float64.(mag), Float64.(phase))
+@test maximum(abs.(abs.(hip64) .- abs.(hip32)) ./ abs.(hip64)) < 1e-5
+@test maximum(abs.(mod.(angle.(hip64) .- angle.(hip32) .+ pi, 2pi) .- pi)) < 1e-5
+end
+
