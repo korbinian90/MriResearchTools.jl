@@ -62,7 +62,7 @@ rm.(joinpath.(dir_temp, ["name.nii", "name2.nii", "name3.nii.gz"]))
 end
 
 @testitem "savenii output type" begin
-using NIfTI
+# niread is exported by MriResearchTools, so this needs no NIfTI test dependency.
 # What savenii writes is decided by the eltype of the array it hands to niwrite -
 # a header's own datatype is discarded - so this is the one place the output type
 # is controlled, for every package that writes through it.
