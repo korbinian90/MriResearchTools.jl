@@ -107,9 +107,20 @@ function savenii(image, name, writedir, header=nothing; kwargs...)
     savenii(image, joinpath(writedir, name); header, kwargs...)
 end
 """
-    savenii(image::AbstractArray, filepath; header=nothing, kwargs...)
+    savenii(image::AbstractArray, filepath; header=nothing, datatype=Float32, kwargs...)
 
     savenii(image::AbstractArray, name, writedir, header=nothing, kwargs...)
+
+The image is written as `datatype`, which defaults to `Float32` (`ComplexF32`
+for complex data) whatever the array holds - a Float64 result is half the file
+for no less information, and an algorithm that needs Float64 internally should
+narrow here rather than compute in Float32. Pass `datatype=nothing` to write the
+array's own element type unchanged, or any type to force it.
+
+Note that integer element types are promoted to `Float32` by that default, on
+purpose: NIfTI.jl 0.6.2 writes a wrong `bitpix` for every integer width other
+than 32 bits, so a `UInt8` mask would get a header contradicting itself. Pass
+`datatype=UInt8` to write it anyway.
 
 Warning: MRIcro can only open images with types Int32, Int64, Float32, Float64
 
@@ -122,7 +133,8 @@ julia> savenii(ones(64,64,5), "image2", "folder")
 julia> savenii(ones(64,64,5), "image2", "folder"; voxel_size=(0.54,0.54,2.0))
 ```
 """
-function savenii(image::AbstractArray, filepath; header=nothing, kwargs...)
+function savenii(image::AbstractArray, filepath; header=nothing, datatype=default_output_type(eltype(image)), kwargs...)
+    image = to_output_type(image, datatype)
     vol = NIVolume([h for h in [header] if h !== nothing]..., image; kwargs...)
     dir = dirname(filepath)
     if !isdir(dir)
@@ -132,8 +144,29 @@ function savenii(image::AbstractArray, filepath; header=nothing, kwargs...)
     return filepath
 end
 
-ConvertTypes = Union{BitArray, AbstractArray{UInt8}} #TODO debug NIfTI
-MriResearchTools.savenii(image::ConvertTypes, args...;kwargs...) = savenii(Float32.(image), args...;kwargs...)
+# The on-disk NIfTI datatype comes from the eltype of the array handed to
+# niwrite and from nothing else - a header passed as `header=` has its datatype
+# and bitpix discarded by NIfTI.jl's niupdate - so converting the array is the
+# only way to control it. This is the one function every package in the family
+# writes through, which is why the rule lives here.
+#
+# Integers are promoted to Float32 as a workaround, not a preference: NIfTI.jl
+# 0.6.2 derives bitpix from typeof(one(T)*1.0f0+1.0f0) rather than the element
+# type, so it writes a self-contradicting header for every integer width other
+# than 32 bits (UInt8 -> datatype 2 with bitpix 32, Int16 -> 4 with 32, Int64 ->
+# 1024 with 32). A UInt8 mask, one byte per voxel instead of four, is exactly
+# what cannot be written correctly today. Pass datatype=UInt8 to do it anyway.
+"""
+    default_output_type(T)
+
+The element type `savenii` writes for an array of element type `T`: `Float32`,
+or `ComplexF32` for complex data. See [`savenii`](@ref) to override it.
+"""
+default_output_type(::Type{<:Complex}) = ComplexF32
+default_output_type(::Type) = Float32
+
+to_output_type(image, ::Nothing) = image
+to_output_type(image, ::Type{T}) where {T} = eltype(image) === T ? image : T.(image)
 
 """
     write_emptynii(size, path; datatype=Float32, header=NIVolume(zeros(datatype, 1)).header)

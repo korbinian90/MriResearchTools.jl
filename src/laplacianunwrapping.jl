@@ -6,19 +6,29 @@ function laplacianunwrap!(ϕ::AbstractArray)
 end
 
 # Schofield and Zhu 2003, https://doi.org/10.1364/OL.28.001194
-k(ϕw) = 1 / 2π .* ∇⁻²(∇²_nw(ϕw) - ∇²(ϕw))  # (1)
+#
+# The four transforms below run on arrays of the same size, so pqterm is built
+# once here and passed down rather than rebuilt inside each - it is a full-volume
+# array, 64 MB at 256^3.
+k(ϕw) = (pq = pqterm(size(ϕw)); 1 / 2π .* ∇⁻²(∇²_nw(ϕw, pq) - ∇²(ϕw, pq), pq))  # (1)
 
-∇²(x) = -(2π)^ndims(x) / length(x) .* idct(pqterm(size(x)) .* dct(x))  # (2)
+∇²(x, pq=pqterm(size(x))) = -(2π)^ndims(x) / length(x) .* idct(pq .* dct(x))  # (2)
 
-∇⁻²(x) = -length(x) / (2π)^ndims(x) .* idct(dct(x) ./ pqterm(size(x)))  # (3)
+∇⁻²(x, pq=pqterm(size(x))) = -length(x) / (2π)^ndims(x) .* idct(dct(x) ./ pq)  # (3)
 
-∇²_nw(ϕw) = cos.(ϕw) .* ∇²(sin.(ϕw)) .- sin.(ϕw) .* ∇²(cos.(ϕw))  # (in text)
+∇²_nw(ϕw, pq=pqterm(size(ϕw))) = cos.(ϕw) .* ∇²(sin.(ϕw), pq) .- sin.(ϕw) .* ∇²(cos.(ϕw), pq)  # (in text)
 
 
-pqterm(sz::NTuple{1}) = (1:sz[1]).^2  # 1D case
-pqterm(sz::NTuple{2}) = [p^2 + q^2 for p in 1:sz[1], q in 1:sz[2]]  # 2D case
-pqterm(sz::NTuple{3}) = [p^2 + q^2 + t^2 for p in 1:sz[1], q in 1:sz[2], t in 1:sz[3]]  # 3D case
-pqterm(sz::NTuple{4}) = [p^2 + q^2 + t^2 + r^2 for p in 1:sz[1], q in 1:sz[2], t in 1:sz[3], r in 1:sz[4]]  # 4D case
+# Int32 holds sums of at most four squared indices exactly (4*26000^2 fits) and
+# converts exactly to Float64 in the multiply and divide above, so the transforms
+# are unaffected. The arithmetic itself has to stay Float64: (2) minus (3) in k is
+# a difference of two nearly identical Laplacians, exactly zero wherever the phase
+# is unwrapped, and the residual is amplified by length/(2π)^N before it reaches
+# the phase.
+pqterm(sz::NTuple{1}) = Int32[p^2 for p in 1:sz[1]]  # 1D case
+pqterm(sz::NTuple{2}) = Int32[p^2 + q^2 for p in 1:sz[1], q in 1:sz[2]]  # 2D case
+pqterm(sz::NTuple{3}) = Int32[p^2 + q^2 + t^2 for p in 1:sz[1], q in 1:sz[2], t in 1:sz[3]]  # 3D case
+pqterm(sz::NTuple{4}) = Int32[p^2 + q^2 + t^2 + r^2 for p in 1:sz[1], q in 1:sz[2], t in 1:sz[3], r in 1:sz[4]]  # 4D case
 
 """
     laplacianunwrap(ϕ::AbstractArray)

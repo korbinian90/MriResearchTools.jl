@@ -178,9 +178,14 @@ Calculates the Hermitian Inner Product between the specified echoes.
 """
 function getHIP(mag, phase; echoes=[1,2])
     e1, e2 = echoes
-    compl = zeros(ComplexF64, size(mag)[1:3])
+    # The accumulator follows the data, like the complex-input method below: this
+    # is the largest transient in mcpc3ds, and the result is read only through
+    # abs() and angle(). float() keeps an integer magnitude from producing a
+    # Complex{Int} that cis cannot be summed into.
+    T = complex(float(promote_type(eltype(mag), eltype(phase))))
+    compl = zeros(T, size(mag)[1:3])
     for iCha in axes(mag, 5)
-        compl .+= exp.(1.0im .* (phase[:,:,:,e2,iCha] .- phase[:,:,:,e1,iCha])) .* mag[:,:,:,e1,iCha] .* mag[:,:,:,e2,iCha]
+        compl .+= cis.(phase[:,:,:,e2,iCha] .- phase[:,:,:,e1,iCha]) .* mag[:,:,:,e1,iCha] .* mag[:,:,:,e2,iCha]
     end
     compl
 end
