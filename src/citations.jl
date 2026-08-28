@@ -6,13 +6,27 @@
 # the code that implements the method, and the arrows all point one way.
 
 function __init__()
+    # MCPC-3D-S and ASPIRE were published together in the ASPIRE paper, so they
+    # share a reference but are two different methods, and only ASPIRE is
+    # patented. This package implements MCPC-3D-S: mcpc3ds unwraps the HIP with
+    # ROMEO on every path and never takes the ASPIRE shortcut (see mcpc3ds.jl).
+    # So :mcpc3ds is what the code cites, and it carries no patent notice.
+    register_citation!(:mcpc3ds,
+        """Eckstein, K., Dymerska, B., Bachrata, B., Bogner, W., Poljanc, K., Trattnig, S., Robinson, S.D., 2018.
+           Computationally Efficient Combination of Multi-channel Phase Data From Multi-echo Acquisitions (ASPIRE).
+           Magnetic Resonance in Medicine 79, 2996-3006.
+           https://doi.org/10.1002/mrm.26963""")
+
+    # Registered for the method itself, which nothing here runs today: ASPIRE
+    # skips unwrapping when the echo times satisfy TE2 = n*TE1. If that path is
+    # ever implemented, cite :aspire and the notice comes with it.
     register_citation!(:aspire,
         """Eckstein, K., Dymerska, B., Bachrata, B., Bogner, W., Poljanc, K., Trattnig, S., Robinson, S.D., 2018.
            Computationally Efficient Combination of Multi-channel Phase Data From Multi-echo Acquisitions (ASPIRE).
            Magnetic Resonance in Medicine 79, 2996-3006.
            https://doi.org/10.1002/mrm.26963""";
         notice =
-        """PATENT: MCPC-3D-S / ASPIRE is covered by US10605885B2
+        """PATENT: ASPIRE is covered by US10605885B2
            (https://patents.google.com/patent/US10605885B2/en). Per the upstream ASPIRE
            repository, no licence is required for scientific use and the method can be
            applied free of charge, but a licence IS required for commercial use, and the
