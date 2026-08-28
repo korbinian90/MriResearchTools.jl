@@ -43,10 +43,8 @@ write_provenance(dir2, "t2"; version="1", args=String[], settings=Dict{String,An
                  cite=[:romeo])
 @test !occursin("US10605885B2", read(joinpath(dir2, "citations_t2.txt"), String))
 
-# In particular not for MCPC-3D-S, which shares the ASPIRE paper as its
-# reference but is a different method and is not patented. mcpc3ds unwraps with
-# ROMEO on every path and never takes the ASPIRE shortcut, so a run of it must
-# cite the paper without dragging the patent notice along.
+# In particular not for MCPC-3D-S, which shares the ASPIRE paper as its reference
+# but is a different method and is not patented.
 dir3 = mktempdir()
 write_provenance(dir3, "t3"; version="1", args=String[], settings=Dict{String,Any}(),
                  cite=[:mcpc3ds])

@@ -178,14 +178,10 @@ Calculates the Hermitian Inner Product between the specified echoes.
 """
 function getHIP(mag, phase; echoes=[1,2])
     e1, e2 = echoes
-    # The accumulator type follows the data instead of being fixed at
-    # ComplexF64, matching the complex-input method below, which has always used
-    # eltype. For the Float32 volumes readmag and readphase actually return this
-    # is the largest transient in mcpc3ds, and ComplexF64 doubled it to no end:
-    # the result is consumed only through abs() and angle(), and the sum over
-    # channels is coherent, so there is no cancellation to guard against. cis
-    # rather than exp(1.0im * x) for the same reason - the literal forced a
-    # ComplexF64 temporary whatever the input held.
+    # The accumulator follows the data, like the complex-input method below: this
+    # is the largest transient in mcpc3ds, and the result is read only through
+    # abs() and angle(). float() keeps an integer magnitude from producing a
+    # Complex{Int} that cis cannot be summed into.
     T = complex(float(promote_type(eltype(mag), eltype(phase))))
     compl = zeros(T, size(mag)[1:3])
     for iCha in axes(mag, 5)

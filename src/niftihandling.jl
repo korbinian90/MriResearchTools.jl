@@ -146,34 +146,16 @@ end
 
 # The on-disk NIfTI datatype comes from the eltype of the array handed to
 # niwrite and from nothing else - a header passed as `header=` has its datatype
-# and bitpix discarded by NIfTI.jl's niupdate. Converting the array is therefore
-# the only way to control what is written, which is why this lives here, at the
-# one function every package in the family writes through, rather than being
-# repeated in each of them.
+# and bitpix discarded by NIfTI.jl's niupdate - so converting the array is the
+# only way to control it. This is the one function every package in the family
+# writes through, which is why the rule lives here.
 #
-# Float32 is the default because it is what an MRI result actually carries: a
-# phase map, a field map, an SWI or an R2* map holds nowhere near seven
-# significant digits, and Float64 doubles every file for none of them. Where an
-# algorithm genuinely needs Float64 - the 2pi wrap decisions in ROMEO, the DCT
-# Laplacian's catastrophic cancellation, the sliding accumulators in the box
-# filter - it should keep computing in Float64 and narrow once, here, at the
-# write.
-#
-# Integers are promoted rather than preserved, and that is a workaround, not a
-# preference. NIfTI.jl 0.6.2 derives bitpix from typeof(one(T)*1.0f0+1.0f0)
-# rather than from the element type, so it writes a self-contradicting header
-# for every integer width that is not 32 bits. Measured on 0.6.2:
-#
-#     UInt8  -> datatype 2    bitpix 32 (should be 8)
-#     Int16  -> datatype 4    bitpix 32 (should be 16)
-#     Int64  -> datatype 1024 bitpix 32 (should be 64)
-#
-# Only Bool, Int32, UInt32, Float32, Float64, ComplexF32 and ComplexF64 come out
-# correct. A UInt8 mask is the right thing to write - one byte per voxel instead
-# of four - and is exactly what cannot be written correctly today. That is what
-# the "#TODO debug NIfTI" this replaces was about; the bug is still there, so
-# the workaround stays, now with its reason recorded. Pass datatype=UInt8
-# explicitly if you want it anyway.
+# Integers are promoted to Float32 as a workaround, not a preference: NIfTI.jl
+# 0.6.2 derives bitpix from typeof(one(T)*1.0f0+1.0f0) rather than the element
+# type, so it writes a self-contradicting header for every integer width other
+# than 32 bits (UInt8 -> datatype 2 with bitpix 32, Int16 -> 4 with 32, Int64 ->
+# 1024 with 32). A UInt8 mask, one byte per voxel instead of four, is exactly
+# what cannot be written correctly today. Pass datatype=UInt8 to do it anyway.
 """
     default_output_type(T)
 

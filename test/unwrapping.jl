@@ -21,13 +21,10 @@ test(unwrap_individual)
 end
 
 @testitem "laplacian unwrapping pqterm" begin
-# pqterm is a table of small integers, so it is stored as Int32 and built once
-# per call instead of four times. Both are storage changes: Int32 converts
-# exactly to Float64 in the multiply and the divide it feeds, so the transforms
-# must come out bit-identical. That matters more here than anywhere else in the
-# package - k is a difference of two nearly identical Laplacians, exactly zero
-# wherever the phase is unwrapped, and the cancellation residual is amplified by
-# length/(2pi)^N before it reaches the phase.
+# pqterm's Int32 storage must not perturb the transforms: k is a difference of
+# two nearly identical Laplacians, exactly zero wherever the phase is unwrapped,
+# and the residual is amplified by length/(2pi)^N before it reaches the phase.
+# So the assertion is bit-identical, not merely close.
 pq = MriResearchTools.pqterm((6, 5, 4))
 @test eltype(pq) === Int32
 @test pq == [p^2 + q^2 + t^2 for p in 1:6, q in 1:5, t in 1:4]
@@ -35,7 +32,7 @@ pq = MriResearchTools.pqterm((6, 5, 4))
 @test eltype(MriResearchTools.pqterm((6, 5))) === Int32
 @test eltype(MriResearchTools.pqterm((6, 5, 4, 3))) === Int32
 
-# Reference k, computed the way it was before pqterm was hoisted and narrowed.
+# Reference k, with a plain Int64 pqterm rebuilt per transform.
 ref_pq(sz) = [p^2 + q^2 + t^2 for p in 1:sz[1], q in 1:sz[2], t in 1:sz[3]]
 ref_lap(x) = -(2pi)^ndims(x) / length(x) .* MriResearchTools.idct(ref_pq(size(x)) .* MriResearchTools.dct(x))
 ref_ilap(x) = -length(x) / (2pi)^ndims(x) .* MriResearchTools.idct(MriResearchTools.dct(x) ./ ref_pq(size(x)))

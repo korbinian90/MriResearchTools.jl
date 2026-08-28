@@ -6,11 +6,8 @@
 # the code that implements the method, and the arrows all point one way.
 
 function __init__()
-    # MCPC-3D-S and ASPIRE were published together in the ASPIRE paper, so they
-    # share a reference but are two different methods, and only ASPIRE is
-    # patented. This package implements MCPC-3D-S: mcpc3ds unwraps the HIP with
-    # ROMEO on every path and never takes the ASPIRE shortcut (see mcpc3ds.jl).
-    # So :mcpc3ds is what the code cites, and it carries no patent notice.
+    # MCPC-3D-S and ASPIRE were published together, so they share a reference,
+    # but they are different methods and only ASPIRE is patented.
     register_citation!(:mcpc3ds,
         """Eckstein, K., Dymerska, B., Bachrata, B., Bogner, W., Poljanc, K., Trattnig, S., Robinson, S.D., 2018.
            Computationally Efficient Combination of Multi-channel Phase Data From Multi-echo Acquisitions (ASPIRE).
@@ -18,9 +15,8 @@ function __init__()
            https://doi.org/10.1002/mrm.26963""";
         label = "MCPC-3D-S Coil Combination")
 
-    # Registered for the method itself, which nothing here runs today: ASPIRE
-    # skips unwrapping when the echo times satisfy TE2 = n*TE1. If that path is
-    # ever implemented, cite :aspire and the notice comes with it.
+    # ASPIRE skips unwrapping when the echo times satisfy TE2 = n*TE1. Nothing
+    # here implements that, so nothing cites this yet.
     register_citation!(:aspire,
         """Eckstein, K., Dymerska, B., Bachrata, B., Bogner, W., Poljanc, K., Trattnig, S., Robinson, S.D., 2018.
            Computationally Efficient Combination of Multi-channel Phase Data From Multi-echo Acquisitions (ASPIRE).
