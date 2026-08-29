@@ -61,3 +61,13 @@ hip64 = getHIP(Float64.(mag), Float64.(phase))
 @test maximum(abs.(mod.(angle.(hip64) .- angle.(hip32) .+ pi, 2pi) .- pi)) < 1e-5
 end
 
+
+@testitem "Aqua" begin
+    using Aqua
+    # piracies is off, and it is a real finding rather than a false positive:
+    # copy, similar and setindex! are defined here on NIfTI's NIfTI1Header and
+    # NIVolume (niftihandling.jl:79, :81, :204). They are long-standing
+    # conveniences this package deliberately owns, so the check is disabled
+    # rather than suppressed one by one - revisit if they ever move upstream.
+    Aqua.test_all(MriResearchTools; piracies=false)
+end
