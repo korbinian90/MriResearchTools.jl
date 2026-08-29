@@ -79,7 +79,7 @@ Published in [CLEAR-SWI](https://doi.org/10.1016/j.neuroimage.2021.118175).
 
 See also [`makehomogeneous`](@ref)
 """
-function getsensitivity(mag::NIVolume, datatype=eltype(mag); kw...)
+function getsensitivity(mag::NIVolume, datatype::Type=eltype(mag); kw...)
     return getsensitivity(datatype.(mag), getpixdim(mag); kw...)
 end
 function getsensitivity(mag, pixdim; sigma_mm=get_default_sigma_mm(mag, pixdim), nbox=15, nbox_smoother=8, mask=nothing)

@@ -38,8 +38,7 @@ if !isdefined(Base, :get_extension)
 end
 
 export  readphase, readmag, niread, write_emptynii,
-        header, affine,
-        affine_transformation,
+        header,
         savenii,
         estimatenoise,
         robustmask, robustmask!,
