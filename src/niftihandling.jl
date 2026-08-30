@@ -150,19 +150,19 @@ end
 # only way to control it. This is the one function every package in the family
 # writes through, which is why the rule lives here.
 #
-# Integers are promoted to Float32 as a workaround, not a preference: NIfTI.jl
-# 0.6.2 derives bitpix from typeof(one(T)*1.0f0+1.0f0) rather than the element
-# type, so it writes a self-contradicting header for every integer width other
-# than 32 bits (UInt8 -> datatype 2 with bitpix 32, Int16 -> 4 with 32, Int64 ->
-# 1024 with 32). A UInt8 mask, one byte per voxel instead of four, is exactly
-# what cannot be written correctly today. Pass datatype=UInt8 to do it anyway.
+# Masks go out as UInt8, one byte per voxel instead of four. This needs NIfTI
+# 0.6.3: before it, bitpix came from the scaled type rather than the stored one,
+# so a UInt8 array was written as datatype 2 with bitpix 32 and any reader
+# outside Julia that trusts bitpix got it wrong.
 """
     default_output_type(T)
 
 The element type `savenii` writes for an array of element type `T`: `Float32`,
-or `ComplexF32` for complex data. See [`savenii`](@ref) to override it.
+`ComplexF32` for complex data, and `UInt8` for masks. See [`savenii`](@ref) to
+override it.
 """
 default_output_type(::Type{<:Complex}) = ComplexF32
+default_output_type(::Type{Bool}) = UInt8
 default_output_type(::Type) = Float32
 
 to_output_type(image, ::Nothing) = image

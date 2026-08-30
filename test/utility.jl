@@ -79,10 +79,16 @@ end
     # NIVolume (niftihandling.jl:79, :81, :204). They are long-standing
     # conveniences this package deliberately owns, so the check is disabled
     # rather than suppressed one by one - revisit if they ever move upstream.
-    # persistent_tasks needs a longer window than the 5s default: it waits for a
-    # subprocess that loaded the package to exit, and on a cold Windows runner
-    # with Julia 1.12 that overran. There is no persistent task - measured here,
-    # the process exits within 1s - so this is the check's timeout, not its
-    # subject. A genuine task would never exit and would still fail.
-    Aqua.test_all(MriResearchTools; piracies=false, persistent_tasks=(; tmax=60))
+    # persistent_tasks needs a far longer window than the 5s default: it waits
+    # for a subprocess that loaded the package to exit, and loading this one
+    # costs whatever precompilation costs on the runner. 60 was not enough
+    # either - a cold Windows runner on Julia 1.12 overran it - so the bound is
+    # now generous rather than fitted.
+    #
+    # This is the check's timeout and not its subject. There is no persistent
+    # task: the process exits within 1s when measured here, ubuntu passes on the
+    # same Julia 1.12, and Windows passes on 1.10. Only cold Windows with 1.12
+    # is slow. A genuine persistent task would never exit and would still fail
+    # this check, whatever the bound.
+    Aqua.test_all(MriResearchTools; piracies=false, persistent_tasks=(; tmax=300))
 end
