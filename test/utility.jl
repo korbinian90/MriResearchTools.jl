@@ -42,6 +42,9 @@ a = 50:75
 end
 
 @testitem "getHIP element type" begin
+using Random
+Random.seed!(20260829)  # the agreement check below is data-dependent, so fix the data
+
 # The accumulator follows the data: it is the largest transient in mcpc3ds, and
 # the result is read only through abs() and angle().
 mag = Float32.(4000 .* rand(8, 8, 4, 2, 8))
@@ -56,8 +59,30 @@ hip32 = getHIP(mag, phase)
 @test eltype(getHIP(round.(UInt16, mag), phase)) === ComplexF32
 
 # Agreement with the Float64 computation, on the two quantities anyone reads.
+# Only where the value is meaningful: this is a coherent sum over channels, and
+# on uniformly random phases it can cancel to near zero at a voxel, where a
+# relative error and an angle are both meaningless. Real data does not cancel
+# like that, but the test data does, and unguarded it made this check depend on
+# the seed.
 hip64 = getHIP(Float64.(mag), Float64.(phase))
-@test maximum(abs.(abs.(hip64) .- abs.(hip32)) ./ abs.(hip64)) < 1e-5
-@test maximum(abs.(mod.(angle.(hip64) .- angle.(hip32) .+ pi, 2pi) .- pi)) < 1e-5
+signal = abs.(hip64) .> 0.01 * maximum(abs, hip64)
+@test count(signal) > length(hip64) ÷ 2  # the guard must not empty the comparison
+@test maximum(abs.(abs.(hip64[signal]) .- abs.(hip32[signal])) ./ abs.(hip64[signal])) < 1e-5
+@test maximum(abs.(mod.(angle.(hip64[signal]) .- angle.(hip32[signal]) .+ pi, 2pi) .- pi)) < 1e-5
 end
 
+
+@testitem "Aqua" begin
+    using Aqua
+    # piracies is off, and it is a real finding rather than a false positive:
+    # copy, similar and setindex! are defined here on NIfTI's NIfTI1Header and
+    # NIVolume (niftihandling.jl:79, :81, :204). They are long-standing
+    # conveniences this package deliberately owns, so the check is disabled
+    # rather than suppressed one by one - revisit if they ever move upstream.
+    # persistent_tasks needs a longer window than the 5s default: it waits for a
+    # subprocess that loaded the package to exit, and on a cold Windows runner
+    # with Julia 1.12 that overran. There is no persistent task - measured here,
+    # the process exits within 1s - so this is the check's timeout, not its
+    # subject. A genuine task would never exit and would still fail.
+    Aqua.test_all(MriResearchTools; piracies=false, persistent_tasks=(; tmax=60))
+end
