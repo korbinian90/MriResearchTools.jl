@@ -80,15 +80,18 @@ a = rand(Float64, 6, 6, 3)
 @test eltype(ondisk(rand(Float32, 6, 6, 3)).raw) === Float32   # already right, untouched
 @test eltype(ondisk(rand(ComplexF64, 6, 6, 3)).raw) === ComplexF32
 
-# Masks are promoted rather than written as UInt8, because NIfTI.jl 0.6.2 writes
-# bitpix 32 for every integer width other than 32 bits - a UInt8 mask would get a
-# header contradicting itself. The values must still be exactly 0 and 1.
+# Masks go out as UInt8, a quarter of the bytes. datatype and bitpix have to
+# agree, which is what the NIfTI 0.6.3 lower bound is for: readers outside Julia
+# trust bitpix, and before that fix this array was written as datatype 2 with
+# bitpix 32. The values must still be exactly 0 and 1.
 m = rand(Bool, 6, 6, 3)
 w = ondisk(m)
-@test eltype(w.raw) === Float32
-@test w.header.bitpix == 32
-@test (w.raw .> 0.5) == m
+@test eltype(w.raw) === UInt8
+@test w.header.datatype == 2
+@test w.header.bitpix == 8
+@test (w.raw .> 0) == m
 @test all(x -> x == 0 || x == 1, w.raw)
+# Only Bool is a mask. A UInt8 array carries values, so it keeps the float path.
 @test eltype(ondisk(rand(UInt8, 6, 6, 3)).raw) === Float32
 
 # Both escape hatches.
