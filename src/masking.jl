@@ -40,6 +40,8 @@ The automatic threshold is multiplied with `factor`.
 julia> mask1 = robustmask(mag); # Using magnitude
 julia> mask2 = phase_based_mask(phase); # Using phase
 julia> mask3 = robustmask(romeovoxelquality(phase; mag)); # Using magnitude and phase
+julia> # Multi-echo phase additionally needs the echo times:
+julia> mask4 = robustmask(romeovoxelquality(phase_3echo; mag=mag_3echo, TEs=[1,2,3]));
 julia> brain = brain_mask(robustmask(romeovoxelquality(phase; mag); threshold=0.9));
 ```
 
