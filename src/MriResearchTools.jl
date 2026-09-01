@@ -6,11 +6,9 @@ using NIfTI
 using ROMEO
 using Statistics
 using DataStructures
-using ImageMorphology
 using LocalFilters
 using PaddedViews
 using OffsetArrays
-import StatsBase: countmap
 
 include("utility.jl")
 include("smoothing.jl")

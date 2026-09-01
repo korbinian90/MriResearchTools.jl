@@ -64,13 +64,69 @@ See also [`robustmask`](@ref), [`brain_mask`](@ref)
 """
 const mask_from_voxelquality = robustmask
 
+# Connected components, 6-connectivity in 3D (4 in 2D, the N-dimensional
+# diamond in general). This used to be ImageMorphology's `label_components` and
+# `imfill`, which were the only two things this package took from that
+# dependency; ImageMorphology in turn is the sole reason the whole
+# LoopVectorization stack (15 packages) was in the manifest, which is a large
+# part of the compiled binaries and keeps the stack off Julia 1.12. The
+# partition produced here is identical to ImageMorphology's.
+#
+# Union-find over linear indices, unioning each true voxel with its already
+# visited neighbour in each dimension, so one pass suffices.
+function connected_components(mask::AbstractArray{Bool,N}) where N
+    parent = collect(1:length(mask))
+    function find(x)
+        root = x
+        while parent[root] != root
+            root = parent[root]
+        end
+        while parent[x] != root # path compression
+            parent[x], x = root, parent[x]
+        end
+        return root
+    end
+    lin = LinearIndices(mask)
+    for I in CartesianIndices(mask)
+        mask[I] || continue
+        for d in 1:N
+            J = I - CartesianIndex(ntuple(k -> k == d ? 1 : 0, N))
+            (checkbounds(Bool, mask, J) && mask[J]) || continue
+            a, b = find(lin[I]), find(lin[J])
+            a != b && (parent[a] = b)
+        end
+    end
+    labels = zeros(Int, size(mask))
+    sizes = Int[]
+    label_of_root = Dict{Int,Int}()
+    for I in CartesianIndices(mask)
+        mask[I] || continue
+        root = find(lin[I])
+        label = get(label_of_root, root, 0)
+        if label == 0
+            push!(sizes, 0)
+            label = label_of_root[root] = length(sizes)
+        end
+        labels[I] = label
+        sizes[label] += 1
+    end
+    return labels, sizes
+end
+
 function fill_holes(mask; max_hole_size=length(mask) / 20)
-    return .!imfill(.!mask, (1, max_hole_size)) # fills all holes up to max_hole_size (uses 6 connectivity as default for 3D)
+    labels, sizes = connected_components(.!mask) # holes are background components
+    filled = copy(mask)
+    for I in CartesianIndices(mask)
+        label = labels[I]
+        label != 0 && sizes[label] <= max_hole_size && (filled[I] = true)
+    end
+    return filled
 end
 
 function get_largest_connected_region(mask)
-    labels = label_components(mask)
-    return labels .== argmax(countmap(labels[labels .!= 0]))
+    labels, sizes = connected_components(mask)
+    isempty(sizes) && return falses(size(mask))
+    return labels .== argmax(sizes)
 end
 
 """
