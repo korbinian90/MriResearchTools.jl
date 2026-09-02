@@ -10,6 +10,11 @@ using LocalFilters
 using PaddedViews
 using OffsetArrays
 
+# Evaluated while this package is precompiled, so the version is part of the
+# image and does not depend on path metadata being readable at runtime. See
+# ROMEO.package_version.
+const PKG_VERSION = pkgversion(@__MODULE__)
+
 include("utility.jl")
 include("smoothing.jl")
 include("intensitycorrection.jl")
