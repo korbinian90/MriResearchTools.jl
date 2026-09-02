@@ -40,6 +40,8 @@ The automatic threshold is multiplied with `factor`.
 julia> mask1 = robustmask(mag); # Using magnitude
 julia> mask2 = phase_based_mask(phase); # Using phase
 julia> mask3 = robustmask(romeovoxelquality(phase; mag)); # Using magnitude and phase
+julia> # Multi-echo phase additionally needs the echo times:
+julia> mask4 = robustmask(romeovoxelquality(phase_3echo; mag=mag_3echo, TEs=[1,2,3]));
 julia> brain = brain_mask(robustmask(romeovoxelquality(phase; mag); threshold=0.9));
 ```
 
@@ -62,13 +64,60 @@ See also [`robustmask`](@ref), [`brain_mask`](@ref)
 """
 const mask_from_voxelquality = robustmask
 
+# Connected components with diamond connectivity (6 in 3D), union-find in one pass.
+function connected_components(mask::AbstractArray{Bool,N}) where N
+    parent = collect(1:length(mask))
+    function find(x)
+        root = x
+        while parent[root] != root
+            root = parent[root]
+        end
+        while parent[x] != root # path compression
+            parent[x], x = root, parent[x]
+        end
+        return root
+    end
+    lin = LinearIndices(mask)
+    for I in CartesianIndices(mask)
+        mask[I] || continue
+        for d in 1:N
+            J = I - CartesianIndex(ntuple(k -> k == d ? 1 : 0, N))
+            (checkbounds(Bool, mask, J) && mask[J]) || continue
+            a, b = find(lin[I]), find(lin[J])
+            a != b && (parent[a] = b)
+        end
+    end
+    labels = zeros(Int, size(mask))
+    sizes = Int[]
+    label_of_root = Dict{Int,Int}()
+    for I in CartesianIndices(mask)
+        mask[I] || continue
+        root = find(lin[I])
+        label = get(label_of_root, root, 0)
+        if label == 0
+            push!(sizes, 0)
+            label = label_of_root[root] = length(sizes)
+        end
+        labels[I] = label
+        sizes[label] += 1
+    end
+    return labels, sizes
+end
+
 function fill_holes(mask; max_hole_size=length(mask) / 20)
-    return .!imfill(.!mask, (1, max_hole_size)) # fills all holes up to max_hole_size (uses 6 connectivity as default for 3D)
+    labels, sizes = connected_components(.!mask) # holes are background components
+    filled = copy(mask)
+    for I in CartesianIndices(mask)
+        label = labels[I]
+        label != 0 && sizes[label] <= max_hole_size && (filled[I] = true)
+    end
+    return filled
 end
 
 function get_largest_connected_region(mask)
-    labels = label_components(mask)
-    return labels .== argmax(countmap(labels[labels .!= 0]))
+    labels, sizes = connected_components(mask)
+    isempty(sizes) && return falses(size(mask))
+    return labels .== argmax(sizes)
 end
 
 """

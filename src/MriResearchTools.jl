@@ -6,11 +6,13 @@ using NIfTI
 using ROMEO
 using Statistics
 using DataStructures
-using ImageMorphology
 using LocalFilters
 using PaddedViews
 using OffsetArrays
-import StatsBase: countmap
+
+# Baked in at precompile time; include_dependency so a version bump invalidates the cache.
+include_dependency(joinpath(@__DIR__, "..", "Project.toml"))
+const PKG_VERSION = pkgversion(@__MODULE__)
 
 include("utility.jl")
 include("smoothing.jl")
@@ -67,7 +69,7 @@ export  readphase, readmag, niread, write_emptynii,
         homodyne, homodyne!,
         to_dim,
         Ice_output_config, read_volume,
-        write_provenance, write_citations, register_citation!, describe_input,
+        write_provenance, write_citations, register_citation!, describe_input, package_version,
         NumART2star, r2s_from_t2s,
         qsm_average, qsm_B0, qsm_laplacian_combine, qsm_romeo_B0, qsm_mask_filled
 
