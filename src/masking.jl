@@ -64,16 +64,7 @@ See also [`robustmask`](@ref), [`brain_mask`](@ref)
 """
 const mask_from_voxelquality = robustmask
 
-# Connected components, 6-connectivity in 3D (4 in 2D, the N-dimensional
-# diamond in general). This used to be ImageMorphology's `label_components` and
-# `imfill`, which were the only two things this package took from that
-# dependency; ImageMorphology in turn is the sole reason the whole
-# LoopVectorization stack (15 packages) was in the manifest, which is a large
-# part of the compiled binaries and keeps the stack off Julia 1.12. The
-# partition produced here is identical to ImageMorphology's.
-#
-# Union-find over linear indices, unioning each true voxel with its already
-# visited neighbour in each dimension, so one pass suffices.
+# Connected components with diamond connectivity (6 in 3D), union-find in one pass.
 function connected_components(mask::AbstractArray{Bool,N}) where N
     parent = collect(1:length(mask))
     function find(x)
