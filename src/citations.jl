@@ -6,6 +6,7 @@
 # the code that implements the method, and the arrows all point one way.
 
 function __init__()
+    ROMEO.register_version!(MriResearchTools, PKG_VERSION)
     # MCPC-3D-S and ASPIRE were published together, so they share a reference,
     # but they are different methods and only ASPIRE is patented.
     register_citation!(:mcpc3ds,
@@ -76,6 +77,9 @@ dimensions. Pass as the `describe` keyword of `write_provenance`.
 function describe_input(path)
     p = try abspath(String(path)) catch; String(path) end
     isfile(p) || return "$p (not found)"
-    dims = try string(size(niread(p))) catch; "unreadable" end
+    dims = try format_dims(loadheader(p).dim) catch; "unreadable" end
     return "$p  $dims"
 end
+
+# the size of the data as `size` prints it: (51, 51, 41, 3)
+format_dims(dim::NTuple{8,Int16}) = "(" * join((string(dim[i + 1]) for i in 1:dim[1]), ", ") * ")"
