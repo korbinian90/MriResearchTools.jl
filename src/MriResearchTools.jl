@@ -3,6 +3,7 @@ module MriResearchTools
 using FFTW
 using Interpolations
 using NIfTI
+using CodecZlib: GzipCompressorStream
 using ROMEO
 using Statistics
 using DataStructures
@@ -10,9 +11,16 @@ using LocalFilters
 using PaddedViews
 using OffsetArrays
 
-# Baked in at precompile time; include_dependency so a version bump invalidates the cache.
-include_dependency(joinpath(@__DIR__, "..", "Project.toml"))
-const PKG_VERSION = pkgversion(@__MODULE__)
+# Baked in at precompile time; include_dependency so a version bump invalidates
+# the cache. Read from Project.toml rather than through pkgversion, which
+# returns nothing when the package is precompiled with --strip-metadata, as
+# juliac does.
+const PKG_VERSION = let toml = joinpath(@__DIR__, "..", "Project.toml")
+    include_dependency(toml)
+    m = match(r"^version\s*=\s*\"([^\"]+)\""m, read(toml, String))
+    m === nothing && error("no version field in $toml")
+    VersionNumber(m.captures[1])
+end
 
 include("utility.jl")
 include("smoothing.jl")
@@ -20,6 +28,7 @@ include("intensitycorrection.jl")
 include("VSMbasedunwarping.jl")
 include("methods.jl")
 include("niftihandling.jl")
+include("nifti_static.jl")
 include("mcpc3ds.jl")
 include("romeofunctions.jl")
 include("ice2nii.jl")
@@ -40,6 +49,7 @@ if !isdefined(Base, :get_extension)
 end
 
 export  readphase, readmag, niread, write_emptynii,
+        loadnii, loadphase, loadmag, loadheader,
         header,
         savenii,
         estimatenoise,

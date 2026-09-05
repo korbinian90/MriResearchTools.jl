@@ -105,3 +105,58 @@ x = rand(Float32, 4, 4, 2)
 @test MriResearchTools.to_output_type(x, Float32) === x
 end
 
+
+@testitem "static NIfTI" begin
+    using MriResearchTools.NIfTI
+    fn_phase = "data/small/Phase.nii"
+    fn_mag = "data/small/Mag.nii"
+    fn_int16 = "data/small/int16.nii"
+
+    # the loaders return what readphase, readmag and niread return, as Float32 with five dimensions
+    for (fn, read, load) in ((fn_phase, readphase, loadphase), (fn_mag, readmag, loadmag), (fn_phase, niread, loadnii),
+                             (fn_int16, readphase, loadphase), (fn_int16, readmag, loadmag), ("data/small/Mag.nii.gz", readmag, loadmag))
+        vol = read(fn)
+        a, hdr = load(fn)
+        @test a isa Array{Float32,5}
+        @test size(a) == (size(vol)..., ntuple(_ -> 1, 5 - ndims(vol))...)
+        @test all(Float32.(vol) .== reshape(a, size(vol)))
+        @test hdr.dim == vol.header.dim
+        @test hdr.scl_slope == 1 && hdr.scl_inter == 0 # the scaling is in the data
+    end
+    a, _ = loadmag(fn_int16; rescale=true)
+    @test all(Float32.(readmag(fn_int16; rescale=true)) .== reshape(a, size(a)[1:4]))
+    a, _ = loadphase(fn_int16; fix_ge=true)
+    @test all(Float32.(readphase(fn_int16; fix_ge=true)) .== reshape(a, size(a)[1:4]))
+    @test loadheader(fn_phase).dim == readphase(fn_phase).header.dim
+
+    # the writer produces the bytes NIfTI.jl produces
+    vol = readphase(fn_phase)
+    hdr = header(vol)
+    img = Float32.(vol)[:,:,:,1]
+    tmp = mktempdir()
+    for name in ("a.nii", "a.nii.gz")
+        savenii(img, name, tmp, hdr)
+        niwrite(joinpath(tmp, "b" * name[2:end]), NIVolume(hdr, img))
+        @test read(joinpath(tmp, name)) == read(joinpath(tmp, "b" * name[2:end]))
+        @test niread(joinpath(tmp, name)) == img
+    end
+    savenii(img .> 100, "mask", tmp, hdr)
+    m, _ = loadnii(joinpath(tmp, "mask.nii"))
+    @test eltype(niread(joinpath(tmp, "mask.nii")).raw) == UInt8
+    @test all((m .!= 0)[:,:,:,1,1] .== (img .> 100))
+    savenii(round.(img .* 100), "int16", tmp, hdr; datatype=Int16)
+    @test eltype(niread(joinpath(tmp, "int16.nii")).raw) == Int16
+    @test_throws ArgumentError savenii(img, "conflict", tmp, hdr; voxel_size=(1, 1, 1))
+
+    # a big endian file reads the same
+    bytes = read(fn_phase)
+    be = copy(bytes)
+    io = IOBuffer(); write(io, NIfTI.byteswap(copy(vol.header)))
+    be[1:348] .= take!(io)
+    be[353:end] .= reinterpret(UInt8, hton.(vec(collect(vol.raw))))
+    write(joinpath(tmp, "be.nii"), be)
+    a_be, hdr_be = loadphase(joinpath(tmp, "be.nii"))
+    @test a_be == first(loadphase(fn_phase))
+    @test hdr_be.dim == vol.header.dim
+    @test all(Float32.(readphase(joinpath(tmp, "be.nii"))) .== reshape(a_be, size(vol)))
+end
