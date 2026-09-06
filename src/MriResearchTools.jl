@@ -22,6 +22,8 @@ const PKG_VERSION = let toml = joinpath(@__DIR__, "..", "Project.toml")
     VersionNumber(m.captures[1])
 end
 
+include("cli.jl")
+include("parse.jl")
 include("utility.jl")
 include("smoothing.jl")
 include("intensitycorrection.jl")
@@ -35,6 +37,7 @@ include("ice2nii.jl")
 include("laplacianunwrapping.jl")
 include("masking.jl")
 include("qsm_common.jl")
+include("provenance.jl")
 include("citations.jl")
 
 qsm(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm`")
@@ -79,7 +82,7 @@ export  readphase, readmag, niread, write_emptynii,
         homodyne, homodyne!,
         to_dim,
         Ice_output_config, read_volume,
-        write_provenance, write_citations, register_citation!, describe_input, package_version,
+        write_provenance, write_citations, register_citation!, register_version!, describe_input, package_version,
         NumART2star, r2s_from_t2s,
         qsm_average, qsm_B0, qsm_laplacian_combine, qsm_romeo_B0, qsm_mask_filled
 
