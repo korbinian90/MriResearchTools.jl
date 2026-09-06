@@ -1,12 +1,28 @@
-# References for the methods this package implements.
-#
-# The writer itself lives in ROMEO, which has no dependencies, so every package
-# can reach it without a version constraint pointing back up the graph. What
-# lives here is only what MriResearchTools owns: register the reference next to
-# the code that implements the method, and the arrows all point one way.
+# References for the methods this package implements, and for ROMEO's: the
+# registry lives here (see provenance.jl), and ROMEO sits below it in the
+# dependency graph, so it cannot register its own.
 
 function __init__()
-    ROMEO.register_version!(MriResearchTools, PKG_VERSION)
+    register_version!(MriResearchTools, PKG_VERSION)
+    register_version!(ROMEO, ROMEO.PKG_VERSION)
+    register_citation!(:romeo,
+        """Dymerska, B., Eckstein, K., Bachrata, B., Siow, B., Trattnig, S., Shmueli, K., Robinson, S.D., 2020.
+           Phase Unwrapping with a Rapid Opensource Minimum Spanning TreE AlgOrithm (ROMEO).
+           Magnetic Resonance in Medicine.
+           https://doi.org/10.1002/mrm.28563""";
+        label = "ROMEO Unwrapping")
+    register_citation!(:bestpath,
+        """Abdul-Rahman, H.S., Gdeisat, M.A., Burton, D.R., Lalor, M.J., Lilley, F., Moore, C.J., 2007.
+           Fast and robust three-dimensional best path phase unwrapping algorithm.
+           Applied Optics 46, 6623-6635.
+           https://doi.org/10.1364/AO.46.006623""";
+        label = "Best-path Unwrapping")
+    register_citation!(:julia,
+        """Bezanson, J., Edelman, A., Karpinski, S., Shah, V.B., 2017.
+           Julia: A fresh approach to numerical computing.
+           SIAM Review 59, 65-98.
+           https://doi.org/10.1137/141000671""";
+        label = "Julia Scientific Programming Language")
     # MCPC-3D-S and ASPIRE were published together, so they share a reference,
     # but they are different methods and only ASPIRE is patented.
     register_citation!(:mcpc3ds,
