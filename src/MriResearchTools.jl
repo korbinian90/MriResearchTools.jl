@@ -40,12 +40,17 @@ include("qsm_common.jl")
 include("provenance.jl")
 include("citations.jl")
 
-qsm(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm`")
-qsm_average(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm_average`")
-qsm_B0(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm_B0`")
-qsm_laplacian_combine(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm_laplacian_combine`")
-qsm_romeo_B0(args...; kwargs...) = @warn("Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation \n If already loadad, check expected arguments via `?qsm_romeo_B0`")
-phase_based_mask(args...; kwargs...) = @warn("Load ImageFiltering.jl to use this method: `using ImageFiltering`\n If already loadad, check expected arguments via `?phase_based_masking`")
+# Placeholders until a backend extension adds the methods. They throw rather than
+# warn: a caller that goes on with the `nothing` a warning returns fails later
+# and less clearly, and a compiled program can leave out whatever follows a call
+# that always throws.
+_no_qsm(f) = error("No QSM implementation is loaded for `$f`. Type `using QuantitativeSusceptibilityMappingTGV` or `using QSM` to load the desired implementation.\n If already loaded, check the expected arguments via `?$f`")
+qsm(args...; kwargs...) = _no_qsm("qsm")
+qsm_average(args...; kwargs...) = _no_qsm("qsm_average")
+qsm_B0(args...; kwargs...) = _no_qsm("qsm_B0")
+qsm_laplacian_combine(args...; kwargs...) = _no_qsm("qsm_laplacian_combine")
+qsm_romeo_B0(args...; kwargs...) = _no_qsm("qsm_romeo_B0")
+phase_based_mask(args...; kwargs...) = error("Load ImageFiltering.jl to use this method: `using ImageFiltering`\n If already loaded, check the expected arguments via `?phase_based_mask`")
 if !isdefined(Base, :get_extension)
     include("../ext/QSMExt.jl")
     include("../ext/PhaseBasedMaskingExt.jl")

@@ -10,7 +10,8 @@ The phase offsets have to be removed prior.
 
 See also [`mcpc3ds`](@ref)
 """
-calculateB0_unwrapped(unwrapped_phase, mag, TEs, type::Symbol=:phase_snr) = calculateB0_unwrapped(unwrapped_phase, mag, TEs, Val(type))
+calculateB0_unwrapped(unwrapped_phase, mag, TEs) = calculateB0_unwrapped(unwrapped_phase, mag, TEs, Val(:phase_snr))
+calculateB0_unwrapped(unwrapped_phase, mag, TEs, type::Symbol) = calculateB0_unwrapped(unwrapped_phase, mag, TEs, Val(type))
 # with the weighting as a Val every array type is static, which compiled programs need
 function calculateB0_unwrapped(unwrapped_phase, mag, TEs, ::Val{type}) where type
     TEs = to_dim(TEs, Val(4))

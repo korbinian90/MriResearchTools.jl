@@ -81,6 +81,23 @@ function readfromtextheader(filename, searchstring)
     end
 end
 
+# Statistics.median! without the repr of the input in its error message, which
+# static compilation cannot resolve. Same algorithm, so results are identical.
+# The same as ROMEO._median!.
+function _median!(v::AbstractVector)
+    isempty(v) && throw(ArgumentError("median of an empty array is undefined"))
+    nanix = findfirst(isnan, v)
+    isnothing(nanix) || return v[nanix]
+    n = length(v)
+    mid = div(1 + n, 2)
+    if isodd(n)
+        return Statistics.middle(partialsort!(v, mid))
+    else
+        m = partialsort!(v, mid:mid+1)
+        return Statistics.middle(m[1], m[2])
+    end
+end
+
 # root sum of squares combination
 """
     RSS(mag; dims=ndims(mag))
@@ -117,8 +134,8 @@ end
 Rescales the image to the the new range, disregarding outliers.
 Only values inside `mask` are used for estimating the rescaling option
 """
-robustrescale(array, newmin, newmax; threshold=false, mask=trues(size(array)), datatype=Float64) =
-    robustrescale!(datatype.(array), newmin, newmax; threshold, mask)
+robustrescale(array, newmin, newmax; threshold=false, mask=trues(size(array)), datatype::Type{T}=Float64) where T =
+    robustrescale!(T.(array), newmin, newmax; threshold, mask)
 
 function robustrescale!(array, newmin, newmax; threshold=false, mask=trues(size(array)))
     mask = mask .& .!isnan.(array) # do not mutate a caller-supplied mask
@@ -167,8 +184,9 @@ julia> to_dim([1,2], 2)
 ```
 """
 to_dim(a::Real, dim) = to_dim([a], dim)
-to_dim(V::AbstractArray, dim::Int) = reshape(V, ones(Int, dim-1)..., :)
-# with the dimension as a Val the result type is static
+# with the dimension as a Val the result type is static, and a constant dimension
+# given as an Int becomes one
+to_dim(V::AbstractArray, dim::Int) = to_dim(V, Val(dim))
 to_dim(V::AbstractArray, ::Val{dim}) where dim = reshape(V, ntuple(i -> i == dim ? length(V) : 1, Val(dim)))
 
 """
