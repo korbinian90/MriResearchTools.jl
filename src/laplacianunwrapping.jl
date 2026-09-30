@@ -1,8 +1,11 @@
 using .FFTW
 laplacianunwrap(ϕ) = laplacianunwrap!(copy(ϕ))
+# FFTW's thread count is global to the session. It is set for these transforms only, under
+# FFTW's lock, and restored afterwards, so that FFTs elsewhere keep the count their caller chose.
 function laplacianunwrap!(ϕ::AbstractArray)
-    FFTW.set_num_threads(Threads.nthreads())
-    ϕ .+= 2π .* k(ϕ) # rounding k as suggested in the paper does not work
+    FFTW.set_num_threads(Threads.nthreads()) do
+        ϕ .+= 2π .* k(ϕ) # rounding k as suggested in the paper does not work
+    end
 end
 
 # Schofield and Zhu 2003, https://doi.org/10.1364/OL.28.001194
@@ -86,8 +89,8 @@ Periodic-boundary Laplacian phase unwrap (Schofield & Zhu, 2003) using a
 discrete 5-point (2D) / 7-point (3D) Laplacian stencil evaluated by FFT.
 Self-contained; no ImageFiltering dependency.
 """
-function laplacianunwrap_fft(ϕ::AbstractArray, z_weight=1)
-    FFTW.set_num_threads(min(4, Threads.nthreads()))
+laplacianunwrap_fft(ϕ::AbstractArray, z_weight=1) = FFTW.set_num_threads(() -> _laplacianunwrap_fft(ϕ, z_weight), min(4, Threads.nthreads()))
+function _laplacianunwrap_fft(ϕ, z_weight)
     del_op = _laplacian_kspace_kernel(size(ϕ), z_weight, eltype(ϕ))
     del_inv = 1 ./ del_op
     del_inv[.!isfinite.(del_inv)] .= 0

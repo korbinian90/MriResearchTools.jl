@@ -43,3 +43,24 @@ phi = 2pi .* rand(12, 10, 6) .- pi
 @test MriResearchTools.k(phi) == ref_k(phi)   # bit-identical, not merely close
 end
 
+
+@testitem "laplacian unwrapping keeps FFTW's thread count" begin
+# FFTW's thread count is global; the unwrap may raise it for its own transforms but
+# must hand the caller's value back, or every later FFT in the session runs threaded.
+using FFTW
+previous = FFTW.get_num_threads()
+FFTW.set_num_threads(1)
+phase = 2π .* rand(16, 16, 8) .- π
+laplacianunwrap(phase)
+@test FFTW.get_num_threads() == 1
+laplacianunwrap_fft(phase)
+@test FFTW.get_num_threads() == 1
+# concurrent unwraps restore it too, and give the result of a single one
+results = Vector{Array{Float64,3}}(undef, 8)
+Threads.@threads for i in 1:8
+    results[i] = laplacianunwrap(phase)
+end
+@test FFTW.get_num_threads() == 1
+@test all(r == results[1] for r in results)
+FFTW.set_num_threads(previous)
+end
