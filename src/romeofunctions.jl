@@ -17,10 +17,14 @@ function calculateB0_unwrapped(unwrapped_phase, mag, TEs, ::Val{type}) where typ
     TEs = to_dim(TEs, Val(4))
     weight = get_B0_phase_weighting(mag, TEs, Val(type))
     B0 = (1000 / 2π) * sum(unwrapped_phase ./ TEs .* weight; dims=4) ./ sum(weight; dims=4)
-    B0 = reshape(B0, size(B0, 1), size(B0, 2), size(B0, 3))
+    B0 = _drop_echo_dim(B0)
     B0[.!isfinite.(B0)] .= 0
     return B0
 end
+
+# drops the summed echo dimension 4, keeping a channel dimension 5
+_drop_echo_dim(B0::AbstractArray{<:Any,3}) = B0
+_drop_echo_dim(B0::AbstractArray{<:Any,N}) where N = reshape(B0, ntuple(i -> size(B0, i < 4 ? i : i + 1), Val(N - 1)))
 
 get_B0_phase_weighting(mag, TEs, type::Symbol) = get_B0_phase_weighting(mag, TEs, Val(type))
 function get_B0_phase_weighting(mag, TEs, ::Val{type}) where type
