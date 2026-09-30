@@ -25,6 +25,10 @@ v = CLI.parse(spec, ["-p", "a.nii", "-t", "[2", "4", "6]", "-vq", "-B", "--thres
 two = CLI.Spec("tool", "1.2.3", [CLI.Option("--mask", "", "mask"), CLI.Option("--mag", "", "mag")])
 @test CLI.parse(two, ["--mag", "a.nii"]) == Dict("mag" => ["a.nii"]) # an exact name wins
 @test_throws ArgumentError CLI.parse(two, ["--ma", "a.nii"])
+@test_throws ArgumentError CLI.parse(spec, ["--ver"]) # --verbose or --version
+@test redirect_stdout(() -> CLI.parse(spec, ["--vers"]), devnull) === nothing
+@test_throws ArgumentError CLI.parse(spec, ["--version=1"])
+@test_throws ArgumentError CLI.parse(spec, ["--he="])
 for bad in (["-x"], ["--threshold"], ["-t"], ["extra"], ["--verbose=1"], ["--bogus=1"])
     @test_throws ArgumentError CLI.parse(spec, bad)
 end

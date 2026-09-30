@@ -40,18 +40,33 @@ const Values = Dict{String,Vector{String}}
 name(o::Option) = o.long[3:end]
 metavar(o::Option) = uppercase(name(o))
 
-# An exact name, or else the one option that starts with `long`, as ArgParse accepts
 function find_long(spec::Spec, long::AbstractString)
     for o in spec.options
         o.long == long && return o
     end
-    found = nothing
-    for o in spec.options
-        startswith(o.long, long) || continue
-        found === nothing || throw(ArgumentError("ambiguous option $long: $(found.long) or $(o.long)"))
-        found = o
+    return nothing
+end
+
+const BUILTIN = ("--help", "--version")
+
+# The full name `long` stands for: itself if it is a name, else the one name it is a
+# prefix of, as ArgParse accepts. Unchanged if it matches nothing.
+function resolve_long(spec::Spec, long::String)
+    (long in BUILTIN || find_long(spec, long) !== nothing) && return long
+    found = ""
+    for name in BUILTIN
+        found = _prefix_match(found, name, long)
     end
-    return found
+    for o in spec.options
+        found = _prefix_match(found, o.long, long)
+    end
+    return isempty(found) ? long : found
+end
+
+function _prefix_match(found::String, name::String, long::String)
+    startswith(name, long) || return found
+    isempty(found) || throw(ArgumentError("ambiguous option $long: $found or $name"))
+    return name
 end
 
 function find_short(spec::Spec, short::AbstractString)
@@ -84,6 +99,13 @@ function parse(spec::Spec, args::AbstractVector{<:AbstractString})
             return nothing
         elseif startswith(tok, "--")
             long, value = split_assignment(tok)
+            long = resolve_long(spec, long)
+            if long == "--help" || long == "--version"
+                value === nothing || throw(ArgumentError("option $long takes no value"))
+                long == "--help" ? print_help(spec) : print_stdout(spec.version * "
+")
+                return nothing
+            end
             o = find_long(spec, long)
             o === nothing && throw(ArgumentError("unrecognized option $long"))
             if value === nothing
