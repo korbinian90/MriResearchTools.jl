@@ -64,3 +64,12 @@ end
 @test all(r == results[1] for r in results)
 FFTW.set_num_threads(previous)
 end
+
+@testitem "laplacian FFT kernel on small dimensions" begin
+# The stencil sums to zero, so the Laplacian of a constant is zero, also along a
+# dimension of size 2, where both neighbours fall on one element.
+for sz in ((2, 16), (16, 2), (16, 16, 2), (5, 6), (7, 8, 9))
+    k = MriResearchTools._laplacian_kspace_kernel(sz, 1, Float64)
+    @test abs(k[1]) < 1e-12
+end
+end
