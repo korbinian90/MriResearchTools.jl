@@ -148,7 +148,9 @@ end
 # In a program compiled with juliac --trim, Base.stdout cannot be called through
 # (its declared type is abstract) and logging is turned off. Both are recognised
 # through the logger juliac replaces, and the raw streams are used instead.
-static_binary() = Base.CoreLogging.current_logger_for_env(Base.CoreLogging.Error, :cli, @__MODULE__) === nothing
+"Set by the entry point of a statically compiled program, which has no logging and no Base.stdout."
+const STATIC_BINARY = Ref(false)
+static_binary() = STATIC_BINARY[]
 print_stdout(s::String) = static_binary() ? print(Core.stdout, s) : print(s)
 print_stderr(s::String) = static_binary() ? print(Core.stderr, s) : print(stderr, s)
 
