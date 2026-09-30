@@ -1,9 +1,10 @@
 name = "MriResearchTools"
 uuid = "557dad86-b9bd-4533-8525-1a39684d020f"
-version = "3.8.0"
+version = "3.9.0"
 authors = ["Korbinian Eckstein"]
 
 [deps]
+CodecZlib = "944b1d66-785c-5afd-91f1-9de20f533193"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
 ImageFiltering = "6a3955dd-da59-5b1f-98d4-e7296123deb5"
@@ -26,6 +27,7 @@ QSMExt = "QSM"
 QuantitativeSusceptibilityMappingTGVExt = "QuantitativeSusceptibilityMappingTGV"
 
 [compat]
+CodecZlib = "0.7"
 DataStructures = "0.11 - 0.18, 0.19"
 # Deliberately not capped below 1.9, even though the QSM.jl backend needs it to
 # be: QSM 0.5.4 calls FFTW.libfftw3[], which throws from FFTW 1.9 on. A compat
@@ -44,6 +46,6 @@ OffsetArrays = "1"
 PaddedViews = "0.5"
 QSM = "0.4 - 0.5"
 QuantitativeSusceptibilityMappingTGV = "0.2 - 0.5"
-ROMEO = "1.6"
+ROMEO = "1.7"
 Statistics = "1"
 julia = "1.10"
