@@ -106,8 +106,16 @@ function _dims5(dim::NTuple{8,Int16})
     return ntuple(i -> i <= nd ? Int(dim[i+1]) : 1, Val(5))
 end
 
-# The binary datatype stores one bit per voxel, packed as a BitArray does
-_read_bits(io, dims::NTuple{5,Int}) = read!(io, BitArray{5}(undef, dims))
+# The binary datatype stores one bit per voxel, packed as a BitArray does. Read as
+# UInt8, so that it takes the path of that datatype: a BitArray does not compile statically.
+function _read_bits(io, dims::NTuple{5,Int})
+    bits = read!(io, BitArray{5}(undef, dims))
+    raw = Array{UInt8,5}(undef, dims)
+    @inbounds for i in eachindex(raw, bits)
+        raw[i] = bits[i]
+    end
+    return raw
+end
 
 function _read_raw(io, ::Type{T}, dims::NTuple{5,Int}, swapped::Bool) where T
     raw = read!(io, Array{T,5}(undef, dims))
@@ -164,7 +172,7 @@ function _slope_inter(hdr)
 end
 
 # raw * slope + inter as Float32, which is what indexing a NIVolume computes
-function _scale(raw::AbstractArray{T,5}, slope::Float32, inter::Float32) where T
+function _scale(raw::Array{T,5}, slope::Float32, inter::Float32) where T
     if T === Float32 && slope == 1 && inter == 0
         return raw
     end
