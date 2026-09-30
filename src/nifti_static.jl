@@ -106,6 +106,9 @@ function _dims5(dim::NTuple{8,Int16})
     return ntuple(i -> i <= nd ? Int(dim[i+1]) : 1, Val(5))
 end
 
+# The binary datatype stores one bit per voxel, packed as a BitArray does
+_read_bits(io, dims::NTuple{5,Int}) = read!(io, BitArray{5}(undef, dims))
+
 function _read_raw(io, ::Type{T}, dims::NTuple{5,Int}, swapped::Bool) where T
     raw = read!(io, Array{T,5}(undef, dims))
     if swapped
@@ -127,6 +130,7 @@ function _read_typed(f::F, io, hdr::NIfTI.NIfTI1Header, dims, swapped) where F
     dt == NIfTI.eltype_to_int16(UInt32) && return f(_read_raw(io, UInt32, dims, swapped), hdr)
     dt == NIfTI.eltype_to_int16(Int64) && return f(_read_raw(io, Int64, dims, swapped), hdr)
     dt == NIfTI.eltype_to_int16(UInt64) && return f(_read_raw(io, UInt64, dims, swapped), hdr)
+    dt == NIfTI.eltype_to_int16(Bool) && return f(_read_bits(io, dims), hdr)
     throw(ArgumentError("NIfTI datatype $dt is not supported"))
 end
 
@@ -160,7 +164,7 @@ function _slope_inter(hdr)
 end
 
 # raw * slope + inter as Float32, which is what indexing a NIVolume computes
-function _scale(raw::Array{T,5}, slope::Float32, inter::Float32) where T
+function _scale(raw::AbstractArray{T,5}, slope::Float32, inter::Float32) where T
     if T === Float32 && slope == 1 && inter == 0
         return raw
     end
@@ -185,7 +189,8 @@ result does not depend on the file, which is what static compilation with
 See also [`loadphase`](@ref), [`loadmag`](@ref), [`loadheader`](@ref).
 """
 loadnii(filename) = _read_nii(filename) do raw, hdr
-    _scale(raw, _slope_inter(hdr)...)
+    # a slope of 0 means the data is not scaled, as NIfTI.jl reads it
+    hdr.scl_slope == 0 ? _scale(raw, 1f0, 0f0) : _scale(raw, hdr.scl_slope, hdr.scl_inter)
 end
 
 """

@@ -144,6 +144,15 @@ end
     m, _ = loadnii(joinpath(tmp, "mask.nii"))
     @test eltype(niread(joinpath(tmp, "mask.nii")).raw) == UInt8
     @test all((m .!= 0)[:,:,:,1,1] .== (img .> 100))
+    # the binary datatype, one bit per voxel, as older versions wrote masks
+    savenii(img .> 100, "bits", tmp, hdr; datatype=Bool)
+    @test eltype(niread(joinpath(tmp, "bits.nii")).raw) == Bool
+    b, _ = loadnii(joinpath(tmp, "bits.nii"))
+    @test b[:,:,:,1,1] == Float32.(img .> 100)
+    # a slope of 0 means unscaled data, whatever the intercept
+    hdr0 = copy(hdr); hdr0.scl_slope = 0; hdr0.scl_inter = 5
+    MriResearchTools._niwrite(joinpath(tmp, "slope0.nii"), hdr0, img)
+    @test first(loadnii(joinpath(tmp, "slope0.nii")))[:,:,:,1,1] == Float32.(niread(joinpath(tmp, "slope0.nii")))
     savenii(round.(img .* 100), "int16", tmp, hdr; datatype=Int16)
     @test eltype(niread(joinpath(tmp, "int16.nii")).raw) == Int16
     @test_throws ArgumentError savenii(img, "conflict", tmp, hdr; voxel_size=(1, 1, 1))
