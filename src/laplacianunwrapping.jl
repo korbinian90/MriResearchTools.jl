@@ -1,8 +1,11 @@
 using .FFTW
 laplacianunwrap(ϕ) = laplacianunwrap!(copy(ϕ))
+# FFTW's thread count is global to the session. It is set for these transforms only, under
+# FFTW's lock, and restored afterwards, so that FFTs elsewhere keep the count their caller chose.
 function laplacianunwrap!(ϕ::AbstractArray)
-    FFTW.set_num_threads(Threads.nthreads())
-    ϕ .+= 2π .* k(ϕ) # rounding k as suggested in the paper does not work
+    FFTW.set_num_threads(Threads.nthreads()) do
+        ϕ .+= 2π .* k(ϕ) # rounding k as suggested in the paper does not work
+    end
 end
 
 # Schofield and Zhu 2003, https://doi.org/10.1364/OL.28.001194
@@ -86,8 +89,8 @@ Periodic-boundary Laplacian phase unwrap (Schofield & Zhu, 2003) using a
 discrete 5-point (2D) / 7-point (3D) Laplacian stencil evaluated by FFT.
 Self-contained; no ImageFiltering dependency.
 """
-function laplacianunwrap_fft(ϕ::AbstractArray, z_weight=1)
-    FFTW.set_num_threads(min(4, Threads.nthreads()))
+laplacianunwrap_fft(ϕ::AbstractArray, z_weight=1) = FFTW.set_num_threads(() -> _laplacianunwrap_fft(ϕ, z_weight), min(4, Threads.nthreads()))
+function _laplacianunwrap_fft(ϕ, z_weight)
     del_op = _laplacian_kspace_kernel(size(ϕ), z_weight, eltype(ϕ))
     del_inv = 1 ./ del_op
     del_inv[.!isfinite.(del_inv)] .= 0
@@ -97,30 +100,31 @@ function laplacianunwrap_fft(ϕ::AbstractArray, z_weight=1)
     return real.(ifft(fft(del_phase) .* del_inv))
 end
 
-# Build the DFT of a centred discrete Laplacian stencil. For ND, the
-# stencil has -2N at the centre and +1 at each of the 2N neighbours
-# (with z taps scaled by z_weight in 3D).
-function _laplacian_kspace_kernel(sz::NTuple{N,Int}, z_weight, T) where {N}
+# The DFT of the discrete Laplacian stencil: -2N at the origin and +1 at each of its
+# 2N neighbours (the z taps scaled by z_weight in 3D). The stencil is written with its
+# centre on the first element and the neighbours wrapped around, which is the array
+# ifftshift makes of a centred stencil; ifftshift itself does not compile statically.
+# The taps add up, so along a dimension of size 2 both neighbours fall on one element.
+# T as a type parameter, so that the element type is static in a compiled program.
+function _laplacian_kspace_kernel(sz::NTuple{N,Int}, z_weight, ::Type{T}) where {N,T}
     kernel = zeros(float(T), sz)
-    centre = ntuple(d -> (sz[d] ÷ 2) + 1, N)
-    # in-plane (and z if z_weight==1) taps
     if N == 2
-        kernel[centre...] = -4
-        kernel[centre[1]-1, centre[2]  ] = 1
-        kernel[centre[1]+1, centre[2]  ] = 1
-        kernel[centre[1],   centre[2]-1] = 1
-        kernel[centre[1],   centre[2]+1] = 1
+        kernel[1, 1] = -4
+        kernel[2, 1] += 1
+        kernel[sz[1], 1] += 1
+        kernel[1, 2] += 1
+        kernel[1, sz[2]] += 1
     elseif N == 3
         zw = float(z_weight)
-        kernel[centre...] = -(4 + 2 * zw)
-        kernel[centre[1]-1, centre[2],   centre[3]  ] = 1
-        kernel[centre[1]+1, centre[2],   centre[3]  ] = 1
-        kernel[centre[1],   centre[2]-1, centre[3]  ] = 1
-        kernel[centre[1],   centre[2]+1, centre[3]  ] = 1
-        kernel[centre[1],   centre[2],   centre[3]-1] = zw
-        kernel[centre[1],   centre[2],   centre[3]+1] = zw
+        kernel[1, 1, 1] = -(4 + 2 * zw)
+        kernel[2, 1, 1] += 1
+        kernel[sz[1], 1, 1] += 1
+        kernel[1, 2, 1] += 1
+        kernel[1, sz[2], 1] += 1
+        kernel[1, 1, 2] += zw
+        kernel[1, 1, sz[3]] += zw
     else
         error("laplacianunwrap_fft supports 2D or 3D arrays, got $(N)D")
     end
-    return fft(ifftshift(kernel))
+    return fft(kernel)
 end
