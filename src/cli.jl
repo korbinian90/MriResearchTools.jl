@@ -40,11 +40,18 @@ const Values = Dict{String,Vector{String}}
 name(o::Option) = o.long[3:end]
 metavar(o::Option) = uppercase(name(o))
 
+# An exact name, or else the one option that starts with `long`, as ArgParse accepts
 function find_long(spec::Spec, long::AbstractString)
     for o in spec.options
         o.long == long && return o
     end
-    return nothing
+    found = nothing
+    for o in spec.options
+        startswith(o.long, long) || continue
+        found === nothing || throw(ArgumentError("ambiguous option $long: $(found.long) or $(o.long)"))
+        found = o
+    end
+    return found
 end
 
 function find_short(spec::Spec, short::AbstractString)

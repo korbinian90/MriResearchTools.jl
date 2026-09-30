@@ -19,6 +19,12 @@ v = CLI.parse(spec, ["-p", "a.nii", "-t", "[2", "4", "6]", "-vq", "-B", "--thres
 @test CLI.parse(spec, ["-B", "name", "-pa.nii"]) == Dict("compute-B0" => ["name"], "phase" => ["a.nii"])
 @test CLI.parse(spec, ["--threshold", "-1"])["threshold"] == ["-1"] # a negative number is a value
 @test CLI.parse(spec, ["-B", "-t", "2:2:6"]) == Dict("compute-B0" => String[], "echo-times" => ["2:2:6"])
+# a unique prefix of a long name is accepted, as ArgParse does
+@test CLI.parse(spec, ["--thresh", "4"]) == Dict("threshold" => ["4"])
+@test CLI.parse(spec, ["--verb"]) == Dict("verbose" => String[])
+two = CLI.Spec("tool", "1.2.3", [CLI.Option("--mask", "", "mask"), CLI.Option("--mag", "", "mag")])
+@test CLI.parse(two, ["--mag", "a.nii"]) == Dict("mag" => ["a.nii"]) # an exact name wins
+@test_throws ArgumentError CLI.parse(two, ["--ma", "a.nii"])
 for bad in (["-x"], ["--threshold"], ["-t"], ["extra"], ["--verbose=1"], ["--bogus=1"])
     @test_throws ArgumentError CLI.parse(spec, bad)
 end
