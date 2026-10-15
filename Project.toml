@@ -6,8 +6,8 @@ authors = ["Korbinian Eckstein"]
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
+FastInterpolations = "9ea80cae-fc13-4c00-8066-6eaedb12f34b"
 ImageFiltering = "6a3955dd-da59-5b1f-98d4-e7296123deb5"
-Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
 LocalFilters = "085fde7c-5f94-55e4-8448-8bbb5db6dde9"
 NIfTI = "a3a9e032-41b5-5fc4-967a-a6b7a19844d3"
 OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
@@ -36,8 +36,8 @@ DataStructures = "0.11 - 0.18, 0.19"
 # FFTW.set_num_threads and is unaffected either way. QSM.jl users pin FFTW in
 # their own environment instead; see the README.
 FFTW = "1.6"
+FastInterpolations = "0.4.13"
 ImageFiltering = "0.7"
-Interpolations = "0.12 - 0.15, 0.16"
 LocalFilters = "1 - 2"
 NIfTI = "0.6.3"
 OffsetArrays = "1"

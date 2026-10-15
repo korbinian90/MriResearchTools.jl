@@ -1,7 +1,7 @@
 module MriResearchTools
 
 using FFTW
-using Interpolations
+using FastInterpolations: interp!, LinearInterp, FillExtrap
 using NIfTI
 using ROMEO
 using Statistics
