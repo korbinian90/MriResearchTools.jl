@@ -23,20 +23,18 @@ unwarp(VSM, distorted) = unwarp!(similar(distorted), VSM, distorted)
 
 function unwarp!(unwarped, VSM, distorted)
     xi = axes(distorted, 1)
+    xtrue = Vector{promote_type(eltype(xi), eltype(VSM))}(undef, length(xi)) # reused for every line
     for J in CartesianIndices(size(distorted)[4:end])
         for I in CartesianIndices(size(distorted)[2:3])
-            xtrue = xi .+ VSM[:,I]
-            xregrid = (xtrue[1] .<= xi .<= xtrue[end]) # only use x values inside (no extrapolation)
-            unwarped[.!xregrid,I,J] .= 0
-            unwarped[xregrid,I,J] .= unwarpline(xtrue, distorted[:,I,J], xi[xregrid])
+            xtrue .= xi .+ view(VSM, :, I)
+            # interp! does not check the grid order; a folded map would interpolate silently
+            issorted(xtrue) || throw(ArgumentError("voxel shift map folds over itself along the readout; limit it with thresholdforward"))
+            #TODO try better interpolation than linear
+            # x values outside xtrue are set to 0 (no extrapolation)
+            interp!(view(unwarped, :, I, J), xtrue, view(distorted, :, I, J), xi; method=LinearInterp(), extrap=FillExtrap(0))
         end
     end
     unwarped
-end
-
-function unwarpline(xtrue, distorted, xnew)
-    #TODO try better interpolation than linear
-    interpolate((xtrue,), distorted, Gridded(Linear()))(xnew)
 end
 
 """
