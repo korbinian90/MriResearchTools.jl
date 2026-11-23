@@ -37,6 +37,11 @@ function readphase(filename; rescale=true, fix_ge=false, keyargs...)
     return phase
 end
 
+_every_second_slice(phase::AbstractArray{<:Any,3}) = view(phase, :, :, 2:2:size(phase, 3))
+_every_second_slice(phase::AbstractArray{<:Any,4}) = view(phase, :, :, 2:2:size(phase, 3), :)
+_every_second_slice(phase::AbstractArray{<:Any,5}) = view(phase, :, :, 2:2:size(phase, 3), :, :)
+_every_second_slice(phase) = selectdim(phase, 3, 2:2:size(phase, 3))
+
 # Add pi to every second slice
 function fix_ge_phase!(phase::AbstractArray{T}) where T
     minp, maxp = approxextrema(phase)
@@ -45,8 +50,10 @@ function fix_ge_phase!(phase::AbstractArray{T}) where T
     else
         pi = (maxp - minp) / 2
     end
-    every_second_slice = selectdim(phase, 3, 2:2:size(phase, 3))
-    every_second_slice .= rem.(every_second_slice .+ pi, 2pi, RoundNearest)
+    every_second_slice = _every_second_slice(phase)
+    for I in eachindex(every_second_slice)
+        every_second_slice[I] = rem(every_second_slice[I] + pi, 2pi, RoundNearest)
+    end
     return phase
 end
 
@@ -75,8 +82,6 @@ function readmag(fn; rescale=false, keyargs...)
     end
     return mag
 end
-
-Base.copy(x::NIfTI.NIfTI1Header) = NIfTI.NIfTI1Header([getfield(x, k) for k ∈ fieldnames(NIfTI.NIfTI1Header)]...)
 
 function Base.similar(header::NIfTI.NIfTI1Header)
     hdr = copy(header)
@@ -134,13 +139,16 @@ julia> savenii(ones(64,64,5), "image2", "folder"; voxel_size=(0.54,0.54,2.0))
 ```
 """
 function savenii(image::AbstractArray, filepath; header=nothing, datatype=default_output_type(eltype(image)), kwargs...)
-    image = to_output_type(image, datatype)
-    vol = NIVolume([h for h in [header] if h !== nothing]..., image; kwargs...)
     dir = dirname(filepath)
     if !isdir(dir)
         mkpath(dir)
     end
-    niwrite(filepath, vol)
+    if header === nothing
+        niwrite(filepath, NIVolume(to_output_type(image, datatype); kwargs...))
+    else
+        isempty(kwargs) || throw(ArgumentError("keyword arguments cannot be combined with a header"))
+        _write_as(filepath, header, image, datatype)
+    end
     return filepath
 end
 

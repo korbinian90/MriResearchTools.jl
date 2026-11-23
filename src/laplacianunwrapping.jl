@@ -12,9 +12,43 @@ end
 # array, 64 MB at 256^3.
 k(ϕw) = (pq = pqterm(size(ϕw)); 1 / 2π .* ∇⁻²(∇²_nw(ϕw, pq) - ∇²(ϕw, pq), pq))  # (1)
 
-∇²(x, pq=pqterm(size(x))) = -(2π)^ndims(x) / length(x) .* idct(pq .* dct(x))  # (2)
+∇²(x, pq=pqterm(size(x))) = -(2π)^ndims(x) / length(x) .* _idct(pq .* _dct(x))  # (2)
 
-∇⁻²(x, pq=pqterm(size(x))) = -length(x) / (2π)^ndims(x) .* idct(dct(x) ./ pq)  # (3)
+∇⁻²(x, pq=pqterm(size(x))) = -length(x) / (2π)^ndims(x) .* _idct(_dct(x) ./ pq)  # (3)
+
+# FFTW's unitary dct and idct over all dimensions, computed as FFTW.jl computes
+# them: the r2r transform, the overall normalization, and a factor on the first
+# slice along each dimension. FFTW.jl indexes those slices with a splatted vector
+# of ranges, which a compiled program cannot resolve. Every element gets the
+# same multiplications in the same order, so the results are identical.
+_dct(x::AbstractArray{<:Real}) = _dct(FFTW.fftwfloat(x))
+function _dct(x::StridedArray{T,N}) where {T<:FFTW.fftwReal,N}
+    region = ntuple(identity, Val(N))
+    y = FFTW.plan_r2r(x, FFTW.REDFT10, region) * x
+    y .*= _dct_normalization(x, region) # rmul! in FFTW.jl
+    return _scale_first_slices!(y, sqrt(0.5))
+end
+
+_idct(x::AbstractArray{<:Real}) = _idct(FFTW.fftwfloat(x))
+function _idct(x::StridedArray{T,N}) where {T<:FFTW.fftwReal,N}
+    region = ntuple(identity, Val(N))
+    x = copy(x) # scaled in place, as FFTW.jl's idct does on a copy
+    x .*= _dct_normalization(x, region)
+    _scale_first_slices!(x, sqrt(2.0))
+    return FFTW.plan_r2r(x, FFTW.REDFT01, region) * x
+end
+
+# multiplies the first slice along each dimension by c, one dimension after the other
+function _scale_first_slices!(y, c)
+    for I in CartesianIndices(y), d in 1:ndims(y)
+        if I[d] == 1
+            y[I] *= c
+        end
+    end
+    return y
+end
+
+_dct_normalization(x, region) = sqrt(0.5^length(region) * FFTW.AbstractFFTs.normalization(x, region))
 
 ∇²_nw(ϕw, pq=pqterm(size(ϕw))) = cos.(ϕw) .* ∇²(sin.(ϕw), pq) .- sin.(ϕw) .* ∇²(cos.(ϕw), pq)  # (in text)
 

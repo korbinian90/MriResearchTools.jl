@@ -37,9 +37,9 @@ end
 
 
 pad_image(image, sigma) = pad_image(image, round.(Int, sigma, RoundUp))
-pad_image(image, sigma::AbstractArray{<:Int}) = PaddedView(0, image, Tuple(size(image) .+ 2sigma), Tuple(sigma .+ 1))
+pad_image(image, sigma::AbstractArray{<:Int}) = PaddedView(0, image, ntuple(i -> size(image, i) + 2sigma[i], Val(ndims(image))), ntuple(i -> sigma[i] + 1, Val(ndims(image))))
 remove_padding(image, sigma) = remove_padding(image, round.(Int, sigma, RoundUp))
-remove_padding(image, sigma::AbstractArray{<:Int}) = image[[sigma[i]+1:size(image,i)-sigma[i] for i in 1:ndims(image)]...]
+remove_padding(image, sigma::AbstractArray{<:Int}) = image[ntuple(i -> sigma[i]+1:size(image,i)-sigma[i], Val(ndims(image)))...]
 
 """
     gaussiansmooth3d_phase(phase, sigma=[5,5,5]; weight=1, kwargs...)
@@ -52,10 +52,10 @@ function gaussiansmooth3d_phase(phase, sigma=[5,5,5]; weight=1, kwargs...)
     clx = weight .* exp.(1im .* phase)
     phase_real = real.(clx)
     phase_imag = imag.(clx)
-    @sync begin
-    Threads.@spawn gaussiansmooth3d!(phase_real, sigma; kwargs...)
-    Threads.@spawn gaussiansmooth3d!(phase_imag, sigma; kwargs...)
-    end
+    # two tasks waited for by hand: @sync collects them untyped, which static compilation cannot follow
+    task = Threads.@spawn gaussiansmooth3d!(phase_real, sigma; kwargs...)
+    gaussiansmooth3d!(phase_imag, sigma; kwargs...)
+    wait(task)
     return angle.(complex.(phase_real, phase_imag))
 end
 
@@ -77,14 +77,30 @@ function gaussiansmooth3d!(image, sigma=[5,5,5]; mask=nothing, nbox=ifelse(isnot
             continue
         end
         linefilter! = getfilter(image, weight, mask, bsize, size(image, dim))
-        K = ifelse(mask isa Nothing || isodd(ibox), :, size(image, dim):-1:1) # reverse direction every second iteration because of asymmetric NaN extrapolation
+        reverse = !(mask isa Nothing) && iseven(ibox) # reverse direction every second iteration because of asymmetric NaN extrapolation
+        filterlines!(linefilter!, image, weight, dim, reverse)
+    end
+    return image
+end
 
-        for J in CartesianIndices(size(image)[(dim+1):end]) # all dimensions after the current one
-            for I in CartesianIndices(size(image)[1:(dim-1)]) # all dimensions before the current one
-                w = if weight isa Nothing nothing else view(weight,I,K,J) end
-                linefilter!(view(image,I,K,J), w)
-            end
-        end
+# Applies linefilter! to every line of image along dim. The dimension becomes a
+# type parameter so that the views have a static type.
+function filterlines!(linefilter!::F, image::AbstractArray{T,N}, weight, dim::Int, reverse::Bool) where {F,T,N}
+    dim == 1 && return filterlines!(linefilter!, image, weight, Val(1), reverse)
+    N >= 2 && dim == 2 && return filterlines!(linefilter!, image, weight, Val(2), reverse)
+    N >= 3 && dim == 3 && return filterlines!(linefilter!, image, weight, Val(3), reverse)
+    N >= 4 && dim == 4 && return filterlines!(linefilter!, image, weight, Val(4), reverse)
+    N >= 5 && dim == 5 && return filterlines!(linefilter!, image, weight, Val(5), reverse)
+    throw(ArgumentError("cannot smooth along dimension $dim of $(N)D data"))
+end
+
+function filterlines!(linefilter!::F, image::AbstractArray{T,N}, weight, ::Val{D}, reverse::Bool) where {F,T,N,D}
+    before = ntuple(i -> size(image, i), Val(D - 1)) # all dimensions before the current one
+    after = ntuple(i -> size(image, D + i), Val(N - D)) # all dimensions after the current one
+    K = reverse ? (size(image, D):-1:1) : Colon()
+    for J in CartesianIndices(after), I in CartesianIndices(before)
+        w = if weight isa Nothing nothing else view(weight,I,K,J) end
+        linefilter!(view(image,I,K,J), w)
     end
     return image
 end
@@ -102,7 +118,7 @@ function getboxsizes(sigma, n)
 
         [if i <= m wl else wu end for i in 1:n]
     catch
-        zeros(n)
+        zeros(Int, n)
     end
 end
 

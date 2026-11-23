@@ -108,8 +108,7 @@ function get_default_sigma_mm(mag, pixdim)
     for i in eachindex(sigma_mm)
         sigma_mm[i] = pixdim[i] * size(mag, i)
     end
-    sigma_mm = median(sigma_mm)
-    sigma_mm = min(sigma_mm, 7)
+    sigma_mm = min(_median!(sigma_mm), 7)
     return sigma_mm
 end
 
@@ -143,15 +142,16 @@ function boxsegment!(image::AbstractArray{<:AbstractFloat}, mask, nbox)
     return image
 end
 
-function boxsegment(image, mask, nbox)
+function boxsegment(image::AbstractArray{<:Any,D}, mask, nbox) where D
     N = size(image)
-    dim = ndims(image)
     boxshift = ceil.(Int, N ./ nbox)
 
     segmented = zeros(UInt8, size(mask))
-    for center in Iterators.product([1:boxshift[i]:N[i] for i in 1:dim]...)
+    # tuples of length D rather than a splatted vector, so the loop has a static type
+    centers = ntuple(i -> 1:boxshift[i]:N[i], Val(D))
+    for center in Iterators.product(centers...)
         boxside(d) = max(1, center[d] - boxshift[d]):min(center[d] + boxshift[d], N[d])
-        I = CartesianIndices(ntuple(boxside, dim))
+        I = CartesianIndices(ntuple(boxside, Val(D)))
         segmented[I] .+= threshold(image[I], mask[I])
     end
     return segmented .* mask .>= 2

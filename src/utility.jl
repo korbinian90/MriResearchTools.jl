@@ -24,7 +24,7 @@ function sample(I; n=1e5)
     n = min(n, length(I))
     len = ceil(Int, √n) # take len blocks of len elements
     startindices = round.(Int, range(firstindex(I) - 1, lastindex(I) - len; length=len))
-    indices = vcat((i .+ (1:len) for i in startindices)...)
+    indices = [i + j for i in startindices for j in 1:len]
     ret = filter(isfinite, I[indices])
     if isempty(ret)
         ret = filter(isfinite, I)
@@ -81,6 +81,23 @@ function readfromtextheader(filename, searchstring)
     end
 end
 
+# Statistics.median! without the repr of the input in its error message, which
+# static compilation cannot resolve. Same algorithm, so results are identical.
+# The same as ROMEO._median!.
+function _median!(v::AbstractVector)
+    isempty(v) && throw(ArgumentError("median of an empty array is undefined"))
+    nanix = findfirst(isnan, v)
+    isnothing(nanix) || return v[nanix]
+    n = length(v)
+    mid = div(1 + n, 2)
+    if isodd(n)
+        return Statistics.middle(partialsort!(v, mid))
+    else
+        m = partialsort!(v, mid:mid+1)
+        return Statistics.middle(m[1], m[2])
+    end
+end
+
 # root sum of squares combination
 """
     RSS(mag; dims=ndims(mag))
@@ -117,8 +134,8 @@ end
 Rescales the image to the the new range, disregarding outliers.
 Only values inside `mask` are used for estimating the rescaling option
 """
-robustrescale(array, newmin, newmax; threshold=false, mask=trues(size(array)), datatype=Float64) =
-    robustrescale!(datatype.(array), newmin, newmax; threshold, mask)
+robustrescale(array, newmin, newmax; threshold=false, mask=trues(size(array)), datatype::Type{T}=Float64) where T =
+    robustrescale!(T.(array), newmin, newmax; threshold, mask)
 
 function robustrescale!(array, newmin, newmax; threshold=false, mask=trues(size(array)))
     mask = mask .& .!isnan.(array) # do not mutate a caller-supplied mask
@@ -166,8 +183,11 @@ julia> to_dim([1,2], 2)
   1  2
 ```
 """
-to_dim(a::Real, dim::Int) = to_dim([a], dim)
-to_dim(V::AbstractArray, dim::Int) = reshape(V, ones(Int, dim-1)..., :)
+to_dim(a::Real, dim) = to_dim([a], dim)
+# with the dimension as a Val the result type is static, and a constant dimension
+# given as an Int becomes one
+to_dim(V::AbstractArray, dim::Int) = to_dim(V, Val(dim))
+to_dim(V::AbstractArray, ::Val{dim}) where dim = reshape(V, ntuple(i -> i == dim ? length(V) : 1, Val(dim)))
 
 """
     getHIP(mag, phase; echoes=[1,2])
@@ -183,7 +203,7 @@ function getHIP(mag, phase; echoes=[1,2])
     # abs() and angle(). float() keeps an integer magnitude from producing a
     # Complex{Int} that cis cannot be summed into.
     T = complex(float(promote_type(eltype(mag), eltype(phase))))
-    compl = zeros(T, size(mag)[1:3])
+    compl = zeros(T, (size(mag, 1), size(mag, 2), size(mag, 3)))
     for iCha in axes(mag, 5)
         compl .+= cis.(phase[:,:,:,e2,iCha] .- phase[:,:,:,e1,iCha]) .* mag[:,:,:,e1,iCha] .* mag[:,:,:,e2,iCha]
     end
@@ -192,7 +212,7 @@ end
 
 function getHIP(compl; echoes=[1,2])
     e1, e2 = echoes
-    c = zeros(eltype(compl), size(compl)[1:3])
+    c = zeros(eltype(compl), (size(compl, 1), size(compl, 2), size(compl, 3)))
     for iCha in axes(compl, 5)
         c .+=  compl[:,:,:,e2,iCha] .* conj.(compl[:,:,:,e1,iCha])
     end
