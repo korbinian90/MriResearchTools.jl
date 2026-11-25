@@ -17,11 +17,13 @@ homodyne!(I; dims=1:2, sigma=8 .* ones(length(dims))) = I ./= gaussiansmooth3d(I
     NumART2star(image::AbstractArray{T,4}, TEs) where T
 
 Performs T2* calculation on 4D-multi-echo magnitude data.
+The signal integral uses the trapezoidal rule, so the echoes need not be equally spaced.
 https://doi.org/10.1002/mrm.10283
 """
 function NumART2star(image::AbstractArray{T,4}, TEs) where T
-    neco = length(TEs)
-    t2star(m) = (TEs[end]-TEs[1]) / 2(neco-1) * (m[1]+m[end]+2sum(m[2:end-1])) / (m[1]-m[end])
+    dTE = diff(TEs)
+    w = ([dTE; 0] .+ [0; dTE]) ./ 2
+    t2star(m) = sum(w .* m) / (m[1]-m[end])
     return [t2star(image[I,:]) for I in CartesianIndices(size(image)[1:3])]
 end
 

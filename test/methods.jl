@@ -71,4 +71,18 @@ bm = brain_mask(mask)
 @test !all(bm .== true)
 @test !all(bm .== false)
 
+
+# NumART2star
+t2s_true = 30.0
+decay(TEs) = reshape(exp.(-TEs ./ t2s_true), 1, 1, 1, :)
+TEs_eq = 4:4:20
+m = decay(TEs_eq)
+old = (TEs_eq[end]-TEs_eq[1]) / 2(length(TEs_eq)-1) * (m[1]+m[end]+2sum(m[2:end-1])) / (m[1]-m[end])
+@test NumART2star(m, TEs_eq)[1] ≈ old
+TEs_uneq = [4, 5, 7, 12, 20]
+m = decay(TEs_uneq)
+trapz = sum(diff(TEs_uneq) .* (m[1:end-1] .+ m[2:end]) ./ 2)
+@test NumART2star(m, TEs_uneq)[1] ≈ trapz / (m[1]-m[end])
+@test abs(NumART2star(decay(4:0.1:20), 4:0.1:20)[1] - t2s_true) < 0.01
+
 end
